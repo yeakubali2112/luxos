@@ -699,6 +699,22 @@ window.closeWishlistModal = function () {
   document.body.style.overflow = '';
 };
 
+window.openStoryModal = function () {
+  const modal = $('#storyModal');
+  if (modal) {
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+};
+
+window.closeStoryModal = function () {
+  const modal = $('#storyModal');
+  if (modal) {
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+};
+
 function renderWishlistModal() {
   const container = $('#wishlistItems');
   if (!container) return;
