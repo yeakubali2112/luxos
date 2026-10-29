@@ -334,8 +334,68 @@
     const revCountEl = document.getElementById('pdpReviewCount');
     if (revCountEl) revCountEl.textContent = `${reviewCount} reviews`;
 
+    // Render Description & Highlights (Requested Feature)
+    const descEl = document.getElementById('pdpDescriptionText');
+    if (descEl) {
+      descEl.textContent = currentProduct.description || 'Crafted for modern executives, the Executive RFID Card Holder merges minimalist architectural design with smart functionality. Features an ergonomic one-click card ejector mechanism, aerospace-grade aluminum casing with 13.56 MHz RFID signal blocking, and premium hand-finished leather casing.';
+    }
+
+    if (currentProduct.specs) {
+      if (currentProduct.specs.material && document.getElementById('pdpSpecMaterial')) {
+        document.getElementById('pdpSpecMaterial').textContent = currentProduct.specs.material;
+      }
+      if (currentProduct.specs.capacity && document.getElementById('pdpSpecCapacity')) {
+        document.getElementById('pdpSpecCapacity').textContent = currentProduct.specs.capacity;
+      }
+      if (currentProduct.specs.dimensions && document.getElementById('pdpSpecDimensions')) {
+        document.getElementById('pdpSpecDimensions').textContent = currentProduct.specs.dimensions;
+      }
+      if (currentProduct.specs.weight && document.getElementById('pdpSpecWeight')) {
+        document.getElementById('pdpSpecWeight').textContent = currentProduct.specs.weight;
+      }
+    }
+
+    if (currentProduct.features && Array.isArray(currentProduct.features)) {
+      currentProduct.features.forEach((f, idx) => {
+        const titleEl = document.getElementById(`pdpFeatureTitle${idx + 1}`);
+        const descEl = document.getElementById(`pdpFeatureDesc${idx + 1}`);
+        if (titleEl && f.title) titleEl.textContent = f.title;
+        if (descEl && f.desc) descEl.textContent = f.desc;
+      });
+    }
+
+    // Check custom delivery notice
+    try {
+      const extra = JSON.parse(localStorage.getItem(`luxos_pdp_extra_${currentProduct.id}`));
+      if (extra && extra.deliveryNotice) {
+        const delEl = document.querySelector('#estimatedDeliveryBanner span');
+        if (delEl) delEl.innerHTML = extra.deliveryNotice;
+      }
+    } catch(e) {}
+
     renderVariantSwatches();
   }
+
+  function switchPdpTab(tabId) {
+    document.querySelectorAll('.pdp-tab-btn').forEach(btn => {
+      btn.classList.remove('border-black', 'text-black');
+      btn.classList.add('border-transparent', 'text-gray-400');
+    });
+    const activeBtn = document.getElementById(`pdpTabBtn-${tabId}`);
+    if (activeBtn) {
+      activeBtn.classList.remove('border-transparent', 'text-gray-400');
+      activeBtn.classList.add('border-black', 'text-black');
+    }
+
+    document.querySelectorAll('.pdp-tab-content').forEach(content => {
+      content.classList.add('hidden');
+    });
+    const activeContent = document.getElementById(`pdpTabContent-${tabId}`);
+    if (activeContent) {
+      activeContent.classList.remove('hidden');
+    }
+  }
+  window.switchPdpTab = switchPdpTab;
 
   /**
    * Render Color / Variant Swatches
@@ -516,7 +576,20 @@
     const secondsEl = document.getElementById('timerSeconds');
     if (!daysEl || !hoursEl || !minutesEl || !secondsEl) return;
 
-    let totalSeconds = (0 * 86400) + (1 * 3600) + (29 * 60) + 40;
+    let hVal = 1, mVal = 29, sVal = 40;
+    try {
+      const extra = currentProduct ? JSON.parse(localStorage.getItem(`luxos_pdp_extra_${currentProduct.id}`)) : null;
+      if (extra && extra.timer) {
+        if (extra.timer.header && document.getElementById('timerHeaderTitle')) {
+          document.getElementById('timerHeaderTitle').textContent = extra.timer.header;
+        }
+        if (typeof extra.timer.hours === 'number') hVal = extra.timer.hours;
+        if (typeof extra.timer.minutes === 'number') mVal = extra.timer.minutes;
+        if (typeof extra.timer.seconds === 'number') sVal = extra.timer.seconds;
+      }
+    } catch(e) {}
+
+    let totalSeconds = (0 * 86400) + (hVal * 3600) + (mVal * 60) + sVal;
 
     function update() {
       if (totalSeconds <= 0) totalSeconds = 86400;

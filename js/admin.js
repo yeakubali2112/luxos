@@ -383,6 +383,7 @@ window.switchTab = function (tabName) {
     dashboard: 'Operations Dashboard',
     orders: 'Customer Orders Management',
     products: 'Product Catalog Management',
+    'landing-page': 'Product Landing Page Management (PDP)',
     banners: 'Hero Banners & Slideshow',
     collections: 'Shop by Collection (Curated Story Circles)',
     ticker: 'Scrolling Marquee Ticker Management',
@@ -396,6 +397,7 @@ window.switchTab = function (tabName) {
   if (tabName === 'dashboard') renderDashboard();
   if (tabName === 'orders') renderOrdersTable();
   if (tabName === 'products') renderProductsTable();
+  if (tabName === 'landing-page') renderLandingPageManager();
   if (tabName === 'banners') renderBannersTable();
   if (tabName === 'collections') renderCollectionsManager();
   if (tabName === 'ticker') renderTickerSettings();
@@ -2210,4 +2212,262 @@ window.saveCollectionsHeaderSettings = function () {
   localStorage.setItem('luxos_collections_header', JSON.stringify(AdminState.collectionsHeader));
   renderCollectionsManager();
   showAdminToast('Section header text updated!');
+};
+
+/* ==========================================================================
+   Product Landing Page (PDP) Manager
+   ========================================================================== */
+let currentPdpProduct = null;
+let currentPdpGalleryImages = [];
+
+window.renderLandingPageManager = function () {
+  const selectEl = $('#pdpAdminSelectProduct');
+  if (!selectEl) return;
+
+  const products = AdminState.products || [];
+  selectEl.innerHTML = products.map(p => `
+    <option value="${p.id}">${p.title} (${p.price})</option>
+  `).join('');
+
+  // Default to product 1 or first product
+  const defaultId = currentPdpProduct ? currentPdpProduct.id : (products[0] ? products[0].id : 1);
+  selectEl.value = defaultId;
+  loadLandingPageProductData(defaultId);
+};
+
+window.loadLandingPageProductData = function (productId) {
+  const pId = parseInt(productId, 10);
+  const products = AdminState.products || [];
+  const prod = products.find(p => p.id === pId) || products[0];
+  if (!prod) return;
+
+  currentPdpProduct = prod;
+
+  // Basic Details
+  if ($('#pdpAdminTitle')) $('#pdpAdminTitle').value = prod.title || '';
+  if ($('#pdpAdminCategory')) $('#pdpAdminCategory').value = prod.category || '';
+  if ($('#pdpAdminPrice')) $('#pdpAdminPrice').value = prod.price || '';
+  if ($('#pdpAdminOriginalPrice')) $('#pdpAdminOriginalPrice').value = prod.originalPrice || '';
+  if ($('#pdpAdminBadge')) $('#pdpAdminBadge').value = prod.badge || 'SAVE 46%';
+  if ($('#pdpAdminLivePreviewLink')) $('#pdpAdminLivePreviewLink').href = `product.html?id=${prod.id}`;
+
+  // Description
+  const defaultDesc = 'Crafted for modern executives, the Executive RFID Card Holder merges minimalist architectural design with smart functionality. Features an ergonomic one-click card ejector mechanism, aerospace-grade aluminum casing with 13.56 MHz RFID signal blocking, and premium hand-finished leather casing.';
+  if ($('#pdpAdminDescription')) $('#pdpAdminDescription').value = prod.description || defaultDesc;
+
+  // Features
+  const f1 = (prod.features && prod.features[0]) || { title: 'Quick-Access Slider', desc: 'Ergonomic one-click ejection mechanism fans cards out smoothly in a cascading sequence for instant access.' };
+  const f2 = (prod.features && prod.features[1]) || { title: '100% RFID Protection', desc: 'Integrated electromagnetic shielding prevents digital wireless RFID/NFC theft & unauthorized skimming.' };
+  const f3 = (prod.features && prod.features[2]) || { title: 'Aerospace Aluminum', desc: 'Constructed from ultra-durable anodized aircraft aluminum that will not bend, snap, or deform under pressure.' };
+  const f4 = (prod.features && prod.features[3]) || { title: 'Ultra-Slim Profile', desc: 'Only 1.2 cm slim, effortlessly sliding into front or suit pockets without creating unsightly bulk.' };
+
+  if ($('#pdpAdminFeatTitle1')) $('#pdpAdminFeatTitle1').value = f1.title;
+  if ($('#pdpAdminFeatDesc1')) $('#pdpAdminFeatDesc1').value = f1.desc;
+  if ($('#pdpAdminFeatTitle2')) $('#pdpAdminFeatTitle2').value = f2.title;
+  if ($('#pdpAdminFeatDesc2')) $('#pdpAdminFeatDesc2').value = f2.desc;
+  if ($('#pdpAdminFeatTitle3')) $('#pdpAdminFeatTitle3').value = f3.title;
+  if ($('#pdpAdminFeatDesc3')) $('#pdpAdminFeatDesc3').value = f3.desc;
+  if ($('#pdpAdminFeatTitle4')) $('#pdpAdminFeatTitle4').value = f4.title;
+  if ($('#pdpAdminFeatDesc4')) $('#pdpAdminFeatDesc4').value = f4.desc;
+
+  // Specs
+  const specs = prod.specs || {};
+  if ($('#pdpAdminSpecMaterial')) $('#pdpAdminSpecMaterial').value = specs.material || 'Aerospace-Grade Aluminum Core + Hand-Finished Exterior';
+  if ($('#pdpAdminSpecCapacity')) $('#pdpAdminSpecCapacity').value = specs.capacity || '5–6 Cards in Chamber + Dedicated Internal Cash/Notes Compartment';
+  if ($('#pdpAdminSpecDimensions')) $('#pdpAdminSpecDimensions').value = specs.dimensions || '9.5 cm × 6.5 cm × 1.2 cm';
+  if ($('#pdpAdminSpecWeight')) $('#pdpAdminSpecWeight').value = specs.weight || 'Approx. 70 grams (Featherweight Slim)';
+
+  // Extra Settings: Timer & Delivery Notice
+  let extra = null;
+  try {
+    extra = JSON.parse(localStorage.getItem(`luxos_pdp_extra_${prod.id}`));
+  } catch (e) {}
+
+  if ($('#pdpAdminDeliveryText')) {
+    $('#pdpAdminDeliveryText').value = (extra && extra.deliveryNotice) || 'Estimated Delivery: 3–5 Days — Ships directly from Dhaka';
+  }
+
+  if ($('#pdpAdminTimerHeader')) {
+    $('#pdpAdminTimerHeader').value = (extra && extra.timer && extra.timer.header) || 'EXCLUSIVE DISCOUNT';
+  }
+  if ($('#pdpAdminTimerHours')) {
+    $('#pdpAdminTimerHours').value = (extra && extra.timer && typeof extra.timer.hours === 'number') ? extra.timer.hours : 1;
+  }
+  if ($('#pdpAdminTimerMins')) {
+    $('#pdpAdminTimerMins').value = (extra && extra.timer && typeof extra.timer.minutes === 'number') ? extra.timer.minutes : 29;
+  }
+  if ($('#pdpAdminTimerSecs')) {
+    $('#pdpAdminTimerSecs').value = (extra && extra.timer && typeof extra.timer.seconds === 'number') ? extra.timer.seconds : 40;
+  }
+
+  // Gallery Images
+  const gallery = Array.isArray(prod.gallery) && prod.gallery.length > 0 
+    ? [...prod.gallery] 
+    : [prod.image].filter(Boolean);
+  
+  // Ensure Product 1 has all defaults if empty
+  if (prod.id === 1 && gallery.length < 5) {
+    const defaults = [
+      'https://thepatchee.com/cdn/shop/files/654a7e83-c512-4ec1-8ebf-af44c488e776.png?v=1781362688',
+      'https://thepatchee.com/cdn/shop/files/dc64c41d-ae95-4a7f-912f-1c2a664d35f1.jpg?v=1781362693',
+      'https://thepatchee.com/cdn/shop/files/572c906d-1d96-48a7-9724-f99155bba413.jpg?v=1781362696',
+      'https://thepatchee.com/cdn/shop/files/7_JDF6Lx.jpg?v=1781362700',
+      'https://thepatchee.com/cdn/shop/files/16_oF8xw5.jpg?v=1781362703',
+      'https://thepatchee.com/cdn/shop/files/1_Sr7vuQ.jpg?v=1781362706',
+      'https://thepatchee.com/cdn/shop/files/17_9tpHkH.jpg?v=1781362710',
+      'https://thepatchee.com/cdn/shop/files/18_2rgYCr.jpg?v=1781362713',
+      'https://thepatchee.com/cdn/shop/files/15_1Knw4N.jpg?v=1781362716'
+    ];
+    defaults.forEach(url => {
+      if (!gallery.includes(url)) gallery.push(url);
+    });
+  }
+
+  currentPdpGalleryImages = gallery;
+  renderPdpAdminGallery();
+};
+
+function renderPdpAdminGallery() {
+  const container = $('#pdpAdminGalleryGrid');
+  const countBadge = $('#pdpAdminGalleryCount');
+  if (!container) return;
+
+  if (countBadge) countBadge.textContent = `${currentPdpGalleryImages.length} Photos`;
+
+  if (currentPdpGalleryImages.length === 0) {
+    container.innerHTML = '<div class="col-span-full py-8 text-center text-xs text-slate-400">No photos added yet. Upload or paste a URL above.</div>';
+    return;
+  }
+
+  container.innerHTML = currentPdpGalleryImages.map((url, idx) => `
+    <div class="group relative aspect-square rounded-lg border border-slate-200 overflow-hidden bg-slate-50 shadow-xs hover:border-black transition">
+      <img src="${url}" class="w-full h-full object-cover" />
+      <span class="absolute top-1 left-1 bg-black/75 text-white text-[9px] px-1.5 py-0.5 rounded font-mono">${idx + 1}</span>
+      <button type="button" onclick="removePdpGalleryPhoto(${idx})" title="Delete photo" class="absolute top-1 right-1 bg-red-600 hover:bg-red-700 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition shadow">
+        ✕
+      </button>
+    </div>
+  `).join('');
+}
+
+window.addPdpGalleryPhoto = function () {
+  const input = $('#pdpAdminNewPhotoUrl');
+  if (!input) return;
+  const url = input.value.trim();
+  if (!url) {
+    showAdminToast('Please enter an image URL.');
+    return;
+  }
+  currentPdpGalleryImages.push(url);
+  input.value = '';
+  renderPdpAdminGallery();
+  showAdminToast('Photo added to gallery.');
+};
+
+window.handlePdpGalleryUpload = function (e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function (evt) {
+    currentPdpGalleryImages.push(evt.target.result);
+    renderPdpAdminGallery();
+    showAdminToast('Photo uploaded successfully.');
+  };
+  reader.readAsDataURL(file);
+};
+
+window.removePdpGalleryPhoto = function (index) {
+  if (currentPdpGalleryImages.length <= 1) {
+    showAdminToast('At least 1 photo is required in the gallery.');
+    return;
+  }
+  currentPdpGalleryImages.splice(index, 1);
+  renderPdpAdminGallery();
+  showAdminToast('Photo removed.');
+};
+
+window.saveLandingPageSettings = function () {
+  if (!currentPdpProduct) return;
+
+  const title = $('#pdpAdminTitle') ? $('#pdpAdminTitle').value.trim() : currentPdpProduct.title;
+  const category = $('#pdpAdminCategory') ? $('#pdpAdminCategory').value.trim() : currentPdpProduct.category;
+  const price = $('#pdpAdminPrice') ? $('#pdpAdminPrice').value.trim() : currentPdpProduct.price;
+  const originalPrice = $('#pdpAdminOriginalPrice') ? $('#pdpAdminOriginalPrice').value.trim() : currentPdpProduct.originalPrice;
+  const badge = $('#pdpAdminBadge') ? $('#pdpAdminBadge').value.trim() : currentPdpProduct.badge;
+  const description = $('#pdpAdminDescription') ? $('#pdpAdminDescription').value.trim() : currentPdpProduct.description;
+
+  // Features
+  const features = [
+    {
+      title: $('#pdpAdminFeatTitle1') ? $('#pdpAdminFeatTitle1').value.trim() : 'Quick-Access Slider',
+      desc: $('#pdpAdminFeatDesc1') ? $('#pdpAdminFeatDesc1').value.trim() : ''
+    },
+    {
+      title: $('#pdpAdminFeatTitle2') ? $('#pdpAdminFeatTitle2').value.trim() : '100% RFID Protection',
+      desc: $('#pdpAdminFeatDesc2') ? $('#pdpAdminFeatDesc2').value.trim() : ''
+    },
+    {
+      title: $('#pdpAdminFeatTitle3') ? $('#pdpAdminFeatTitle3').value.trim() : 'Aerospace Aluminum',
+      desc: $('#pdpAdminFeatDesc3') ? $('#pdpAdminFeatDesc3').value.trim() : ''
+    },
+    {
+      title: $('#pdpAdminFeatTitle4') ? $('#pdpAdminFeatTitle4').value.trim() : 'Ultra-Slim Profile',
+      desc: $('#pdpAdminFeatDesc4') ? $('#pdpAdminFeatDesc4').value.trim() : ''
+    }
+  ];
+
+  // Specs
+  const specs = {
+    material: $('#pdpAdminSpecMaterial') ? $('#pdpAdminSpecMaterial').value.trim() : '',
+    capacity: $('#pdpAdminSpecCapacity') ? $('#pdpAdminSpecCapacity').value.trim() : '',
+    dimensions: $('#pdpAdminSpecDimensions') ? $('#pdpAdminSpecDimensions').value.trim() : '',
+    weight: $('#pdpAdminSpecWeight') ? $('#pdpAdminSpecWeight').value.trim() : ''
+  };
+
+  // Update in memory product
+  currentPdpProduct.title = title;
+  currentPdpProduct.category = category;
+  currentPdpProduct.price = price;
+  currentPdpProduct.originalPrice = originalPrice;
+  currentPdpProduct.badge = badge;
+  currentPdpProduct.description = description;
+  currentPdpProduct.features = features;
+  currentPdpProduct.specs = specs;
+  currentPdpProduct.gallery = [...currentPdpGalleryImages];
+  if (currentPdpGalleryImages[0]) {
+    currentPdpProduct.image = currentPdpGalleryImages[0];
+  }
+
+  // Update in AdminState.products array
+  const pIndex = AdminState.products.findIndex(p => p.id === currentPdpProduct.id);
+  if (pIndex > -1) {
+    AdminState.products[pIndex] = { ...AdminState.products[pIndex], ...currentPdpProduct };
+  }
+
+  // Save to luxos_products_data
+  localStorage.setItem('luxos_products_data', JSON.stringify(AdminState.products));
+
+  // Save timer & delivery extra settings
+  const deliveryNotice = $('#pdpAdminDeliveryText') ? $('#pdpAdminDeliveryText').value.trim() : '';
+  const timerHeader = $('#pdpAdminTimerHeader') ? $('#pdpAdminTimerHeader').value.trim() : 'EXCLUSIVE DISCOUNT';
+  const timerHours = $('#pdpAdminTimerHours') ? parseInt($('#pdpAdminTimerHours').value, 10) || 0 : 1;
+  const timerMinutes = $('#pdpAdminTimerMins') ? parseInt($('#pdpAdminTimerMins').value, 10) || 0 : 29;
+  const timerSeconds = $('#pdpAdminTimerSecs') ? parseInt($('#pdpAdminTimerSecs').value, 10) || 0 : 40;
+
+  const extraSettings = {
+    deliveryNotice,
+    timer: {
+      header: timerHeader,
+      hours: timerHours,
+      minutes: timerMinutes,
+      seconds: timerSeconds
+    }
+  };
+  localStorage.setItem(`luxos_pdp_extra_${currentPdpProduct.id}`, JSON.stringify(extraSettings));
+
+  // Refresh products table if needed
+  if (typeof renderProductsTable === 'function') renderProductsTable();
+
+  showAdminToast(`Landing Page for "${currentPdpProduct.title}" updated successfully!`);
 };

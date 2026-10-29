@@ -129,6 +129,16 @@
         <span id="sidebarProductsCount" class="text-slate-400 text-xs">38</span>
       </button>
 
+      <button onclick="switchTab('landing-page')" id="nav-landing-page" class="nav-item w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition">
+        <div class="flex items-center gap-3">
+          <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" /></svg>
+          <span>Landing Page (PDP)</span>
+        </div>
+        <span class="bg-amber-500/20 text-amber-300 text-[10px] font-bold px-1.5 py-0.5 rounded">NEW</span>
+      </button>
+
+
+
       <button onclick="switchTab('banners')" id="nav-banners" class="nav-item w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition">
         <div class="flex items-center gap-3">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" /></svg>
@@ -905,7 +915,234 @@
         </div>
       </section>
 
-    </main>
+          <!-- =====================================================================
+           TAB 7: PRODUCT LANDING PAGE MANAGER (PDP) (Requested Feature)
+           ===================================================================== -->
+      <section id="tab-landing-page" class="space-y-6 hidden">
+        <!-- Top Toolbar Card -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 uppercase tracking-wider">Dedicated PDP Engine</span>
+              <span class="text-xs text-slate-400">Live Real-time Sync</span>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 mt-0.5 font-heading">Product Landing Page Management</h3>
+            <p class="text-xs text-slate-500">Edit product title, description, specifications, gallery photos, timer & delivery notices for product.html.</p>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2">
+              <label for="pdpAdminSelectProduct" class="text-xs font-semibold text-slate-600 whitespace-nowrap">Target Product:</label>
+              <select id="pdpAdminSelectProduct" onchange="loadLandingPageProductData(this.value)" class="border border-slate-300 rounded-lg p-2 text-xs bg-white font-semibold focus:outline-none focus:border-black max-w-[200px] truncate">
+                <!-- Injected dynamically by JS -->
+              </select>
+            </div>
+
+            <a id="pdpAdminLivePreviewLink" href="product.html?id=1" target="_blank" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg text-xs font-semibold transition flex items-center gap-1.5" title="Open live landing page in new tab">
+              <span>View Live Page</span>
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
+            </a>
+
+            <button type="button" onclick="saveLandingPageSettings()" class="px-5 py-2 bg-amber-500 hover:bg-amber-600 text-black rounded-lg text-xs font-bold transition shadow flex items-center gap-1.5 cursor-pointer">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+              <span>Save Changes</span>
+            </button>
+          </div>
+        </div>
+
+        <form id="pdpAdminForm" onsubmit="event.preventDefault(); saveLandingPageSettings();" class="space-y-6">
+          
+          <!-- Grid 1: Basic Info & Pricing -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Col 1 & 2: Primary Details -->
+            <div class="lg:col-span-2 bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+              <h4 class="text-sm font-bold text-slate-900 border-b border-slate-100 pb-3 flex items-center gap-2">
+                <span>📌</span> Product Showcase Info
+              </h4>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                <div>
+                  <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Product Title *</label>
+                  <input id="pdpAdminTitle" type="text" required class="w-full border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:border-black font-semibold text-slate-900" />
+                </div>
+                <div>
+                  <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Category</label>
+                  <input id="pdpAdminCategory" type="text" class="w-full border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:border-black" />
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+                <div>
+                  <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Selling Price (৳) *</label>
+                  <input id="pdpAdminPrice" type="text" required placeholder="৳ 687" class="w-full border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:border-black font-bold text-slate-900" />
+                </div>
+                <div>
+                  <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Original Price (৳)</label>
+                  <input id="pdpAdminOriginalPrice" type="text" placeholder="৳ 1,272" class="w-full border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:border-black text-slate-500" />
+                </div>
+                <div>
+                  <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Discount Tag</label>
+                  <input id="pdpAdminBadge" type="text" placeholder="SAVE 46%" class="w-full border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:border-black font-semibold text-orange-600" />
+                </div>
+              </div>
+
+              <div class="text-xs">
+                <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Estimated Delivery Notice</label>
+                <input id="pdpAdminDeliveryText" type="text" placeholder="Estimated Delivery: 3–5 Days — Ships directly from Dhaka" class="w-full border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:border-black" />
+              </div>
+            </div>
+
+            <!-- Col 3: Countdown Timer Urgency Box -->
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+              <h4 class="text-sm font-bold text-slate-900 border-b border-slate-100 pb-3 flex items-center gap-2">
+                <span>⏳</span> Exclusive Discount Timer
+              </h4>
+
+              <div class="text-xs space-y-3">
+                <div>
+                  <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Timer Header Text</label>
+                  <input id="pdpAdminTimerHeader" type="text" value="EXCLUSIVE DISCOUNT" class="w-full border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:border-black font-semibold" />
+                </div>
+
+                <div class="grid grid-cols-3 gap-2">
+                  <div>
+                    <label class="block font-semibold text-slate-500 text-[10px] uppercase mb-1">Hours</label>
+                    <input id="pdpAdminTimerHours" type="number" min="0" max="99" value="1" class="w-full border border-slate-300 rounded-lg p-2 text-center font-bold" />
+                  </div>
+                  <div>
+                    <label class="block font-semibold text-slate-500 text-[10px] uppercase mb-1">Minutes</label>
+                    <input id="pdpAdminTimerMins" type="number" min="0" max="59" value="29" class="w-full border border-slate-300 rounded-lg p-2 text-center font-bold" />
+                  </div>
+                  <div>
+                    <label class="block font-semibold text-slate-500 text-[10px] uppercase mb-1">Seconds</label>
+                    <input id="pdpAdminTimerSecs" type="number" min="0" max="59" value="40" class="w-full border border-slate-300 rounded-lg p-2 text-center font-bold" />
+                  </div>
+                </div>
+
+                <div class="p-3 bg-amber-50 rounded-lg border border-amber-200/80 text-[11px] text-amber-900">
+                  <span>• এই টাইমারটি প্রোডাক্ট পেজে লাইভ রিয়েলটাইমে কাউন্টডাউন করবে এবং ক্রেতার কাছে জরুরি অনুভূতির (urgency) সৃষ্টি করবে।</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Grid 2: Product Description & Value Props -->
+          <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h4 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <span>📝</span> Product Description &amp; Detailed Highlights
+              </h4>
+              <span class="text-xs text-slate-500">Displayed in the Description section on product.html</span>
+            </div>
+
+            <div class="space-y-4 text-xs">
+              <div>
+                <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Full Description Paragraph *</label>
+                <textarea id="pdpAdminDescription" rows="4" required placeholder="Write a comprehensive, compelling description about the product's design, material, craftsmanship, and benefits..." class="w-full border border-slate-300 rounded-lg p-3 text-xs leading-relaxed focus:outline-none focus:border-black"></textarea>
+              </div>
+
+              <!-- 4 Feature Highlight Cards -->
+              <div>
+                <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-2">4 Key Feature Highlights (Callout Cards)</label>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <!-- Feature 1 -->
+                  <div class="p-3 border border-slate-200 rounded-lg bg-slate-50/50 space-y-2">
+                    <span class="text-[10px] font-bold text-slate-500 uppercase">Feature 1</span>
+                    <input id="pdpAdminFeatTitle1" type="text" placeholder="e.g. Quick-Access Slider" class="w-full border border-slate-300 rounded p-2 font-semibold text-xs" />
+                    <textarea id="pdpAdminFeatDesc1" rows="2" placeholder="e.g. Ergonomic one-click ejection mechanism fans cards out smoothly..." class="w-full border border-slate-300 rounded p-2 text-[11px]"></textarea>
+                  </div>
+                  <!-- Feature 2 -->
+                  <div class="p-3 border border-slate-200 rounded-lg bg-slate-50/50 space-y-2">
+                    <span class="text-[10px] font-bold text-slate-500 uppercase">Feature 2</span>
+                    <input id="pdpAdminFeatTitle2" type="text" placeholder="e.g. 100% RFID Protection" class="w-full border border-slate-300 rounded p-2 font-semibold text-xs" />
+                    <textarea id="pdpAdminFeatDesc2" rows="2" placeholder="e.g. Integrated electromagnetic shielding prevents digital wireless skimming..." class="w-full border border-slate-300 rounded p-2 text-[11px]"></textarea>
+                  </div>
+                  <!-- Feature 3 -->
+                  <div class="p-3 border border-slate-200 rounded-lg bg-slate-50/50 space-y-2">
+                    <span class="text-[10px] font-bold text-slate-500 uppercase">Feature 3</span>
+                    <input id="pdpAdminFeatTitle3" type="text" placeholder="e.g. Aerospace Aluminum" class="w-full border border-slate-300 rounded p-2 font-semibold text-xs" />
+                    <textarea id="pdpAdminFeatDesc3" rows="2" placeholder="e.g. Constructed from ultra-durable anodized aircraft aluminum..." class="w-full border border-slate-300 rounded p-2 text-[11px]"></textarea>
+                  </div>
+                  <!-- Feature 4 -->
+                  <div class="p-3 border border-slate-200 rounded-lg bg-slate-50/50 space-y-2">
+                    <span class="text-[10px] font-bold text-slate-500 uppercase">Feature 4</span>
+                    <input id="pdpAdminFeatTitle4" type="text" placeholder="e.g. Ultra-Slim Profile" class="w-full border border-slate-300 rounded p-2 font-semibold text-xs" />
+                    <textarea id="pdpAdminFeatDesc4" rows="2" placeholder="e.g. Only 1.2 cm slim, effortlessly sliding into front or suit pockets..." class="w-full border border-slate-300 rounded p-2 text-[11px]"></textarea>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Technical Specifications -->
+              <div class="pt-2">
+                <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-2">Technical Specifications</label>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                  <div>
+                    <label class="block text-[10px] text-slate-500 uppercase mb-1">Material</label>
+                    <input id="pdpAdminSpecMaterial" type="text" placeholder="e.g. Aluminum + Leather" class="w-full border border-slate-300 rounded p-2 text-xs" />
+                  </div>
+                  <div>
+                    <label class="block text-[10px] text-slate-500 uppercase mb-1">Capacity</label>
+                    <input id="pdpAdminSpecCapacity" type="text" placeholder="e.g. 5–6 Cards + Cash" class="w-full border border-slate-300 rounded p-2 text-xs" />
+                  </div>
+                  <div>
+                    <label class="block text-[10px] text-slate-500 uppercase mb-1">Dimensions</label>
+                    <input id="pdpAdminSpecDimensions" type="text" placeholder="e.g. 9.5 × 6.5 × 1.2 cm" class="w-full border border-slate-300 rounded p-2 text-xs" />
+                  </div>
+                  <div>
+                    <label class="block text-[10px] text-slate-500 uppercase mb-1">Weight</label>
+                    <input id="pdpAdminSpecWeight" type="text" placeholder="e.g. 70 grams" class="w-full border border-slate-300 rounded p-2 text-xs" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Grid 3: Side Gallery Photos Manager -->
+          <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h4 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                  <span>🖼️</span> Vertical Gallery Photos (Side Thumbnails)
+                </h4>
+                <p class="text-xs text-slate-500">All photos shown in the side thumbnail strip and main zoomable viewport.</p>
+              </div>
+              <span id="pdpAdminGalleryCount" class="text-xs font-semibold px-2.5 py-1 bg-slate-100 rounded-full text-slate-700">0 Photos</span>
+            </div>
+
+            <!-- Add new photo row -->
+            <div class="flex flex-col sm:flex-row gap-2">
+              <input type="file" id="pdpAdminGalleryFileInput" accept="image/*" class="hidden" onchange="handlePdpGalleryUpload(event)" />
+              <button type="button" onclick="$('#pdpAdminGalleryFileInput').click()" class="bg-slate-800 hover:bg-black text-white px-4 py-2.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 shrink-0 transition">
+                <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
+                <span>Upload Photo</span>
+              </button>
+              <input id="pdpAdminNewPhotoUrl" type="text" placeholder="Or paste image URL (https://...)" class="flex-1 border border-slate-300 rounded-lg p-2.5 text-xs focus:outline-none focus:border-black" />
+              <button type="button" onclick="addPdpGalleryPhoto()" class="bg-black hover:bg-slate-800 text-white px-5 py-2.5 rounded-lg text-xs font-semibold shrink-0 transition">
+                + Add Photo
+              </button>
+            </div>
+
+            <!-- Gallery Images Grid List -->
+            <div id="pdpAdminGalleryGrid" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 pt-2">
+              <!-- Injected by JS -->
+            </div>
+          </div>
+
+          <!-- Bottom Floating Save Bar -->
+          <div class="p-4 bg-slate-900 text-white rounded-xl flex items-center justify-between shadow-lg">
+            <span class="text-xs font-medium text-slate-300">Changes will be updated instantly on product.html</span>
+            <div class="flex gap-3">
+              <button type="button" onclick="loadLandingPageProductData($('#pdpAdminSelectProduct').value)" class="px-4 py-2 border border-slate-700 hover:bg-slate-800 text-slate-300 rounded-lg text-xs font-semibold transition">Reset</button>
+              <button type="submit" class="px-6 py-2 bg-amber-500 hover:bg-amber-600 text-black rounded-lg text-xs font-bold transition shadow">Save Changes</button>
+            </div>
+          </div>
+
+        </form>
+      </section>
+
+</main>
   </div>
 
   <!-- =======================================================================

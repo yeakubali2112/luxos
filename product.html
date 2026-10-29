@@ -251,11 +251,11 @@
         </div>
 
         <!-- 9. Estimated Delivery Banner -->
-        <div class="bg-[#EEF7F2] border border-[#CDE5D7] text-[#1E6B43] text-xs font-medium px-3.5 py-2.5 rounded-sm flex items-center gap-2.5">
+        <div id="estimatedDeliveryBanner" class="bg-[#EEF7F2] border border-[#CDE5D7] text-[#1E6B43] text-xs font-medium px-3.5 py-2.5 rounded-sm flex items-center gap-2.5">
           <svg class="w-4 h-4 text-[#1E6B43] shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.25H4.125C3.504 7.5 3 8.004 3 8.625V15" />
           </svg>
-          <span>Estimated Delivery: <b>3–5 Days</b> — Ships directly from Dhaka</span>
+          <span id="pdpDeliveryNoticeText">Estimated Delivery: <b>3–5 Days</b> — Ships directly from Dhaka</span>
         </div>
 
         <!-- 11. Quantity Selector -->
@@ -269,7 +269,7 @@
 
         <!-- 12. Exclusive Discount Countdown Timer Box (As in Screenshot) -->
         <div class="bg-gray-50 border border-gray-200 rounded-sm p-4 text-center">
-          <div class="text-xs font-bold uppercase tracking-[0.18em] text-[#111111] mb-2.5">
+          <div id="timerHeaderTitle" class="text-xs font-bold uppercase tracking-[0.18em] text-[#111111] mb-2.5">
             EXCLUSIVE DISCOUNT
           </div>
           
@@ -361,6 +361,122 @@
 
     </div>
   </main>
+
+  <!-- =======================================================================
+       4B. Product Description & Specifications (Requested Feature)
+       "ei page a product er despribtion thakbe production"
+       ======================================================================= -->
+  <section id="descriptionSection" class="bg-white border-t border-gray-200 py-12 sm:py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- Luxury Navigation Tabs -->
+      <div class="flex border-b border-gray-200 gap-6 sm:gap-10 text-xs sm:text-sm font-bold uppercase tracking-[0.14em]">
+        <button type="button" onclick="switchPdpTab('overview')" id="pdpTabBtn-overview" class="pdp-tab-btn pb-3.5 border-b-2 border-black text-black transition cursor-pointer">
+          Product Description
+        </button>
+        <button type="button" onclick="switchPdpTab('specs')" id="pdpTabBtn-specs" class="pdp-tab-btn pb-3.5 border-b-2 border-transparent text-gray-400 hover:text-black transition cursor-pointer">
+          Specifications &amp; Features
+        </button>
+        <button type="button" onclick="switchPdpTab('shipping')" id="pdpTabBtn-shipping" class="pdp-tab-btn pb-3.5 border-b-2 border-transparent text-gray-400 hover:text-black transition cursor-pointer">
+          Delivery &amp; Guarantee
+        </button>
+      </div>
+
+      <!-- Tab 1: Product Description & Highlights -->
+      <div id="pdpTabContent-overview" class="pdp-tab-content pt-8 space-y-8">
+        <!-- Dynamic Description Text -->
+        <div class="max-w-4xl">
+          <p id="pdpDescriptionText" class="text-sm sm:text-base text-gray-700 leading-relaxed font-sans"></p>
+        </div>
+
+        <!-- 4 Key Value Props / Feature Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-4">
+          <div class="p-5 border border-gray-200 rounded-sm bg-gray-50/60 space-y-2 hover:border-black transition shadow-sm">
+            <div class="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center text-lg">💳</div>
+            <h4 class="font-bold text-xs uppercase tracking-wider text-gray-900" id="pdpFeatureTitle1">Quick-Access Slider</h4>
+            <p class="text-xs text-gray-600 leading-relaxed" id="pdpFeatureDesc1">Ergonomic one-click ejection mechanism fans cards out smoothly in a cascading sequence for instant access.</p>
+          </div>
+          <div class="p-5 border border-gray-200 rounded-sm bg-gray-50/60 space-y-2 hover:border-black transition shadow-sm">
+            <div class="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center text-lg">🛡️</div>
+            <h4 class="font-bold text-xs uppercase tracking-wider text-gray-900" id="pdpFeatureTitle2">100% RFID Protection</h4>
+            <p class="text-xs text-gray-600 leading-relaxed" id="pdpFeatureDesc2">Integrated electromagnetic shielding prevents digital wireless RFID/NFC theft &amp; unauthorized skimming.</p>
+          </div>
+          <div class="p-5 border border-gray-200 rounded-sm bg-gray-50/60 space-y-2 hover:border-black transition shadow-sm">
+            <div class="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center text-lg">✈️</div>
+            <h4 class="font-bold text-xs uppercase tracking-wider text-gray-900" id="pdpFeatureTitle3">Aerospace Aluminum</h4>
+            <p class="text-xs text-gray-600 leading-relaxed" id="pdpFeatureDesc3">Constructed from ultra-durable anodized aircraft aluminum that will not bend, snap, or deform under pressure.</p>
+          </div>
+          <div class="p-5 border border-gray-200 rounded-sm bg-gray-50/60 space-y-2 hover:border-black transition shadow-sm">
+            <div class="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center text-lg">✨</div>
+            <h4 class="font-bold text-xs uppercase tracking-wider text-gray-900" id="pdpFeatureTitle4">Ultra-Slim Profile</h4>
+            <p class="text-xs text-gray-600 leading-relaxed" id="pdpFeatureDesc4">Only 1.2 cm slim, effortlessly sliding into front or suit pockets without creating unsightly bulk.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 2: Technical Specifications -->
+      <div id="pdpTabContent-specs" class="pdp-tab-content pt-8 hidden">
+        <div class="max-w-3xl overflow-hidden border border-gray-200 rounded-sm shadow-sm">
+          <table class="w-full text-xs text-left">
+            <tbody class="divide-y divide-gray-200">
+              <tr class="bg-gray-50">
+                <td class="py-3 px-4 font-bold text-gray-900 w-1/3">Material</td>
+                <td id="pdpSpecMaterial" class="py-3 px-4 text-gray-700">Aerospace-Grade Aluminum Core + Hand-Finished Exterior</td>
+              </tr>
+              <tr>
+                <td class="py-3 px-4 font-bold text-gray-900">Card Capacity</td>
+                <td id="pdpSpecCapacity" class="py-3 px-4 text-gray-700">5–6 Cards in Chamber + Dedicated Internal Cash/Notes Compartment</td>
+              </tr>
+              <tr class="bg-gray-50">
+                <td class="py-3 px-4 font-bold text-gray-900">RFID Blocking Frequency</td>
+                <td class="py-3 px-4 text-gray-700">13.56 MHz (Tested on POS, ATM &amp; Contactless Readers)</td>
+              </tr>
+              <tr>
+                <td class="py-3 px-4 font-bold text-gray-900">Dimensions</td>
+                <td id="pdpSpecDimensions" class="py-3 px-4 text-gray-700">9.5 cm × 6.5 cm × 1.2 cm</td>
+              </tr>
+              <tr class="bg-gray-50">
+                <td class="py-3 px-4 font-bold text-gray-900">Weight</td>
+                <td id="pdpSpecWeight" class="py-3 px-4 text-gray-700">Approx. 70 grams (Featherweight Slim)</td>
+              </tr>
+              <tr>
+                <td class="py-3 px-4 font-bold text-gray-900">Origin / Inspection</td>
+                <td class="py-3 px-4 text-gray-700">100% Quality Checked in Dhaka Before Dispatch</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab 3: Delivery & Guarantee -->
+      <div id="pdpTabContent-shipping" class="pdp-tab-content pt-8 hidden">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl">
+          <div class="p-6 border border-gray-200 rounded-sm bg-neutral-50 space-y-3">
+            <div class="text-2xl">🚚</div>
+            <h4 class="font-bold text-xs uppercase tracking-wider text-gray-900">Nationwide Shipping</h4>
+            <p class="text-xs text-gray-600 leading-relaxed">
+              We ship everywhere across Bangladesh via trusted couriers (Steadfast / RedX / Pathao). Delivery in 2–3 days inside Dhaka, 3–5 days outside Dhaka.
+            </p>
+          </div>
+          <div class="p-6 border border-gray-200 rounded-sm bg-neutral-50 space-y-3">
+            <div class="text-2xl">💵</div>
+            <h4 class="font-bold text-xs uppercase tracking-wider text-gray-900">Cash on Delivery</h4>
+            <p class="text-xs text-gray-600 leading-relaxed">
+              No advance payment required. Open and check your package in front of the delivery partner, verify product quality, and pay on delivery.
+            </p>
+          </div>
+          <div class="p-6 border border-gray-200 rounded-sm bg-neutral-50 space-y-3">
+            <div class="text-2xl">🔄</div>
+            <h4 class="font-bold text-xs uppercase tracking-wider text-gray-900">7-Day Guarantee</h4>
+            <p class="text-xs text-gray-600 leading-relaxed">
+              If there is any manufacturing defect, mechanism issue, or physical damage, enjoy our hassle-free 7-day replacement guarantee.
+            </p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
 
   <!-- =======================================================================
        5. Customer Reviews & Ratings Engine (Requested Feature)
