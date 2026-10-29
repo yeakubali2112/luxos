@@ -808,6 +808,98 @@ window.filterAdminProducts = function () {
 
 let currentProductSecondaryPhotos = [];
 
+// =========================================================================
+// Product Edit Modal: Showcase Video & Specs Handlers
+// =========================================================================
+let currentEditProductVideo = { url: '', isLocal: false, fileName: '', file: null };
+
+function renderEditModalVideoPreview(sourceUrl, isLocal = false, fileName = '') {
+  const previewWrapper = $('#prodVideoPreviewWrapper');
+  const previewContainer = $('#prodVideoPreviewContainer');
+  const statusEl = $('#prodVideoStatus');
+
+  if (!previewContainer) return;
+
+  if (!sourceUrl) {
+    if (previewWrapper) previewWrapper.classList.add('hidden');
+    previewContainer.innerHTML = '';
+    if (statusEl) {
+      statusEl.textContent = 'No video selected';
+      statusEl.className = 'text-[10px] font-semibold text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200';
+    }
+    return;
+  }
+
+  if (previewWrapper) previewWrapper.classList.remove('hidden');
+
+  if (isLocal) {
+    if (statusEl) {
+      statusEl.textContent = '📁 File: ' + (fileName || 'Uploaded Video');
+      statusEl.className = 'text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded border border-emerald-200';
+    }
+    previewContainer.innerHTML = '<video class="w-full h-full object-cover" controls playsinline src="' + sourceUrl + '">Your browser does not support HTML5 video.</video>';
+    return;
+  }
+
+  // URL (YouTube / Vimeo / MP4)
+  const ytMatch = sourceUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/);
+  if (ytMatch && ytMatch[1]) {
+    if (statusEl) {
+      statusEl.textContent = '🎬 YouTube Video Linked';
+      statusEl.className = 'text-[10px] font-semibold text-red-700 bg-red-50 px-2.5 py-0.5 rounded border border-red-200';
+    }
+    previewContainer.innerHTML = '<iframe class="w-full h-full" src="https://www.youtube.com/embed/' + ytMatch[1] + '?autoplay=0&rel=0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
+  } else if (sourceUrl.includes('vimeo.com/')) {
+    const vimeoId = sourceUrl.split('vimeo.com/')[1].split(/[?#]/)[0];
+    if (statusEl) {
+      statusEl.textContent = '🎬 Vimeo Video Linked';
+      statusEl.className = 'text-[10px] font-semibold text-sky-700 bg-sky-50 px-2.5 py-0.5 rounded border border-sky-200';
+    }
+    previewContainer.innerHTML = '<iframe class="w-full h-full" src="https://player.vimeo.com/video/' + vimeoId + '" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>';
+  } else {
+    if (statusEl) {
+      statusEl.textContent = '🎬 Direct Video URL';
+      statusEl.className = 'text-[10px] font-semibold text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded border border-indigo-200';
+    }
+    previewContainer.innerHTML = '<video class="w-full h-full object-cover" controls playsinline src="' + sourceUrl + '">Your browser does not support HTML5 video.</video>';
+  }
+}
+
+window.handleEditProductVideoUpload = function (e) {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+
+  if (!file.type.startsWith('video/')) {
+    showAdminToast('Please upload a valid video file (MP4, WebM, MOV).');
+    return;
+  }
+
+  currentEditProductVideo = { url: '', isLocal: true, fileName: file.name, file: file };
+  if ($('#prodVideoUrl')) $('#prodVideoUrl').value = '';
+
+  const previewBlobUrl = URL.createObjectURL(file);
+  renderEditModalVideoPreview(previewBlobUrl, true, file.name);
+  showAdminToast('Video "' + file.name + '" selected! Click Save to apply.');
+};
+
+window.handleEditProductVideoUrlInput = function (val) {
+  const url = (val || '').trim();
+  currentEditProductVideo = { url: url, isLocal: false, fileName: '', file: null };
+  renderEditModalVideoPreview(url, false);
+};
+
+window.clearEditProductVideo = async function () {
+  const id = $('#editProductId') ? $('#editProductId').value : '';
+  if (id && currentEditProductVideo.url?.startsWith('idb:')) {
+    await deleteVideoFromDB(id);
+  }
+  currentEditProductVideo = { url: '', isLocal: false, fileName: '', file: null };
+  if ($('#prodVideoUrl')) $('#prodVideoUrl').value = '';
+  if ($('#prodVideoFileInput')) $('#prodVideoFileInput').value = '';
+  renderEditModalVideoPreview('');
+  showAdminToast('Video removed.');
+};
+
 window.openProductModal = function () {
   $('#productModalTitle').textContent = 'Add New Product';
   $('#editProductId').value = '';
@@ -1186,7 +1278,35 @@ window.handleSaveProduct = async function (e) {
     if (!price.startsWith('৳')) price = '৳ ' + price.replace(/[^\d,]/g, '');
     if (originalPrice && !originalPrice.startsWith('৳')) originalPrice = '৳ ' + originalPrice.replace(/[^\d,]/g, '');
 
+    // Process Video
+    let finalVideoUrl = currentEditProductVideo.url || '';
+    let finalVideoFileName = currentEditProductVideo.fileName || '';
+
+    // Process Dimensions and Features bullets
+    const dimsRaw = $('#prodDimensions') ? $('#prodDimensions').value.trim() : '';
+    const finalDims = dimsRaw ? dimsRaw.split('\n').map(s => s.trim()).filter(Boolean) : [];
+
+    const featsRaw = $('#prodFeatures') ? $('#prodFeatures').value.trim() : '';
+    const finalFeats = featsRaw ? featsRaw.split('\n').map(s => s.trim()).filter(Boolean) : [];
+
     let savedId = id;
+    if (!savedId) {
+      savedId = Math.max(0, ...AdminState.products.map(p => p.id)) + 1;
+    }
+
+    if (currentEditProductVideo.isLocal && currentEditProductVideo.file) {
+      try {
+        await saveVideoToDB(savedId, currentEditProductVideo.file);
+        finalVideoUrl = 'idb:pdp_video_' + savedId;
+        finalVideoFileName = currentEditProductVideo.file.name;
+      } catch (vErr) {
+        console.error('Error saving video file to IndexedDB:', vErr);
+      }
+    } else if ($('#prodVideoUrl') && $('#prodVideoUrl').value.trim()) {
+      finalVideoUrl = $('#prodVideoUrl').value.trim();
+    }
+
+    let savedIdAssigned = true;
     if (id) {
       // Update existing
       const existingIndex = AdminState.products.findIndex(p => p.id == id);
