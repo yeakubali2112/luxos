@@ -341,9 +341,6 @@
    * Render Color / Variant Swatches
    */
   function renderVariantSwatches() {
-    const container = document.getElementById('colorSwatchesContainer');
-    if (!container) return;
-
     let colors = currentProduct.colors;
     if (!colors || colors.length === 0) {
       colors = [
@@ -356,6 +353,10 @@
     }
 
     selectedColor = colors[0].name;
+
+    const container = document.getElementById('colorSwatchesContainer');
+    if (!container) return;
+
     const selColorNameEl = document.getElementById('pdpSelectedColorName');
     if (selColorNameEl) selColorNameEl.textContent = selectedColor;
 
