@@ -788,11 +788,77 @@ window.openProductModal = function () {
   $('#prodHoverImage').value = '';
   $('#prodDescription').value = '';
 
+  if ($('#prodPrimaryFileInput')) $('#prodPrimaryFileInput').value = '';
+  if ($('#prodHoverFileInput')) $('#prodHoverFileInput').value = '';
+  if ($('#prodPrimaryImgPreviewBox')) $('#prodPrimaryImgPreviewBox').classList.add('hidden');
+  if ($('#prodHoverImgPreviewBox')) $('#prodHoverImgPreviewBox').classList.add('hidden');
+  if ($('#prodPrimaryImgInfo')) $('#prodPrimaryImgInfo').textContent = 'Preview';
+  if ($('#prodHoverImgInfo')) $('#prodHoverImgInfo').textContent = 'Hover Preview';
+
   $('#productFormModal').classList.add('active');
 };
 
 window.closeProductModal = function () {
   $('#productFormModal').classList.remove('active');
+};
+
+window.handleProductFileUpload = function (event, type) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+
+  if (!file.type.startsWith('image/')) {
+    showAdminToast('Please select a valid image file (JPG, PNG, or WebP).');
+    return;
+  }
+
+  const sizeKB = Math.round(file.size / 1024);
+  const sizeStr = sizeKB > 1024 ? (sizeKB / 1024).toFixed(1) + ' MB' : sizeKB + ' KB';
+  if (file.size > 2 * 1024 * 1024) {
+    showAdminToast(`Notice: File is ${sizeStr}. Recommended under 1 MB for fast product loading.`);
+  }
+
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    const base64 = e.target.result;
+    if (type === 'primary') {
+      $('#prodImage').value = base64;
+      previewProductImg(base64, 'primary');
+      const info = $('#prodPrimaryImgInfo');
+      if (info) info.textContent = `${file.name} (${sizeStr})`;
+      showAdminToast(`Primary product photo loaded (${sizeStr})!`);
+    } else {
+      $('#prodHoverImage').value = base64;
+      previewProductImg(base64, 'hover');
+      const info = $('#prodHoverImgInfo');
+      if (info) info.textContent = `${file.name} (${sizeStr})`;
+      showAdminToast(`Hover photo loaded (${sizeStr})!`);
+    }
+  };
+  reader.readAsDataURL(file);
+};
+
+window.previewProductImg = function (url, type) {
+  if (type === 'primary') {
+    const box = $('#prodPrimaryImgPreviewBox');
+    const img = $('#prodPrimaryImgPreview');
+    if (!box || !img) return;
+    if (url && (url.startsWith('http') || url.startsWith('data:') || url.startsWith('/'))) {
+      img.src = url;
+      box.classList.remove('hidden');
+    } else {
+      box.classList.add('hidden');
+    }
+  } else {
+    const box = $('#prodHoverImgPreviewBox');
+    const img = $('#prodHoverImgPreview');
+    if (!box || !img) return;
+    if (url && (url.startsWith('http') || url.startsWith('data:') || url.startsWith('/'))) {
+      img.src = url;
+      box.classList.remove('hidden');
+    } else {
+      box.classList.add('hidden');
+    }
+  }
 };
 
 window.editProduct = function (productId) {
@@ -812,6 +878,18 @@ window.editProduct = function (productId) {
   $('#prodImage').value = product.image;
   $('#prodHoverImage').value = product.hoverImage || product.image;
   $('#prodDescription').value = product.description || '';
+
+  if ($('#prodPrimaryFileInput')) $('#prodPrimaryFileInput').value = '';
+  if ($('#prodHoverFileInput')) $('#prodHoverFileInput').value = '';
+  if ($('#prodPrimaryImgInfo')) $('#prodPrimaryImgInfo').textContent = 'Current Image';
+  if ($('#prodHoverImgInfo')) $('#prodHoverImgInfo').textContent = 'Current Hover Image';
+
+  previewProductImg(product.image, 'primary');
+  if (product.hoverImage) {
+    previewProductImg(product.hoverImage, 'hover');
+  } else if ($('#prodHoverImgPreviewBox')) {
+    $('#prodHoverImgPreviewBox').classList.add('hidden');
+  }
 
   $('#productFormModal').classList.add('active');
 };
