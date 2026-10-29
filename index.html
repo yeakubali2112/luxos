@@ -98,10 +98,12 @@
       <div class="flex items-center gap-1 sm:gap-2">
         <!-- 1. Profile / Account Button -->
         <button onclick="openAccountModal()" title="My Account &amp; Order Tracking" aria-label="My Account" class="p-2 text-black hover:opacity-60 transition flex items-center justify-center">
-          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="7.8" r="3.8" />
-            <path d="M4.5 20.5a7.5 7.5 0 0 1 15 0" />
-          </svg>
+          <span id="headerAccountIconContainer" class="flex items-center justify-center">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="7.8" r="3.8" />
+              <path d="M4.5 20.5a7.5 7.5 0 0 1 15 0" />
+            </svg>
+          </span>
         </button>
 
         <!-- 2. Search Button -->
@@ -621,15 +623,15 @@
     <div class="modal-content bg-white w-full max-w-lg rounded-sm shadow-2xl p-6 relative max-h-[90vh] flex flex-col">
       <div class="flex items-center justify-between border-b border-gray-200 pb-3 mb-4">
         <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center text-black">
+          <div id="accountModalHeaderAvatar" class="w-9 h-9 rounded-full bg-neutral-100 flex items-center justify-center text-black overflow-hidden border border-gray-200 shrink-0">
             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="7.8" r="3.8" />
               <path d="M4.5 20.5a7.5 7.5 0 0 1 15 0" />
             </svg>
           </div>
           <div>
-            <h3 class="font-bold text-sm sm:text-base uppercase tracking-wider text-gray-900">My Account &amp; Orders</h3>
-            <p class="text-[11px] text-gray-500">Track shipment, saved info &amp; orders</p>
+            <h3 id="accountModalTitle" class="font-bold text-sm sm:text-base uppercase tracking-wider text-gray-900">My Account</h3>
+            <p id="accountModalSubtitle" class="text-[11px] text-gray-500">Track shipment &amp; manage your profile</p>
           </div>
         </div>
         <button onclick="closeAccountModal()" class="text-gray-400 hover:text-black p-1 transition" aria-label="Close">
@@ -637,11 +639,10 @@
         </button>
       </div>
 
-      <!-- Account Tabs -->
+      <!-- Account Tabs: ONLY 2 TABS (Track Order & My Account) -->
       <div class="flex border-b border-gray-200 mb-4 text-xs font-semibold uppercase tracking-wider">
-        <button id="accountTabTrack" onclick="switchAccountTab('track')" class="flex-1 py-2 text-center border-b-2 border-black text-black transition">Track Order</button>
-        <button id="accountTabOrders" onclick="switchAccountTab('orders')" class="flex-1 py-2 text-center text-gray-400 hover:text-black border-b-2 border-transparent transition">My Orders</button>
-        <button id="accountTabProfile" onclick="switchAccountTab('profile')" class="flex-1 py-2 text-center text-gray-400 hover:text-black border-b-2 border-transparent transition">Fast Checkout</button>
+        <button id="accountTabTrack" onclick="switchAccountTab('track')" class="flex-1 py-2.5 text-center border-b-2 border-black text-black font-bold transition">Track Order</button>
+        <button id="accountTabProfile" onclick="switchAccountTab('profile')" class="flex-1 py-2.5 text-center text-gray-400 hover:text-black border-b-2 border-transparent transition">My Account</button>
       </div>
 
       <!-- Content Container -->
@@ -651,7 +652,7 @@
           <div class="bg-neutral-50 p-4 rounded-sm border border-neutral-200">
             <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">Enter Order ID or Mobile Number</label>
             <div class="flex gap-2">
-              <input id="trackSearchInput" type="text" placeholder="e.g. LX-102948 or 017XXXXXXXX" onkeydown="if(event.key==='Enter') searchOrderStatus()" class="flex-1 border border-gray-300 text-xs px-3 py-2.5 rounded-sm focus:outline-none focus:border-black uppercase" />
+              <input id="trackSearchInput" type="text" placeholder="e.g. LX-102948 or 017XXXXXXXX" onkeydown="if(event.key==='Enter') searchOrderStatus()" class="flex-1 border border-gray-300 text-xs px-3 py-2.5 rounded-sm focus:outline-none focus:border-black uppercase bg-white" />
               <button onclick="searchOrderStatus()" class="bg-black text-white text-xs font-bold px-4 py-2.5 rounded-sm hover:bg-neutral-800 transition">Track</button>
             </div>
             <p class="text-[10px] text-gray-500 mt-1.5">Instant delivery status update for orders placed in Bangladesh.</p>
@@ -662,40 +663,9 @@
           </div>
         </div>
 
-        <!-- Tab 2: Recent Orders on This Device -->
-        <div id="accountTabContentOrders" class="hidden space-y-3">
-          <div id="accountRecentOrdersList" class="space-y-3">
-            <!-- Orders list injected dynamically -->
-          </div>
-        </div>
-
-        <!-- Tab 3: Fast Checkout Profile -->
-        <div id="accountTabContentProfile" class="hidden space-y-3">
-          <div class="bg-neutral-50 p-3 rounded-sm border border-neutral-200 text-xs text-gray-600 mb-2">
-            💡 Save your shipping information once and it will automatically fill during every checkout!
-          </div>
-          <form onsubmit="saveCustomerProfile(event)" class="space-y-3">
-            <div>
-              <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Customer Name *</label>
-              <input id="profileName" type="text" placeholder="e.g. Tanzim Rahman" class="w-full border border-gray-300 text-xs px-3 py-2 rounded-sm focus:outline-none focus:border-black" />
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Mobile Number (BD) *</label>
-              <input id="profilePhone" type="tel" placeholder="017XXXXXXXX" class="w-full border border-gray-300 text-xs px-3 py-2 rounded-sm focus:outline-none focus:border-black" />
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Delivery Address *</label>
-              <textarea id="profileAddress" rows="2" placeholder="House, Road, Area, Thana/District" class="w-full border border-gray-300 text-xs p-2.5 rounded-sm focus:outline-none focus:border-black"></textarea>
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Default Delivery Zone</label>
-              <select id="profileZone" class="w-full border border-gray-300 text-xs px-3 py-2 rounded-sm focus:outline-none focus:border-black bg-white">
-                <option value="inside_dhaka">Inside Dhaka (৳ 70)</option>
-                <option value="outside_dhaka">Outside Dhaka (৳ 130)</option>
-              </select>
-            </div>
-            <button type="submit" class="w-full bg-black text-white text-xs uppercase tracking-widest font-bold py-2.5 rounded-sm hover:bg-neutral-800 transition">Save Fast Checkout Details</button>
-          </form>
+        <!-- Tab 2: My Account (Create Account, View & Edit Profile, Photo Upload) -->
+        <div id="accountTabContentProfile" class="hidden space-y-4">
+          <!-- Dynamically populated by renderAccountTab() -->
         </div>
       </div>
 
@@ -705,9 +675,6 @@
           <svg class="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
           <span>Saved Wishlist (<span class="wishlist-count-badge">0</span>)</span>
         </button>
-        <a href="admin.html" class="flex items-center gap-1 hover:text-black text-amber-700 font-semibold">
-          <span>Admin Portal &rarr;</span>
-        </a>
       </div>
     </div>
   </div>
@@ -751,10 +718,6 @@
       </button>
     </div>
     <div class="p-4 border-t border-gray-200 bg-gray-50 text-xs text-gray-600 space-y-2">
-      <a href="admin.html" class="flex items-center justify-between p-2.5 bg-black text-white rounded-sm font-semibold mb-2">
-        <span>Admin Panel</span>
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg>
-      </a>
       <p class="font-bold text-gray-900">Need Assistance?</p>
       <p>📞 +880 1700-LUXOS</p>
       <p>🇧🇩 Dhaka, Bangladesh</p>

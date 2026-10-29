@@ -58,6 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updateCartBadge();
   updateWishlistBadge();
   initHotspots();
+  if (typeof updateHeaderProfileIcon === 'function') updateHeaderProfileIcon();
 });
 
 function loadStoreSettings() {
@@ -1176,17 +1177,42 @@ function initEventListeners() {
 /* ==========================================================================
    Customer Account, Order Tracking & Profile Management
    ========================================================================== */
-window.openAccountModal = function (tab = 'track') {
-  loadCustomerProfile();
-  renderAccountOrders();
-  switchAccountTab(tab);
+
+let isProfileEditing = false;
+let tempEditPhoto = null;
+
+window.getUserProfile = function () {
+  try {
+    return JSON.parse(localStorage.getItem('luxos_user_profile')) || null;
+  } catch (e) {
+    return null;
+  }
+};
+
+window.openAccountModal = function (tab) {
+  const profile = getUserProfile();
+  const targetTab = tab || (profile ? 'profile' : 'track');
+
+  isProfileEditing = false;
+  tempEditPhoto = null;
+
+  if (typeof updateHeaderProfileIcon === 'function') updateHeaderProfileIcon();
+  renderAccountTab();
+  switchAccountTab(targetTab);
+
   $('#accountModal').classList.add('active');
   document.body.style.overflow = 'hidden';
 
-  if (tab === 'track') {
+  if (targetTab === 'track') {
     setTimeout(() => {
       const input = $('#trackSearchInput');
-      if (input) input.focus();
+      if (input) {
+        if (!input.value && profile && profile.phone) {
+          input.value = profile.phone;
+          searchOrderStatus();
+        }
+        input.focus();
+      }
     }, 150);
   }
 };
@@ -1197,56 +1223,335 @@ window.closeAccountModal = function () {
 };
 
 window.switchAccountTab = function (tab) {
-  const tabs = ['track', 'orders', 'profile'];
-  tabs.forEach(t => {
-    const btn = $(`#accountTab${t.charAt(0).toUpperCase() + t.slice(1)}`);
-    const content = $(`#accountTabContent${t.charAt(0).toUpperCase() + t.slice(1)}`);
-    if (btn) {
-      if (t === tab) {
-        btn.className = 'flex-1 py-2 text-center border-b-2 border-black text-black font-bold transition';
-      } else {
-        btn.className = 'flex-1 py-2 text-center text-gray-400 hover:text-black border-b-2 border-transparent transition';
-      }
-    }
-    if (content) {
-      content.classList.toggle('hidden', t !== tab);
-    }
-  });
+  const isTrack = tab === 'track';
+  const trackBtn = $('#accountTabTrack');
+  const profileBtn = $('#accountTabProfile');
+  const trackContent = $('#accountTabContentTrack');
+  const profileContent = $('#accountTabContentProfile');
 
-  if (tab === 'orders') {
-    renderAccountOrders();
+  if (trackBtn) {
+    trackBtn.className = isTrack
+      ? 'flex-1 py-2.5 text-center border-b-2 border-black text-black font-bold transition'
+      : 'flex-1 py-2.5 text-center text-gray-400 hover:text-black border-b-2 border-transparent transition';
+  }
+  if (profileBtn) {
+    profileBtn.className = !isTrack
+      ? 'flex-1 py-2.5 text-center border-b-2 border-black text-black font-bold transition'
+      : 'flex-1 py-2.5 text-center text-gray-400 hover:text-black border-b-2 border-transparent transition';
+  }
+
+  if (trackContent) trackContent.classList.toggle('hidden', !isTrack);
+  if (profileContent) {
+    profileContent.classList.toggle('hidden', isTrack);
+    if (!isTrack) renderAccountTab();
   }
 };
 
-window.loadCustomerProfile = function () {
-  const profile = JSON.parse(localStorage.getItem('luxos_user_profile'));
-  if (profile) {
-    if ($('#profileName')) $('#profileName').value = profile.name || '';
-    if ($('#profilePhone')) $('#profilePhone').value = profile.phone || '';
-    if ($('#profileAddress')) $('#profileAddress').value = profile.address || '';
-    if ($('#profileZone')) $('#profileZone').value = profile.zone || 'inside_dhaka';
+window.renderAccountTab = function () {
+  const container = $('#accountTabContentProfile');
+  if (!container) return;
 
-    if ($('#trackSearchInput') && !$('#trackSearchInput').value && profile.phone) {
-      $('#trackSearchInput').value = profile.phone;
+  const profile = getUserProfile();
+  const modalHeaderAvatar = $('#accountModalHeaderAvatar');
+  const modalTitle = $('#accountModalTitle');
+  const modalSubtitle = $('#accountModalSubtitle');
+
+  if (!profile) {
+    // Mode 1: No account - Show Create Account Form (Only Name & Phone)
+    if (modalHeaderAvatar) {
+      modalHeaderAvatar.innerHTML = `
+        <svg class="w-4 h-4 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="7.8" r="3.8"/>
+          <path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/>
+        </svg>
+      `;
     }
-  }
-};
+    if (modalTitle) modalTitle.textContent = 'My Account';
+    if (modalSubtitle) modalSubtitle.textContent = 'Create an account with Name & Mobile Number';
 
-window.saveCustomerProfile = function (e) {
-  if (e) e.preventDefault();
-  const name = $('#profileName').value.trim();
-  const phone = $('#profilePhone').value.trim();
-  const address = $('#profileAddress').value.trim();
-  const zone = $('#profileZone').value;
+    container.innerHTML = `
+      <div class="bg-neutral-50 p-5 rounded-sm border border-neutral-200">
+        <div class="text-center mb-5">
+          <div class="w-12 h-12 bg-black text-white rounded-full mx-auto flex items-center justify-center mb-2 shadow-sm">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <circle cx="12" cy="7.8" r="3.8"/>
+              <path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/>
+            </svg>
+          </div>
+          <h4 class="font-bold text-sm uppercase tracking-wider text-gray-900">Create New Account</h4>
+          <p class="text-xs text-gray-500 mt-1">Open an account instantly with just your Name &amp; Phone Number</p>
+        </div>
 
-  if (!name || !phone || !address) {
-    showToast('Please fill in your name, phone number, and address.');
+        <form onsubmit="handleCreateAccount(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">Your Full Name *</label>
+            <input id="createAccName" type="text" placeholder="e.g. Tanzim Ahmed" required class="w-full border border-gray-300 text-xs px-3.5 py-2.5 rounded-sm focus:outline-none focus:border-black bg-white" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">Mobile Number (BD) *</label>
+            <input id="createAccPhone" type="tel" placeholder="017XXXXXXXX" required pattern="[0-9]{11}" title="Please enter 11 digit Bangladeshi mobile number" class="w-full border border-gray-300 text-xs px-3.5 py-2.5 rounded-sm focus:outline-none focus:border-black bg-white" />
+          </div>
+
+          <button type="submit" class="w-full bg-black text-white text-xs uppercase tracking-widest font-bold py-3.5 rounded-sm hover:bg-neutral-800 transition shadow">
+            Create Account
+          </button>
+          
+          <p class="text-[11px] text-center text-gray-400">⚡ No password needed • 100% Secure &amp; Instant</p>
+        </form>
+      </div>
+    `;
     return;
   }
 
-  const profile = { name, phone, address, zone, updatedAt: new Date().toISOString() };
+  // Update modal header when profile exists
+  if (modalHeaderAvatar) {
+    if (profile.photo) {
+      modalHeaderAvatar.innerHTML = `<img src="${profile.photo}" alt="${profile.name}" class="w-full h-full object-cover">`;
+    } else {
+      const initial = (profile.name || 'U').charAt(0).toUpperCase();
+      modalHeaderAvatar.innerHTML = `<span class="font-bold text-xs">${initial}</span>`;
+    }
+  }
+  if (modalTitle) modalTitle.textContent = profile.name || 'My Account';
+  if (modalSubtitle) modalSubtitle.textContent = profile.phone || 'Customer Account';
+
+  const initials = (profile.name || 'U').trim().split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
+
+  // Mode 2: Profile Exists - Editing Mode
+  if (isProfileEditing) {
+    const photoToDisplay = tempEditPhoto !== null ? tempEditPhoto : (profile.photo || '');
+    container.innerHTML = `
+      <div class="bg-neutral-50 p-5 rounded-sm border border-neutral-200">
+        <div class="flex items-center justify-between mb-4 pb-2 border-b border-gray-200">
+          <h4 class="font-bold text-xs uppercase tracking-wider text-gray-900 flex items-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/></svg>
+            Edit Profile
+          </h4>
+          <button type="button" onclick="toggleProfileEdit(false)" class="text-xs text-gray-500 hover:text-black font-medium">Cancel</button>
+        </div>
+
+        <!-- Profile Photo Selection -->
+        <div class="flex items-center gap-4 mb-5 p-3 bg-white rounded-sm border border-gray-200">
+          <div class="w-16 h-16 rounded-full overflow-hidden border-2 border-luxos-gold bg-neutral-100 flex items-center justify-center shrink-0">
+            ${photoToDisplay 
+              ? `<img src="${photoToDisplay}" alt="Preview" class="w-full h-full object-cover">` 
+              : `<span class="font-bold text-xl text-neutral-600">${initials}</span>`}
+          </div>
+          <div class="flex-1">
+            <input type="file" id="editProfilePhotoInput" accept="image/*" class="hidden" onchange="handleEditPhotoPreview(event)">
+            <button type="button" onclick="$('#editProfilePhotoInput').click()" class="bg-black text-white hover:bg-neutral-800 text-xs font-semibold px-3 py-1.5 rounded-sm transition flex items-center gap-1.5 shadow-xs">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"/><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z"/></svg>
+              Upload Profile Photo
+            </button>
+            <p class="text-[10px] text-gray-500 mt-1">Upload JPG or PNG from your computer or phone</p>
+          </div>
+        </div>
+
+        <form onsubmit="handleSaveProfileEdit(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Full Name *</label>
+            <input id="editNameInput" type="text" value="${profile.name || ''}" required class="w-full border border-gray-300 text-xs px-3 py-2 rounded-sm focus:outline-none focus:border-black bg-white" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Mobile Number (BD) *</label>
+            <input id="editPhoneInput" type="tel" value="${profile.phone || ''}" required pattern="[0-9]{11}" class="w-full border border-gray-300 text-xs px-3 py-2 rounded-sm focus:outline-none focus:border-black bg-white" />
+          </div>
+          <div class="flex gap-2 pt-2">
+            <button type="submit" class="flex-1 bg-black text-white text-xs uppercase tracking-widest font-bold py-2.5 rounded-sm hover:bg-neutral-800 transition">Save Changes</button>
+            <button type="button" onclick="toggleProfileEdit(false)" class="px-4 border border-gray-300 text-gray-700 text-xs py-2.5 rounded-sm hover:bg-gray-100 transition">Cancel</button>
+          </div>
+        </form>
+      </div>
+    `;
+    return;
+  }
+
+  // Mode 3: Profile Exists - View Mode
+  const orders = JSON.parse(localStorage.getItem('luxos_orders')) || [];
+  const cleanPhone = (profile.phone || '').replace(/\s+/g, '');
+  const userOrders = orders.filter(o => o.customer && (o.customer.phone || '').replace(/\s+/g, '').includes(cleanPhone));
+
+  container.innerHTML = `
+    <div class="bg-neutral-50 p-4 rounded-sm border border-neutral-200">
+      <div class="flex items-center gap-4">
+        <!-- Avatar with click-to-change photo -->
+        <div class="relative group cursor-pointer" onclick="$('#profilePhotoDirectInput').click()" title="Click to upload profile photo">
+          <div class="w-16 h-16 rounded-full overflow-hidden border-2 border-luxos-gold bg-neutral-200 flex items-center justify-center shrink-0 shadow-sm">
+            ${profile.photo 
+              ? `<img src="${profile.photo}" alt="${profile.name}" class="w-full h-full object-cover">` 
+              : `<span class="font-bold text-xl text-neutral-600">${initials}</span>`}
+          </div>
+          <div class="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-white">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"/><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z"/></svg>
+          </div>
+          <button type="button" class="absolute -bottom-1 -right-1 w-6 h-6 bg-black text-white rounded-full flex items-center justify-center shadow hover:bg-neutral-800 transition" title="Upload Photo">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+          </button>
+        </div>
+        <input type="file" id="profilePhotoDirectInput" accept="image/*" class="hidden" onchange="handleProfilePhotoUpload(event)">
+
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2">
+            <h4 class="font-bold text-sm text-gray-900 truncate">${profile.name}</h4>
+            <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-1.5 py-0.2 rounded">Active</span>
+          </div>
+          <p class="text-xs text-gray-600 font-mono mt-0.5">📞 ${profile.phone}</p>
+          <p class="text-[10px] text-gray-400 mt-1">Customer since ${profile.createdAt ? new Date(profile.createdAt).toLocaleDateString('en-GB') : 'Recently'}</p>
+        </div>
+      </div>
+
+      <div class="flex gap-2 mt-4 pt-3 border-t border-gray-200">
+        <button onclick="toggleProfileEdit(true)" class="flex-1 bg-black text-white text-xs uppercase tracking-wider font-bold py-2 rounded-sm hover:bg-neutral-800 transition flex items-center justify-center gap-1.5">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/></svg>
+          Edit Profile
+        </button>
+        <button onclick="handleLogout()" class="px-3 border border-gray-300 text-gray-600 hover:text-red-600 hover:border-red-300 text-xs py-2 rounded-sm transition">
+          Log Out
+        </button>
+      </div>
+    </div>
+
+    <!-- My Orders for this logged in phone -->
+    <div class="mt-4">
+      <div class="flex items-center justify-between mb-2">
+        <h5 class="font-bold text-xs uppercase tracking-wider text-gray-800">My Orders (${userOrders.length})</h5>
+        ${userOrders.length > 0 ? `<button onclick="switchAccountTab('track')" class="text-[11px] text-luxos-gold font-semibold hover:underline">Track with ID &rarr;</button>` : ''}
+      </div>
+
+      <div class="space-y-2">
+        ${userOrders.length > 0 ? userOrders.map(order => renderOrderCardHTML(order)).join('') : `
+          <div class="p-5 text-center bg-gray-50 rounded-sm border border-gray-200">
+            <svg class="w-7 h-7 text-gray-400 mx-auto mb-1.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" /></svg>
+            <p class="font-bold text-xs text-gray-800">No Orders Yet</p>
+            <p class="text-[11px] text-gray-500 mt-0.5">Orders placed with mobile <strong>${profile.phone}</strong> will automatically appear here!</p>
+          </div>
+        `}
+      </div>
+    </div>
+  `;
+};
+
+window.handleCreateAccount = function (e) {
+  if (e) e.preventDefault();
+  const name = ($('#createAccName').value || '').trim();
+  const phone = ($('#createAccPhone').value || '').trim();
+
+  if (!name || !phone) {
+    showToast('Please enter both your Name and Mobile Number.');
+    return;
+  }
+
+  const profile = {
+    name,
+    phone,
+    photo: null,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+
   localStorage.setItem('luxos_user_profile', JSON.stringify(profile));
-  showToast('Fast Checkout profile saved successfully!');
+  isProfileEditing = false;
+  tempEditPhoto = null;
+
+  updateHeaderProfileIcon();
+  renderAccountTab();
+  showToast(`Welcome, ${name}! Your account has been created.`);
+};
+
+window.toggleProfileEdit = function (isEdit) {
+  isProfileEditing = isEdit;
+  tempEditPhoto = null;
+  renderAccountTab();
+};
+
+window.handleEditPhotoPreview = function (event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) {
+    showToast('Please select a valid image file');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    tempEditPhoto = e.target.result;
+    renderAccountTab();
+  };
+  reader.readAsDataURL(file);
+};
+
+window.handleProfilePhotoUpload = function (event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) {
+    showToast('Please select a valid image file');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    const base64 = e.target.result;
+    const profile = getUserProfile() || {};
+    profile.photo = base64;
+    profile.updatedAt = new Date().toISOString();
+    localStorage.setItem('luxos_user_profile', JSON.stringify(profile));
+    updateHeaderProfileIcon();
+    renderAccountTab();
+    showToast('Profile photo updated successfully!');
+  };
+  reader.readAsDataURL(file);
+};
+
+window.handleSaveProfileEdit = function (e) {
+  if (e) e.preventDefault();
+  const name = ($('#editNameInput').value || '').trim();
+  const phone = ($('#editPhoneInput').value || '').trim();
+
+  if (!name || !phone) {
+    showToast('Name and Phone number are required.');
+    return;
+  }
+
+  const profile = getUserProfile() || {};
+  profile.name = name;
+  profile.phone = phone;
+  if (tempEditPhoto !== null) {
+    profile.photo = tempEditPhoto;
+  }
+  profile.updatedAt = new Date().toISOString();
+
+  localStorage.setItem('luxos_user_profile', JSON.stringify(profile));
+  isProfileEditing = false;
+  tempEditPhoto = null;
+
+  updateHeaderProfileIcon();
+  renderAccountTab();
+  showToast('Profile updated successfully!');
+};
+
+window.handleLogout = function () {
+  localStorage.removeItem('luxos_user_profile');
+  isProfileEditing = false;
+  tempEditPhoto = null;
+  updateHeaderProfileIcon();
+  renderAccountTab();
+  showToast('Logged out of your account.');
+};
+
+window.updateHeaderProfileIcon = function () {
+  const profile = getUserProfile();
+  const iconContainer = $('#headerAccountIconContainer');
+  if (iconContainer) {
+    if (profile && profile.photo) {
+      iconContainer.innerHTML = `<img src="${profile.photo}" alt="${profile.name}" class="w-7 h-7 rounded-full object-cover border border-luxos-gold shadow-xs">`;
+    } else {
+      iconContainer.innerHTML = `
+        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="7.8" r="3.8" />
+          <path d="M4.5 20.5a7.5 7.5 0 0 1 15 0" />
+        </svg>
+      `;
+    }
+  }
 };
 
 window.searchOrderStatus = function () {
