@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Luxos Admin Portal | Store Operations &amp; Order Management</title>
+  <link rel="icon" type="image/png" href="images/logo.png" />
+  
+  <!-- Google Fonts: Jost & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Jost:wght@500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            heading: ['Jost', 'sans-serif']
+          },
+          colors: {
+            admin: {
+              dark: '#111827',
+              sidebar: '#0f172a',
+              card: '#1e293b',
+              accent: '#d97706',
+              gold: '#c5a880'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom Scrollbar for Admin tables */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+    /* Modal Animation */
+    .modal-overlay { opacity: 0; pointer-events: none; transition: opacity 0.25s ease; }
+    .modal-overlay.active { opacity: 1; pointer-events: auto; }
+    .modal-content { transform: scale(0.95); opacity: 0; transition: all 0.25s ease; }
+    .modal-overlay.active .modal-content { transform: scale(1); opacity: 1; }
+
+    /* Status Badges */
+    .badge-pending { background-color: #fef3c7; color: #b45309; }
+    .badge-processing { background-color: #e0e7ff; color: #4338ca; }
+    .badge-shipped { background-color: #e0f2fe; color: #0369a1; }
+    .badge-delivered { background-color: #dcfce7; color: #15803d; }
+    .badge-cancelled { background-color: #fee2e2; color: #b91c1c; }
+
+    /* Toast */
+    .toast-msg { transform: translateY(100px); opacity: 0; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+    .toast-msg.show { transform: translateY(0); opacity: 1; }
+  </style>
+</head>
+<body class="bg-[#f8fafc] text-slate-800 font-sans antialiased flex h-screen overflow-hidden">
+
+  <!-- =======================================================================
+       1. Left Sidebar
+       ======================================================================= -->
+  <aside class="w-64 bg-slate-900 text-white flex flex-col flex-shrink-0 z-30 transition-all duration-300">
+    <!-- Brand Header -->
+    <div class="h-16 px-5 border-b border-slate-800 flex items-center justify-between">
+      <a href="index.html" title="View Storefront" class="flex items-center gap-2.5 group">
+        <img src="images/logo-white.png" alt="LUXOS" class="h-7 w-auto object-contain transition-transform group-hover:scale-105" />
+        <span class="text-[9px] bg-amber-400/20 text-amber-300 font-semibold px-2 py-0.5 rounded tracking-widest uppercase border border-amber-400/30">Admin</span>
+      </a>
+    </div>
+
+    <!-- Navigation Menu -->
+    <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+      <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-item w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-semibold text-white bg-slate-800 hover:bg-slate-800 transition">
+        <div class="flex items-center gap-3">
+          <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5m.75-9l3-3 2.25 2.25L15 7.5" /></svg>
+          <span>Dashboard</span>
+        </div>
+      </button>
+
+      <button onclick="switchTab('orders')" id="nav-orders" class="nav-item w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition">
+        <div class="flex items-center gap-3">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007z" /></svg>
+          <span>Orders</span>
+        </div>
+        <span id="sidebarPendingCount" class="bg-amber-500 text-black text-[10px] font-bold px-1.5 py-0.5 rounded-full">0</span>
+      </button>
+
+      <button onclick="switchTab('products')" id="nav-products" class="nav-item w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition">
+        <div class="flex items-center gap-3">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" /><path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6z" /></svg>
+          <span>Products</span>
+        </div>
+        <span id="sidebarProductsCount" class="text-slate-400 text-xs">38</span>
+      </button>
+
+      <button onclick="switchTab('banners')" id="nav-banners" class="nav-item w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition">
+        <div class="flex items-center gap-3">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" /></svg>
+          <span>Hero Banners</span>
+        </div>
+        <span id="sidebarBannersCount" class="text-amber-400 text-xs font-bold">3</span>
+      </button>
+
+      <button onclick="switchTab('coupons')" id="nav-coupons" class="nav-item w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition">
+        <div class="flex items-center gap-3">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a2.999 2.999 0 010 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a2.999 2.999 0 010-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375z" /></svg>
+          <span>Coupons &amp; Offers</span>
+        </div>
+      </button>
+
+      <button onclick="switchTab('customers')" id="nav-customers" class="nav-item w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition">
+        <div class="flex items-center gap-3">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" /></svg>
+          <span>Customers</span>
+        </div>
+      </button>
+
+      <button onclick="switchTab('settings')" id="nav-settings" class="nav-item w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition">
+        <div class="flex items-center gap-3">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+          <span>Store Settings</span>
+        </div>
+      </button>
+    </nav>
+
+    <!-- Bottom Quick Link to Frontend -->
+    <div class="p-3 border-t border-slate-800">
+      <a href="index.html" target="_blank" class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 text-xs font-semibold transition border border-amber-500/20">
+        <span class="flex items-center gap-2">
+          <span>View Storefront</span>
+        </span>
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
+      </a>
+    </div>
+  </aside>
+
+  <!-- =======================================================================
+       2. Main Content Area
+       ======================================================================= -->
+  <div class="flex-1 flex flex-col overflow-hidden">
+    <!-- Top Header -->
+    <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 flex-shrink-0">
+      <div class="flex items-center gap-3">
+        <h1 id="pageTitle" class="text-lg font-bold text-slate-800 font-heading">Operations Dashboard</h1>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <!-- Quick Add Product Button -->
+        <button onclick="openProductModal()" class="bg-black hover:bg-slate-800 text-white text-xs font-semibold px-3.5 py-2 rounded-lg transition flex items-center gap-1.5 shadow-sm">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+          <span>Add Product</span>
+        </button>
+
+        <a href="index.html" target="_blank" title="Open Store" class="p-2 text-slate-500 hover:text-slate-800 rounded-lg hover:bg-slate-100 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg>
+        </a>
+
+        <!-- Admin Profile -->
+        <div class="flex items-center gap-2 pl-3 border-l border-slate-200">
+          <div class="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center p-1.5 overflow-hidden">
+            <img src="images/logo-white.png" alt="LX" class="w-full h-auto object-contain" />
+          </div>
+          <div class="hidden sm:block text-left">
+            <p class="text-xs font-semibold text-slate-800 leading-tight">Luxos Admin</p>
+            <p class="text-[10px] text-emerald-600 font-medium">Store Active</p>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Scrollable Workspace Views -->
+    <main class="flex-1 overflow-y-auto p-6 bg-[#f8fafc]">
+      
+      <!-- =====================================================================
+           TAB 1: DASHBOARD
+           ===================================================================== -->
+      <section id="tab-dashboard" class="space-y-6">
+        <!-- 4 KPI Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Total Revenue -->
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Total Revenue</p>
+              <h3 id="statRevenue" class="text-2xl font-bold text-slate-900 mt-1">৳ 0</h3>
+              <p class="text-[11px] text-emerald-600 font-medium mt-1">↑ +18.4% from last week</p>
+            </div>
+            <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center">
+              <span class="text-lg font-bold">৳</span>
+            </div>
+          </div>
+
+          <!-- Total Orders -->
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Total Orders</p>
+              <h3 id="statOrders" class="text-2xl font-bold text-slate-900 mt-1">0</h3>
+              <p class="text-[11px] text-slate-500 mt-1"><span id="statCompletedOrders" class="font-semibold text-slate-800">0</span> Delivered</p>
+            </div>
+            <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007z" /></svg>
+            </div>
+          </div>
+
+          <!-- Total Products -->
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Active Products</p>
+              <h3 id="statProducts" class="text-2xl font-bold text-slate-900 mt-1">38</h3>
+              <p class="text-[11px] text-emerald-600 font-medium mt-1">All in catalog</p>
+            </div>
+            <div class="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" /></svg>
+            </div>
+          </div>
+
+          <!-- Pending Deliveries -->
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Pending Fulfillment</p>
+              <h3 id="statPending" class="text-2xl font-bold text-amber-600 mt-1">0</h3>
+              <p class="text-[11px] text-amber-600 font-medium mt-1">Requires shipment dispatch</p>
+            </div>
+            <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sales Analytics & Quick Insights -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Weekly Performance Bar Graphic -->
+          <div class="lg:col-span-2 bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="text-sm font-bold text-slate-800">Weekly Revenue Trends</h3>
+                <p class="text-xs text-slate-500">Dhaka &amp; Nationwide sales performance</p>
+              </div>
+              <span class="text-xs bg-slate-100 text-slate-700 px-2.5 py-1 rounded-md font-medium">Last 7 Days</span>
+            </div>
+            
+            <!-- CSS Bar Chart -->
+            <div class="flex items-end justify-between gap-3 h-44 pt-6 px-2 border-b border-slate-100">
+              <div class="flex-1 flex flex-col items-center gap-2 h-full justify-end">
+                <span class="text-[10px] font-semibold text-slate-500">৳14k</span>
+                <div class="w-full bg-slate-200 hover:bg-slate-300 rounded-t transition-all" style="height: 45%;"></div>
+                <span class="text-[11px] text-slate-400">Sat</span>
+              </div>
+              <div class="flex-1 flex flex-col items-center gap-2 h-full justify-end">
+                <span class="text-[10px] font-semibold text-slate-500">৳21k</span>
+                <div class="w-full bg-slate-200 hover:bg-slate-300 rounded-t transition-all" style="height: 60%;"></div>
+                <span class="text-[11px] text-slate-400">Sun</span>
+              </div>
+              <div class="flex-1 flex flex-col items-center gap-2 h-full justify-end">
+                <span class="text-[10px] font-semibold text-slate-500">৳18k</span>
+                <div class="w-full bg-slate-200 hover:bg-slate-300 rounded-t transition-all" style="height: 52%;"></div>
+                <span class="text-[11px] text-slate-400">Mon</span>
+              </div>
+              <div class="flex-1 flex flex-col items-center gap-2 h-full justify-end">
+                <span class="text-[10px] font-semibold text-slate-500">৳32k</span>
+                <div class="w-full bg-slate-200 hover:bg-slate-300 rounded-t transition-all" style="height: 85%;"></div>
+                <span class="text-[11px] text-slate-400">Tue</span>
+              </div>
+              <div class="flex-1 flex flex-col items-center gap-2 h-full justify-end">
+                <span class="text-[10px] font-semibold text-slate-500">৳26k</span>
+                <div class="w-full bg-slate-200 hover:bg-slate-300 rounded-t transition-all" style="height: 70%;"></div>
+                <span class="text-[11px] text-slate-400">Wed</span>
+              </div>
+              <div class="flex-1 flex flex-col items-center gap-2 h-full justify-end">
+                <span class="text-[10px] font-semibold text-slate-500">৳38k</span>
+                <div class="w-full bg-slate-900 rounded-t transition-all" style="height: 95%;"></div>
+                <span class="text-[11px] font-bold text-slate-800">Thu</span>
+              </div>
+              <div class="flex-1 flex flex-col items-center gap-2 h-full justify-end">
+                <span class="text-[10px] font-semibold text-slate-500">৳29k</span>
+                <div class="w-full bg-amber-500 rounded-t transition-all" style="height: 75%;"></div>
+                <span class="text-[11px] font-bold text-amber-600">Today</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Store Performance Insights -->
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+            <h3 class="text-sm font-bold text-slate-800">Store Quick Metrics</h3>
+            
+            <div class="space-y-3 text-xs">
+              <div>
+                <div class="flex justify-between font-semibold text-slate-700 mb-1">
+                  <span>Cash on Delivery Share</span>
+                  <span>78%</span>
+                </div>
+                <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                  <div class="bg-amber-500 h-full rounded-full" style="width: 78%;"></div>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex justify-between font-semibold text-slate-700 mb-1">
+                  <span>bKash / Online Prepayment</span>
+                  <span>22%</span>
+                </div>
+                <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                  <div class="bg-pink-600 h-full rounded-full" style="width: 22%;"></div>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex justify-between font-semibold text-slate-700 mb-1">
+                  <span>Inside Dhaka Shipments</span>
+                  <span>65%</span>
+                </div>
+                <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                  <div class="bg-blue-600 h-full rounded-full" style="width: 65%;"></div>
+                </div>
+              </div>
+
+              <div class="pt-2 border-t border-slate-100">
+                <p class="text-[11px] text-slate-500 leading-relaxed">
+                  💡 <b>Pro Tip:</b> Orders placed on `index.html` sync immediately to this dashboard. You can update shipment statuses, print invoices, and edit catalog products in real-time.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Orders Preview -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+            <div>
+              <h3 class="text-sm font-bold text-slate-800">Recent Customer Orders</h3>
+              <p class="text-xs text-slate-500">Live order queue from the Luxos storefront</p>
+            </div>
+            <button onclick="switchTab('orders')" class="text-xs font-semibold text-amber-600 hover:text-amber-700">View All Orders →</button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider border-b border-slate-100">
+                <tr>
+                  <th class="py-3 px-4">Order ID</th>
+                  <th class="py-3 px-4">Customer</th>
+                  <th class="py-3 px-4">Location</th>
+                  <th class="py-3 px-4">Items</th>
+                  <th class="py-3 px-4">Total</th>
+                  <th class="py-3 px-4">Payment</th>
+                  <th class="py-3 px-4">Status</th>
+                  <th class="py-3 px-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="recentOrdersTbody" class="divide-y divide-slate-100">
+                <!-- Rendered by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           TAB 2: ORDERS MANAGEMENT
+           ===================================================================== -->
+      <section id="tab-orders" class="space-y-4 hidden">
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+          <!-- Search input -->
+          <div class="relative w-full sm:w-72">
+            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
+            <input 
+              id="orderSearchInput" 
+              type="text" 
+              placeholder="Search by ID, name, or phone..." 
+              oninput="filterOrders()"
+              class="w-full pl-9 pr-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-black" />
+          </div>
+
+          <!-- Status Filter Buttons -->
+          <div class="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
+            <button onclick="setOrderStatusFilter('all')" data-status="all" class="order-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-black text-white">All</button>
+            <button onclick="setOrderStatusFilter('Pending')" data-status="Pending" class="order-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200">Pending</button>
+            <button onclick="setOrderStatusFilter('Processing')" data-status="Processing" class="order-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200">Processing</button>
+            <button onclick="setOrderStatusFilter('Shipped')" data-status="Shipped" class="order-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200">Shipped</button>
+            <button onclick="setOrderStatusFilter('Delivered')" data-status="Delivered" class="order-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200">Delivered</button>
+            <button onclick="setOrderStatusFilter('Cancelled')" data-status="Cancelled" class="order-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200">Cancelled</button>
+          </div>
+        </div>
+
+        <!-- Orders Table -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider border-b border-slate-100">
+                <tr>
+                  <th class="py-3.5 px-4">Order ID</th>
+                  <th class="py-3.5 px-4">Customer Info</th>
+                  <th class="py-3.5 px-4">Delivery Zone</th>
+                  <th class="py-3.5 px-4">Products</th>
+                  <th class="py-3.5 px-4">Amount</th>
+                  <th class="py-3.5 px-4">Payment</th>
+                  <th class="py-3.5 px-4">Status</th>
+                  <th class="py-3.5 px-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="allOrdersTbody" class="divide-y divide-slate-100">
+                <!-- Rendered by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           TAB 3: PRODUCTS MANAGEMENT
+           ===================================================================== -->
+      <section id="tab-products" class="space-y-4 hidden">
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+          <div class="flex items-center gap-3 w-full sm:w-auto">
+            <!-- Search -->
+            <div class="relative w-full sm:w-64">
+              <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
+              <input 
+                id="productSearchInput" 
+                type="text" 
+                placeholder="Search products..." 
+                oninput="filterAdminProducts()"
+                class="w-full pl-9 pr-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-black" />
+            </div>
+
+            <!-- Category filter -->
+            <select id="productCategoryFilter" onchange="filterAdminProducts()" class="text-xs border border-slate-300 py-2 px-3 rounded-lg focus:outline-none focus:border-black bg-white">
+              <option value="all">All Categories</option>
+              <option value="Tote Bags">Tote Bags</option>
+              <option value="Shoulder Bags">Shoulder Bags</option>
+              <option value="Crossbody Bags">Crossbody Bags</option>
+              <option value="Wallets & Cards">Wallets &amp; Cards</option>
+              <option value="Footwear">Footwear</option>
+              <option value="Duffle Bags">Duffle Bags</option>
+              <option value="Backpacks">Backpacks</option>
+            </select>
+          </div>
+
+          <!-- Add Product Button -->
+          <button onclick="openProductModal()" class="w-full sm:w-auto bg-black hover:bg-slate-800 text-white text-xs font-semibold px-4 py-2.5 rounded-lg transition flex items-center justify-center gap-2 shadow-sm">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+            <span>Add New Product</span>
+          </button>
+        </div>
+
+        <!-- Products Table -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider border-b border-slate-100">
+                <tr>
+                  <th class="py-3.5 px-4">Item</th>
+                  <th class="py-3.5 px-4">Category</th>
+                  <th class="py-3.5 px-4">Price</th>
+                  <th class="py-3.5 px-4">Original Price</th>
+                  <th class="py-3.5 px-4">Badge</th>
+                  <th class="py-3.5 px-4">Stock</th>
+                  <th class="py-3.5 px-4">Rating</th>
+                  <th class="py-3.5 px-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="adminProductsTbody" class="divide-y divide-slate-100">
+                <!-- Rendered by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           TAB 4: HERO BANNERS MANAGEMENT
+           ===================================================================== -->
+      <section id="tab-banners" class="space-y-6 hidden">
+        <!-- Top Toolbar & Settings -->
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+          <div>
+            <h3 class="text-sm font-bold text-slate-800 font-heading">Hero Slideshow Controls</h3>
+            <p class="text-xs text-slate-500">Manage promotional slides, text overlays, and Zoom In/Out animation</p>
+          </div>
+
+          <div class="flex items-center gap-3 w-full sm:w-auto flex-wrap">
+            <!-- Autoplay Duration -->
+            <div class="flex items-center gap-1.5 text-xs text-slate-700">
+              <span class="font-medium">Slide Time:</span>
+              <select id="bannerSlideInterval" onchange="updateBannerSettings()" class="border border-slate-300 rounded-lg p-1.5 text-xs bg-white focus:outline-none focus:border-black font-semibold">
+                <option value="4">4 Seconds</option>
+                <option value="5" selected>5 Seconds</option>
+                <option value="7">7 Seconds</option>
+                <option value="10">10 Seconds</option>
+              </select>
+            </div>
+
+            <!-- Zoom Toggle -->
+            <label class="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-100">
+              <input id="bannerEnableZoom" type="checkbox" checked onchange="updateBannerSettings()" class="rounded text-black focus:ring-black" />
+              <span>Zoom In/Out Effect</span>
+            </label>
+
+            <!-- Add Banner Button -->
+            <button onclick="openBannerModal()" class="bg-black hover:bg-slate-800 text-white text-xs font-semibold px-4 py-2 rounded-lg transition flex items-center gap-1.5 shadow-sm ml-auto sm:ml-0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+              <span>Add New Banner</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Banner Cards Grid -->
+        <div id="adminBannersGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <!-- Rendered by JS -->
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           TAB 4: COUPONS & OFFERS
+           ===================================================================== -->
+      <section id="tab-coupons" class="space-y-6 hidden">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <!-- Add Coupon Form -->
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm h-fit space-y-4">
+            <h3 class="text-sm font-bold text-slate-800">Create New Coupon</h3>
+            <form onsubmit="handleCreateCoupon(event)" class="space-y-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Coupon Code *</label>
+                <input id="newCouponCode" type="text" placeholder="e.g. LUXOS20" required class="w-full border border-slate-300 rounded-lg p-2 text-xs uppercase font-mono focus:outline-none focus:border-black" />
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Discount Type *</label>
+                <select id="newCouponType" class="w-full border border-slate-300 rounded-lg p-2 text-xs bg-white focus:outline-none focus:border-black">
+                  <option value="percent">Percentage Off (%)</option>
+                  <option value="freeship">Free Shipping</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Discount Percentage (e.g. 15 for 15%)</label>
+                <input id="newCouponValue" type="number" value="15" min="1" max="100" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:outline-none focus:border-black" />
+              </div>
+
+              <button type="submit" class="w-full bg-black text-white text-xs font-semibold py-2.5 rounded-lg hover:bg-slate-800 transition">
+                Create Coupon
+              </button>
+            </form>
+          </div>
+
+          <!-- Existing Coupons List -->
+          <div class="md:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="p-4 border-b border-slate-100">
+              <h3 class="text-sm font-bold text-slate-800">Active Coupons &amp; Vouchers</h3>
+              <p class="text-xs text-slate-500">Customers can apply these promo codes during checkout</p>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider border-b border-slate-100">
+                  <tr>
+                    <th class="py-3 px-4">Coupon Code</th>
+                    <th class="py-3 px-4">Discount</th>
+                    <th class="py-3 px-4">Status</th>
+                    <th class="py-3 px-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="couponsTbody" class="divide-y divide-slate-100">
+                  <!-- Injected by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           TAB 5: CUSTOMERS
+           ===================================================================== -->
+      <section id="tab-customers" class="space-y-4 hidden">
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div>
+            <h3 class="text-sm font-bold text-slate-800">Customer Directory</h3>
+            <p class="text-xs text-slate-500">Aggregated from orders placed on Luxos</p>
+          </div>
+          <span id="customersCountBadge" class="text-xs bg-slate-100 text-slate-800 px-3 py-1 rounded-full font-semibold">0 Customers</span>
+        </div>
+
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider border-b border-slate-100">
+                <tr>
+                  <th class="py-3 px-4">Customer Name</th>
+                  <th class="py-3 px-4">Phone Number</th>
+                  <th class="py-3 px-4">Delivery Address</th>
+                  <th class="py-3 px-4">Zone</th>
+                  <th class="py-3 px-4">Orders Placed</th>
+                  <th class="py-3 px-4 text-right">Total Spent</th>
+                </tr>
+              </thead>
+              <tbody id="customersTbody" class="divide-y divide-slate-100">
+                <!-- Injected by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           TAB 6: STORE SETTINGS
+           ===================================================================== -->
+      <section id="tab-settings" class="space-y-6 hidden">
+        <div class="max-w-2xl bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-5">
+          <h3 class="text-base font-bold text-slate-900 border-b border-slate-100 pb-3">Delivery &amp; Store Configuration</h3>
+          
+          <form onsubmit="handleSaveSettings(event)" class="space-y-4 text-xs">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Inside Dhaka Delivery Fee (৳)</label>
+                <input id="settingDhakaFee" type="number" value="70" class="w-full border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:border-black font-semibold" />
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Outside Dhaka Delivery Fee (৳)</label>
+                <input id="settingOutsideFee" type="number" value="130" class="w-full border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:border-black font-semibold" />
+              </div>
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Free Delivery Threshold (৳)</label>
+              <input id="settingFreeThreshold" type="number" value="3000" class="w-full border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:border-black font-semibold" />
+              <p class="text-[11px] text-slate-400 mt-1">Orders exceeding this amount automatically unlock Free Delivery on storefront.</p>
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Customer Support Hotline</label>
+              <input id="settingHotline" type="text" value="+880 1700-LUXOS" class="w-full border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:border-black" />
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Official Support Email</label>
+              <input id="settingEmail" type="email" value="support@luxosbd.com" class="w-full border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:border-black" />
+            </div>
+
+            <div class="pt-3">
+              <button type="submit" class="bg-black text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-slate-800 transition">
+                Save Store Settings
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- =======================================================================
+       3. Order Details Modal (with status change & invoice)
+       ======================================================================= -->
+  <div id="orderDetailsModal" class="modal-overlay fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+    <div class="modal-content bg-white w-full max-w-2xl rounded-xl shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto">
+      <button onclick="closeOrderModal()" class="absolute top-4 right-4 text-slate-400 hover:text-black p-1">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+      </button>
+
+      <div id="orderDetailsContent">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- =======================================================================
+       4. Add / Edit Product Modal
+       ======================================================================= -->
+  <div id="productFormModal" class="modal-overlay fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+    <div class="modal-content bg-white w-full max-w-2xl rounded-xl shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto">
+      <button onclick="closeProductModal()" class="absolute top-4 right-4 text-slate-400 hover:text-black p-1">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+      </button>
+
+      <h3 id="productModalTitle" class="text-base font-bold text-slate-900 mb-4 font-heading">Add New Product</h3>
+
+      <form onsubmit="handleSaveProduct(event)" class="space-y-4 text-xs">
+        <input type="hidden" id="editProductId" />
+
+        <div>
+          <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Product Title *</label>
+          <input id="prodTitle" type="text" required placeholder="e.g. Minimalist Italian Leather Shoulder Bag" class="w-full border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:border-black" />
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Category *</label>
+            <select id="prodCategory" class="w-full border border-slate-300 rounded-lg p-2.5 bg-white focus:outline-none focus:border-black">
+              <option value="Tote Bags">Tote Bags</option>
+              <option value="Shoulder Bags">Shoulder Bags</option>
+              <option value="Crossbody Bags">Crossbody Bags</option>
+              <option value="Wallets & Cards">Wallets &amp; Cards</option>
+              <option value="Footwear">Footwear</option>
+              <option value="Duffle Bags">Duffle Bags</option>
+              <option value="Backpacks">Backpacks</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Collection Tab</label>
+            <select id="prodCollection" class="w-full border border-slate-300 rounded-lg p-2.5 bg-white focus:outline-none focus:border-black">
+              <option value="Just Landed">Just Landed</option>
+              <option value="Best Sellers">Best Sellers</option>
+              <option value="The Prime Drop">The Prime Drop</option>
+              <option value="Prime Shoes">Prime Shoes</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Sale Price (৳) *</label>
+            <input id="prodPrice" type="text" required placeholder="৳ 1,650" class="w-full border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:border-black font-semibold" />
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Original Price (৳)</label>
+            <input id="prodOriginalPrice" type="text" placeholder="৳ 2,400" class="w-full border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:border-black" />
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Discount Badge</label>
+            <input id="prodBadge" type="text" placeholder="Save 35% or New" class="w-full border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:border-black" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Stock Quantity</label>
+            <input id="prodStock" type="number" value="10" min="0" class="w-full border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:border-black" />
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Rating (e.g. 4.8)</label>
+            <input id="prodRating" type="text" value="4.8" class="w-full border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:border-black" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Primary Image URL *</label>
+          <input id="prodImage" type="url" required placeholder="https://..." class="w-full border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:border-black" />
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Hover Image URL (Optional)</label>
+          <input id="prodHoverImage" type="url" placeholder="https://..." class="w-full border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:border-black" />
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Product Description</label>
+          <textarea id="prodDescription" rows="3" placeholder="Crafted with luxury materials..." class="w-full border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:border-black"></textarea>
+        </div>
+
+        <div class="pt-2 flex justify-end gap-3">
+          <button type="button" onclick="closeProductModal()" class="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50 font-semibold text-slate-700">Cancel</button>
+          <button type="submit" class="px-6 py-2 bg-black text-white rounded-lg hover:bg-slate-800 font-semibold shadow">Save Product</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- =======================================================================
+       5. Add / Edit Hero Banner Modal
+       ======================================================================= -->
+  <div id="bannerFormModal" class="modal-overlay fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+    <div class="modal-content bg-white w-full max-w-xl rounded-xl shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto">
+      <button onclick="closeBannerModal()" class="absolute top-4 right-4 text-slate-400 hover:text-black p-1">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+      </button>
+
+      <h3 id="bannerModalTitle" class="text-base font-bold text-slate-900 mb-4 font-heading">Add Hero Banner</h3>
+
+      <form onsubmit="handleSaveBanner(event)" class="space-y-4 text-xs">
+        <input type="hidden" id="editBannerId" />
+
+        <div>
+          <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Desktop Image URL *</label>
+          <input id="bannerDesktopImg" type="url" required placeholder="https://..." onchange="previewBannerImg(this.value)" class="w-full border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:border-black" />
+          <div id="bannerImgPreviewBox" class="mt-2 aspect-[16/7] w-full rounded-lg bg-slate-100 overflow-hidden border border-slate-200 hidden">
+            <img id="bannerImgPreview" src="" class="w-full h-full object-cover" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Mobile Image URL (Optional)</label>
+          <input id="bannerMobileImg" type="url" placeholder="https://..." class="w-full border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:border-black" />
+        </div>
+
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-3">
+          <label class="flex items-center gap-2 cursor-pointer font-bold text-slate-800">
+            <input id="bannerShowText" type="checkbox" checked onchange="toggleBannerTextInputs(this.checked)" class="rounded text-black focus:ring-black" />
+            <span>Show Text &amp; Button Overlay on Banner</span>
+          </label>
+          <p class="text-[11px] text-slate-500">Uncheck this if the graphic image already contains designed text (clean banner).</p>
+        </div>
+
+        <div id="bannerTextInputsGroup" class="space-y-3">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Subtitle / Eyebrow Tag</label>
+              <input id="bannerSubheading" type="text" placeholder="e.g. Mid-Season Exclusive" class="w-full border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:border-black" />
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Button Text</label>
+              <input id="bannerButtonText" type="text" placeholder="e.g. Shop Now" class="w-full border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:border-black" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Main Heading / Title</label>
+            <input id="bannerHeading" type="text" placeholder="e.g. The Grand Autumn Clearance" class="w-full border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:border-black font-semibold" />
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Short Description</label>
+            <textarea id="bannerDescription" rows="2" placeholder="e.g. Indulge in handcrafted luxury totes..." class="w-full border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:border-black"></textarea>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Target Category / Link</label>
+            <select id="bannerButtonLink" class="w-full border border-slate-300 rounded-lg p-2.5 bg-white focus:outline-none focus:border-black">
+              <option value="all">All Products</option>
+              <option value="The Prime Drop">The Prime Drop / Clearance</option>
+              <option value="Tote Bags">Tote Bags</option>
+              <option value="Shoulder Bags">Shoulder Bags</option>
+              <option value="Crossbody Bags">Crossbody Bags</option>
+              <option value="Wallets & Cards">Wallets &amp; Cards</option>
+              <option value="Duffle Bags">Duffle Bags</option>
+              <option value="Prime Shoes">Footwear</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Banner Status</label>
+            <select id="bannerActive" class="w-full border border-slate-300 rounded-lg p-2.5 bg-white focus:outline-none focus:border-black font-semibold">
+              <option value="true">Active (Visible)</option>
+              <option value="false">Disabled (Hidden)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="pt-3 flex justify-end gap-3 border-t border-slate-100">
+          <button type="button" onclick="closeBannerModal()" class="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50 font-semibold text-slate-700">Cancel</button>
+          <button type="submit" class="px-6 py-2 bg-black text-white rounded-lg hover:bg-slate-800 font-semibold shadow">Save Banner</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="adminToast" class="toast-msg fixed bottom-5 right-5 z-50 bg-slate-900 text-white text-xs px-4 py-3 rounded-lg shadow-xl flex items-center gap-2 border border-slate-700">
+    <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+    <span id="adminToastText">Operation successful.</span>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/products.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>

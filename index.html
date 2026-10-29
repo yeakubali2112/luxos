@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Luxos | Luxury Handbags, Crossbody &amp; Leather Goods Bangladesh</title>
+  <meta name="description" content="Shop classy tote bags, luxury crossbody bags, shoulder bags, and premium leather accessories online in Bangladesh. Enjoy Cash on Delivery and 7-day returns at Luxos." />
+  <link rel="icon" type="image/png" href="images/logo.png" />
+
+  <!-- Google Fonts: Jost & Playfair Display -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Jost', 'sans-serif'],
+            serif: ['Playfair Display', 'serif']
+          },
+          colors: {
+            luxos: {
+              black: '#111111',
+              charcoal: '#1f1f1f',
+              gold: '#c5a880',
+              'gold-dark': '#a88b63',
+              cream: '#fbf9f5',
+              sand: '#f4efe6',
+              border: '#e7e5e0'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="bg-white text-luxos-black selection:bg-neutral-900 selection:text-white">
+
+  <!-- =======================================================================
+       1. Top Announcement Bar
+       ======================================================================= -->
+  <div class="bg-black text-white text-xs py-2 px-4 border-b border-neutral-800">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="hidden sm:flex items-center gap-4 text-[11px] text-neutral-300">
+        <span>🇧🇩 Fast Nationwide Delivery</span>
+        <span>•</span>
+        <span>Cash on Delivery Available</span>
+      </div>
+
+      <div class="text-center flex-1 sm:flex-initial font-medium tracking-wide text-[11px] sm:text-xs">
+        <span class="text-amber-300">✨ NEW ARRIVALS:</span> Use code <span class="bg-white/10 px-1.5 py-0.5 rounded font-mono font-bold text-white">LUXOS10</span> for 10% Off
+      </div>
+
+      <div class="hidden md:flex items-center gap-4 text-[11px] text-neutral-300">
+        <button onclick="openAccountModal('track')" class="hover:text-white transition">Track Order</button>
+        <button onclick="openWishlistModal()" class="hover:text-white transition flex items-center gap-1">
+          <span>Wishlist</span>
+          <span class="wishlist-count-badge hidden bg-white/20 text-white px-1.5 py-0.2 rounded-full text-[10px]">0</span>
+        </button>
+        <a href="#footer" class="hover:text-white transition">Support</a>
+        <a href="admin.html" class="flex items-center gap-1 hover:text-white transition bg-neutral-800 hover:bg-neutral-700 px-2.5 py-0.5 rounded text-[10px] font-semibold text-amber-300">
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" /></svg>
+          <span>Admin Portal</span>
+        </a>
+        <span class="text-neutral-400">BDT (৳)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- =======================================================================
+       2. Sticky Main Header
+       ======================================================================= -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-luxos-border transition-all duration-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 py-3.5 flex items-center justify-between gap-4">
+      
+      <!-- Mobile Hamburger Button -->
+      <div class="flex items-center lg:hidden">
+        <button onclick="openMobileNav()" aria-label="Open navigation menu" class="p-2 text-black hover:opacity-60 transition">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Brand Logo -->
+      <a href="#" class="flex items-center group py-1" aria-label="LUXOS Home">
+        <img src="images/logo.png" alt="LUXOS" class="h-7 sm:h-9 w-auto object-contain transition-transform duration-200 group-hover:scale-105" />
+      </a>
+
+      <!-- Desktop Navigation Menu -->
+      <nav class="hidden lg:flex items-center gap-7 text-xs font-medium uppercase tracking-wide-sm text-gray-800">
+        <a href="#collectionSection" onclick="filterByTab('all')" class="hover:text-black hover:border-b-2 hover:border-black py-1 transition-all">All Bags</a>
+        <a href="#collectionSection" onclick="filterByTab('Tote Bags')" class="hover:text-black hover:border-b-2 hover:border-black py-1 transition-all">Tote Bag</a>
+        <a href="#collectionSection" onclick="filterByTab('Shoulder Bags')" class="hover:text-black hover:border-b-2 hover:border-black py-1 transition-all">Shoulder Bag</a>
+        <a href="#collectionSection" onclick="filterByTab('Crossbody Bags')" class="hover:text-black hover:border-b-2 hover:border-black py-1 transition-all">Crossbody</a>
+        <a href="#collectionSection" onclick="filterByTab('Wallets & Cards')" class="hover:text-black hover:border-b-2 hover:border-black py-1 transition-all">Wallets &amp; Cards</a>
+        <a href="#collectionSection" onclick="filterByTab('Prime Shoes')" class="hover:text-black hover:border-b-2 hover:border-black py-1 transition-all">Footwear</a>
+        <a href="#collectionSection" onclick="filterByTab('The Prime Drop')" class="text-red-600 hover:text-red-700 font-semibold py-1 transition-all">Clearance Sale</a>
+      </nav>
+
+      <!-- Action Buttons (Profile, Search, Bag) - Matches Requested UI -->
+      <div class="flex items-center gap-1 sm:gap-2">
+        <!-- 1. Profile / Account Button -->
+        <button onclick="openAccountModal()" title="My Account &amp; Order Tracking" aria-label="My Account" class="p-2 text-black hover:opacity-60 transition flex items-center justify-center">
+          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="7.8" r="3.8" />
+            <path d="M4.5 20.5a7.5 7.5 0 0 1 15 0" />
+          </svg>
+        </button>
+
+        <!-- 2. Search Button -->
+        <button onclick="openSearchModal()" title="Search Products" aria-label="Search" class="p-2 text-black hover:opacity-60 transition flex items-center justify-center">
+          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="10.5" cy="10.5" r="6.2" />
+            <path d="m15.2 15.2 5.3 5.3" />
+          </svg>
+        </button>
+
+        <!-- 3. Shopping Bag Button with Dot Badge -->
+        <button onclick="openCartDrawer()" title="Shopping Bag" aria-label="Shopping Bag" class="p-2 text-black hover:opacity-60 transition relative flex items-center justify-center">
+          <div class="relative">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M8.5 8V5.8a3.5 3.5 0 0 1 7 0V8" />
+              <path d="M5.5 8.2h13a1 1 0 0 1 1 1.1l-1.3 10.2a2 2 0 0 1-2 1.5H7.8a2 2 0 0 1-2-1.5L4.5 9.3a1 1 0 0 1 1-1.1z" />
+            </svg>
+            <span class="cart-count-badge hidden absolute -top-1 -right-1 min-w-[15px] h-[15px] px-0.5 bg-black text-white text-[9px] font-bold rounded-full flex items-center justify-center shadow-sm pointer-events-none">0</span>
+          </div>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- =======================================================================
+       3. Hero Slideshow Banner
+       ======================================================================= -->
+  <section id="heroSlideshowSection" class="relative w-full bg-neutral-900 overflow-hidden" style="height: clamp(340px, 48vw, 620px);">
+    <!-- Dynamically managed slides container -->
+    <div id="heroSlidesContainer" class="w-full h-full relative">
+      <!-- Slide 1: Clearance Sale -->
+      <div class="hero-slide active">
+        <picture>
+          <source media="(max-width: 699px)" srcset="https://thepatchee.com/cdn/shop/files/MOBILE_SIZE.webp?v=1791810459&width=800" />
+          <img src="https://thepatchee.com/cdn/shop/files/DESKTOP_SIZE.webp?v=1791810459&width=1800" alt="Luxos Clearance Sale" class="w-full h-full object-cover object-center" />
+        </picture>
+        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 flex items-end sm:items-center p-6 sm:p-12 lg:p-20">
+          <div class="hero-text-content max-w-xl text-white space-y-3">
+            <span class="text-xs uppercase tracking-[0.25em] text-amber-300 font-semibold drop-shadow">Mid-Season Exclusive</span>
+            <h1 class="font-serif text-3xl sm:text-5xl font-bold leading-tight drop-shadow-md">The Grand Autumn Clearance</h1>
+            <p class="text-xs sm:text-sm text-neutral-200 line-clamp-2 drop-shadow">Indulge in handcrafted luxury totes, shoulder bags, and commuter essentials up to 70% off.</p>
+            <div class="pt-2">
+              <button onclick="filterByTab('The Prime Drop')" class="bg-white text-black text-xs uppercase tracking-luxury font-bold px-6 py-3 rounded-sm hover:bg-neutral-200 transition shadow-lg">
+                Shop Clearance
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 2: Cosmetic & Travel Essentials -->
+      <div class="hero-slide">
+        <picture>
+          <source media="(max-width: 699px)" srcset="https://thepatchee.com/cdn/shop/files/Mobile_Size_4.png?v=1790332863&width=800" />
+          <img src="https://thepatchee.com/cdn/shop/files/Desktop_size_8.png?v=1790332863&width=1800" alt="Luxos Cosmetic Edition" class="w-full h-full object-cover object-center" />
+        </picture>
+        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 flex items-end sm:items-center p-6 sm:p-12 lg:p-20">
+          <div class="hero-text-content max-w-xl text-white space-y-3">
+            <span class="text-xs uppercase tracking-[0.25em] text-amber-300 font-semibold drop-shadow">Travel &amp; Beauty Series</span>
+            <h2 class="font-serif text-3xl sm:text-5xl font-bold leading-tight drop-shadow-md">Cosmetic Organizers &amp; Cases</h2>
+            <p class="text-xs sm:text-sm text-neutral-200 drop-shadow">Spacious, waterproof, and compartmentalized elegance for your everyday beauty routine.</p>
+            <div class="pt-2">
+              <button onclick="filterByTab('Duffle Bags')" class="bg-white text-black text-xs uppercase tracking-luxury font-bold px-6 py-3 rounded-sm hover:bg-neutral-200 transition shadow-lg">
+                Explore Collection
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 3: The Prime Drop -->
+      <div class="hero-slide">
+        <img src="https://thepatchee.com/cdn/shop/files/BD_2.webp?v=1784095185&width=1800" alt="Luxos Prime Drop" class="w-full h-full object-cover object-center" />
+        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 flex items-end sm:items-center p-6 sm:p-12 lg:p-20">
+          <div class="hero-text-content max-w-xl text-white space-y-3">
+            <span class="text-xs uppercase tracking-[0.25em] text-amber-300 font-semibold drop-shadow">New Silhouette</span>
+            <h2 class="font-serif text-3xl sm:text-5xl font-bold leading-tight drop-shadow-md">The Prime Drop 2026</h2>
+            <p class="text-xs sm:text-sm text-neutral-200 drop-shadow">Architectural contours meet supple craftsmanship. Made for the modern professional.</p>
+            <div class="pt-2">
+              <button onclick="filterByTab('all')" class="bg-white text-black text-xs uppercase tracking-luxury font-bold px-6 py-3 rounded-sm hover:bg-neutral-200 transition shadow-lg">
+                Discover Prime Drop
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+          <span class="text-xs uppercase tracking-[0.25em] text-amber-300 font-semibold drop-shadow">New Silhouette</span>
+          <h2 class="font-serif text-3xl sm:text-5xl font-bold leading-tight drop-shadow-md">The Prime Drop 2026</h2>
+          <p class="text-xs sm:text-sm text-neutral-200 drop-shadow">Architectural contours meet supple craftsmanship. Made for the modern professional.</p>
+          <div class="pt-2">
+            <button onclick="filterByTab('all')" class="bg-white text-black text-xs uppercase tracking-luxury font-bold px-6 py-3 rounded-sm hover:bg-neutral-200 transition shadow-lg">
+              Discover Prime Drop
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide Arrows -->
+    <button onclick="prevSlide()" aria-label="Previous Slide" class="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/40 hover:bg-black/70 text-white flex items-center justify-center transition backdrop-blur-sm z-10">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
+    </button>
+    <button onclick="nextSlide()" aria-label="Next Slide" class="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/40 hover:bg-black/70 text-white flex items-center justify-center transition backdrop-blur-sm z-10">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+    </button>
+  </section>
+
+  <!-- =======================================================================
+       4. Continuous Luxury Marquee Ticker
+       ======================================================================= -->
+  <div class="bg-neutral-100 border-y border-neutral-200 overflow-hidden py-3">
+    <div class="animate-marquee whitespace-nowrap text-xs font-medium tracking-[0.2em] uppercase text-neutral-800 flex items-center gap-10">
+      <span>✨ GET 10% OFF ONLINE WITH CODE: LUXOS10</span>
+      <span>•</span>
+      <span>🚚 FREE NATIONWIDE SHIPPING OVER ৳ 3,000</span>
+      <span>•</span>
+      <span>🔄 7 DAYS EASY EXCHANGE &amp; MONEY BACK GUARANTEE</span>
+      <span>•</span>
+      <span>💎 100% PREMIUM LEATHER &amp; VEGAN CRAFTSMANSHIP</span>
+      <span>•</span>
+      <span>💵 CASH ON DELIVERY AVAILABLE ACROSS BANGLADESH</span>
+      <span>•</span>
+      <span>⭐ OVER 50,000+ HAPPY CUSTOMERS</span>
+      <span>•</span>
+      <span>✨ GET 10% OFF ONLINE WITH CODE: LUXOS10</span>
+      <span>•</span>
+      <span>🚚 FREE NATIONWIDE SHIPPING OVER ৳ 3,000</span>
+      <span>•</span>
+      <span>🔄 7 DAYS EASY EXCHANGE &amp; MONEY BACK GUARANTEE</span>
+      <span>•</span>
+      <span>💎 100% PREMIUM LEATHER &amp; VEGAN CRAFTSMANSHIP</span>
+    </div>
+  </div>
+
+  <!-- =======================================================================
+       5. Featured Story Bubbles (Category Circles Strip)
+       ======================================================================= -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+    <div class="text-center mb-6">
+      <h2 class="text-xs font-semibold tracking-luxury uppercase text-gray-500">Curated Categories</h2>
+      <p class="font-serif text-xl sm:text-2xl font-bold text-gray-900 mt-1">Shop by Collection</p>
+    </div>
+
+    <!-- Horizontally scrollable category bubbles -->
+    <div id="featuredCategories" class="flex items-center justify-start md:justify-center gap-6 sm:gap-8 overflow-x-auto pb-4 scrollbar-none px-2">
+      <!-- Injected by JavaScript -->
+    </div>
+  </section>
+
+  <!-- =======================================================================
+       6. Main Curated Product Showcase with Tabs
+       ======================================================================= -->
+  <section id="collectionSection" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 border-t border-gray-100">
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
+      <div>
+        <span class="text-xs uppercase tracking-luxury text-gray-500 font-semibold">Luxos Essentials</span>
+        <h2 class="font-serif text-2xl sm:text-3xl font-bold text-gray-900 mt-0.5">Signature Editions</h2>
+      </div>
+
+      <!-- Collection Filter Tabs -->
+      <div class="flex items-center gap-2 overflow-x-auto max-w-full pb-2 scrollbar-none">
+        <button onclick="filterByTab('all')" data-tab="all" class="tab-btn px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-wider bg-black text-white transition">All</button>
+        <button onclick="filterByTab('Just Landed')" data-tab="Just Landed" class="tab-btn px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-wider bg-gray-100 text-gray-700 hover:bg-gray-200 transition">Just Landed</button>
+        <button onclick="filterByTab('Best Sellers')" data-tab="Best Sellers" class="tab-btn px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-wider bg-gray-100 text-gray-700 hover:bg-gray-200 transition">Best Sellers</button>
+        <button onclick="filterByTab('The Prime Drop')" data-tab="The Prime Drop" class="tab-btn px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-wider bg-gray-100 text-gray-700 hover:bg-gray-200 transition">The Prime Drop</button>
+        <button onclick="filterByTab('Prime Shoes')" data-tab="Prime Shoes" class="tab-btn px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-wider bg-gray-100 text-gray-700 hover:bg-gray-200 transition">Footwear</button>
+        <button onclick="filterByTab('Wallets & Cards')" data-tab="Wallets & Cards" class="tab-btn px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-wider bg-gray-100 text-gray-700 hover:bg-gray-200 transition">Wallets &amp; Cards</button>
+      </div>
+    </div>
+
+    <!-- Products Grid (4 cols desktop, 2 cols mobile) -->
+    <div id="productsGrid" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+      <!-- Injected by JavaScript -->
+    </div>
+  </section>
+
+  <!-- =======================================================================
+       7. Interactive "Shop The Look" / Bag The Vibe Section
+       ======================================================================= -->
+  <section class="bg-neutral-900 text-white py-16 sm:py-24 my-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-10 space-y-2">
+        <span class="text-xs uppercase tracking-luxury text-amber-400 font-semibold">Street Style Lookbook</span>
+        <h2 class="font-serif text-3xl sm:text-4xl font-bold">Bag The Vibe</h2>
+        <p class="text-xs sm:text-sm text-neutral-400 max-w-lg mx-auto">Click the interactive pulse pins on our lookbook to reveal and shop the featured pieces directly.</p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        <!-- Interactive Image with Hotspot Pin -->
+        <div class="lg:col-span-8 relative rounded-sm overflow-hidden shadow-2xl bg-black">
+          <img src="https://thepatchee.com/cdn/shop/files/IMG_6745.JPG-ezgif.com-jpg-to-webp-converter.webp?v=1783519021&width=1600" alt="Luxos Lookbook" class="w-full h-auto object-cover max-h-[580px]" />
+          
+          <!-- Pulsing Pin 1 -->
+          <button id="hotspotPin1" aria-label="Explore Product" class="hotspot-pin absolute top-[52%] left-[46%] w-7 h-7 bg-white text-black rounded-full flex items-center justify-center font-bold text-xs shadow-lg hover:scale-125 transition-transform z-20">
+            +
+          </button>
+
+          <!-- Hotspot Product Card Popup -->
+          <div id="hotspotCard1" class="hidden absolute top-[58%] left-[28%] sm:left-[42%] z-30 bg-white text-black p-3.5 rounded-sm shadow-2xl w-64 border border-gray-200">
+            <div class="flex gap-3">
+              <img src="https://thepatchee.com/cdn/shop/files/c2ee0999-fc06-4942-aa71-6cd41e71d473.png?v=1782728863&width=300" class="w-14 h-14 object-cover rounded bg-gray-50 flex-shrink-0" />
+              <div class="flex-1">
+                <span class="text-[10px] uppercase font-bold text-red-600">Save 59%</span>
+                <h4 class="text-xs font-bold text-gray-900 leading-tight">Croissant Chic Crossbody</h4>
+                <p class="text-xs font-bold text-gray-900 mt-0.5">৳ 685 <span class="text-[10px] text-gray-400 line-through">৳ 1,669</span></p>
+              </div>
+            </div>
+            <button onclick="quickAddToCart(3)" class="mt-2.5 w-full bg-black text-white text-[11px] font-semibold py-1.5 uppercase tracking-wider rounded-sm hover:bg-neutral-800 transition">
+              Add to Bag
+            </button>
+          </div>
+        </div>
+
+        <!-- Right Side Banner Text -->
+        <div class="lg:col-span-4 space-y-6 text-left">
+          <span class="text-xs uppercase tracking-luxury text-neutral-400">Autumn Campaign</span>
+          <h3 class="font-serif text-2xl sm:text-3xl font-bold leading-snug">Designed for Those Who Dare to Lead</h3>
+          <p class="text-xs sm:text-sm text-neutral-300 leading-relaxed">Every Luxos bag represents the intersection of urban functionality and high-fashion luxury. Engineered with reinforced stitching, water-repellent textures, and ergonomic hardware made for your dynamic lifestyle.</p>
+          <div class="pt-2">
+            <button onclick="filterByTab('Crossbody Bags')" class="bg-amber-400 text-black text-xs uppercase tracking-luxury font-bold px-6 py-3 rounded-sm hover:bg-amber-300 transition shadow">
+              Explore Crossbody Line
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =======================================================================
+       8. Brand Story: "Own It. Lead It."
+       ======================================================================= -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+      <div class="rounded-sm overflow-hidden shadow-lg bg-gray-100">
+        <img src="https://thepatchee.com/cdn/shop/files/about_us.jpg?v=1744978769&width=1200" alt="About Luxos" class="w-full h-full object-cover" />
+      </div>
+
+      <div class="space-y-4">
+        <span class="text-xs uppercase tracking-luxury text-gray-500 font-semibold">The Luxos Philosophy</span>
+        <h2 class="font-serif text-3xl sm:text-4xl font-bold text-gray-900">Own It. Lead It.</h2>
+        <p class="text-sm text-gray-600 leading-relaxed">
+          At <b>Luxos</b>, we are driven by the belief that your bag is never just an accessory—it is your everyday statement. We design bags and lifestyle goods that empower you to take on the world with confidence, distinction, and ease.
+        </p>
+        <p class="text-sm text-gray-600 leading-relaxed">
+          From executive smart pop-up wallets to spacious commuter totes and evening statement bags, our Dhaka studio harmonizes international runway silhouettes with everyday resilience.
+        </p>
+        <div class="pt-2 flex items-center gap-4">
+          <button onclick="openSearchModal()" class="border-2 border-black text-black hover:bg-black hover:text-white text-xs uppercase tracking-wider font-bold px-6 py-3 rounded-sm transition">
+            Explore All Models
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =======================================================================
+       9. Media Grid: "Timeless. Bold. Unstoppable."
+       ======================================================================= -->
+  <section class="bg-neutral-50 py-16 border-t border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-10">
+        <span class="text-xs uppercase tracking-luxury text-gray-500 font-semibold">Instagram Lookbook</span>
+        <h2 class="font-serif text-2xl sm:text-3xl font-bold text-gray-900 mt-1">Timeless. Bold. Unstoppable.</h2>
+        <p class="text-xs sm:text-sm text-gray-500 mt-1">Tag <b>@LuxosOfficial</b> on Instagram to be featured.</p>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="aspect-square rounded overflow-hidden shadow-sm group relative">
+          <img src="https://thepatchee.com/cdn/shop/files/ChatGPT_Image_Aug_5_2026_05_36_09_PM.png?v=1785933427&width=800" class="w-full h-full object-cover group-hover:scale-110 transition duration-500" />
+          <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-xs font-semibold uppercase tracking-wider">
+            @LuxosStyle
+          </div>
+        </div>
+        <div class="aspect-square rounded overflow-hidden shadow-sm group relative">
+          <img src="https://thepatchee.com/cdn/shop/files/Untitled_design_84.png?v=1791810623&width=800" class="w-full h-full object-cover group-hover:scale-110 transition duration-500" />
+          <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-xs font-semibold uppercase tracking-wider">
+            #LuxosDhaka
+          </div>
+        </div>
+        <div class="aspect-square rounded overflow-hidden shadow-sm group relative">
+          <img src="https://thepatchee.com/cdn/shop/files/d0783770-4668-4b3e-a3b5-2bbc89c2869f.jpg?v=1776151580&width=800" class="w-full h-full object-cover group-hover:scale-110 transition duration-500" />
+          <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-xs font-semibold uppercase tracking-wider">
+            #ToteBagVibe
+          </div>
+        </div>
+        <div class="aspect-square rounded overflow-hidden shadow-sm group relative">
+          <img src="https://thepatchee.com/cdn/shop/files/654a7e83-c512-4ec1-8ebf-af44c488e776.png?v=1781362688&width=800" class="w-full h-full object-cover group-hover:scale-110 transition duration-500" />
+          <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-xs font-semibold uppercase tracking-wider">
+            #ExecutiveRFID
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =======================================================================
+       10. Trust Badges & Value Props
+       ======================================================================= -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 border-y border-gray-200">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+      <div class="space-y-2 p-4">
+        <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto text-black">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.25V3.75m0 3.75a2.25 2.25 0 01-2.25 2.25h-6.75a2.25 2.25 0 01-2.25-2.25V3.75" /></svg>
+        </div>
+        <h4 class="text-sm font-bold text-gray-900 uppercase tracking-wider">Fast Delivery</h4>
+        <p class="text-xs text-gray-500">2-4 days inside Dhaka, 3-7 days nationwide.</p>
+      </div>
+
+      <div class="space-y-2 p-4">
+        <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto text-black">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>
+        </div>
+        <h4 class="text-sm font-bold text-gray-900 uppercase tracking-wider">7 Days Return</h4>
+        <p class="text-xs text-gray-500">Hassle-free exchange &amp; money back guaranteed.</p>
+      </div>
+
+      <div class="space-y-2 p-4">
+        <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto text-black">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" /></svg>
+        </div>
+        <h4 class="text-sm font-bold text-gray-900 uppercase tracking-wider">Premium Quality</h4>
+        <p class="text-xs text-gray-500">Handcrafted with luxury hardware &amp; fabrics.</p>
+      </div>
+
+      <div class="space-y-2 p-4">
+        <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto text-black">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6H2.25m0 0v10.5m0-10.5h1.5A2.25 2.25 0 016 8.25v7.5A2.25 2.25 0 013.75 18H2.25m16.5-13.5v.75a.75.75 0 00.75.75h1.5m0 0v10.5m0-10.5h-1.5A2.25 2.25 0 0018 8.25v7.5A2.25 2.25 0 0020.25 18h1.5M6 10.5h12m-12 3h12" /></svg>
+        </div>
+        <h4 class="text-sm font-bold text-gray-900 uppercase tracking-wider">Cash on Delivery</h4>
+        <p class="text-xs text-gray-500">Pay when your parcel arrives at your doorstep.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- =======================================================================
+       11. Footer
+       ======================================================================= -->
+  <footer id="footer" class="bg-black text-white pt-16 pb-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 pb-12 border-b border-neutral-800">
+        
+        <!-- Brand Info -->
+        <div class="lg:col-span-2 space-y-4">
+          <a href="#" class="inline-block">
+            <img src="images/logo-white.png" alt="LUXOS" class="h-9 w-auto object-contain" />
+          </a>
+          <p class="text-xs text-neutral-400 max-w-sm leading-relaxed">
+            Luxos is Bangladesh's premier destination for luxury bags, smart pop-up wallets, and modern commuter footwear. Designed for effortless grace and unmatched longevity.
+          </p>
+          <div class="pt-2 text-xs text-neutral-300 space-y-1">
+            <p>📍 Gulshan-1, Dhaka-1212, Bangladesh</p>
+            <p>📞 Hotline: +880 1700-LUXOS (10 AM - 10 PM)</p>
+            <p>✉️ support@luxosbd.com</p>
+          </div>
+        </div>
+
+        <!-- Collections -->
+        <div class="space-y-3">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-neutral-200">Shop Collections</h4>
+          <ul class="text-xs space-y-2 text-neutral-400">
+            <li><a href="#collectionSection" onclick="filterByTab('Tote Bags')" class="hover:text-white transition">Tote Bags</a></li>
+            <li><a href="#collectionSection" onclick="filterByTab('Shoulder Bags')" class="hover:text-white transition">Shoulder Bags</a></li>
+            <li><a href="#collectionSection" onclick="filterByTab('Crossbody Bags')" class="hover:text-white transition">Crossbody Bags</a></li>
+            <li><a href="#collectionSection" onclick="filterByTab('Wallets & Cards')" class="hover:text-white transition">Smart RFID Wallets</a></li>
+            <li><a href="#collectionSection" onclick="filterByTab('Prime Shoes')" class="hover:text-white transition">Prime Footwear</a></li>
+            <li><a href="#collectionSection" onclick="filterByTab('The Prime Drop')" class="hover:text-white transition">Clearance Deals</a></li>
+          </ul>
+        </div>
+
+        <!-- Customer Care -->
+        <div class="space-y-3">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-neutral-200">Customer Support</h4>
+          <ul class="text-xs space-y-2 text-neutral-400">
+            <li><a href="javascript:void(0)" onclick="openAccountModal('track')" class="hover:text-white transition">Track My Order</a></li>
+            <li><a href="javascript:void(0)" class="hover:text-white transition">Return &amp; Refund Policy</a></li>
+            <li><a href="javascript:void(0)" class="hover:text-white transition">Shipping &amp; Delivery Information</a></li>
+            <li><a href="javascript:void(0)" class="hover:text-white transition">Privacy Policy</a></li>
+            <li><a href="javascript:void(0)" class="hover:text-white transition">Terms of Service</a></li>
+            <li><a href="javascript:void(0)" class="hover:text-white transition">B2B &amp; Corporate Wholesale</a></li>
+          </ul>
+        </div>
+
+        <!-- Newsletter Signup -->
+        <div class="space-y-3">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-neutral-200">Join the Luxos Club</h4>
+          <p class="text-xs text-neutral-400">Subscribe to receive private sale invitations and an instant 10% discount coupon.</p>
+          <form onsubmit="handleNewsletter(event)" class="space-y-2">
+            <input id="newsletterEmail" type="email" placeholder="Enter your email address" required class="w-full bg-neutral-900 border border-neutral-700 text-white text-xs px-3 py-2.5 rounded-sm focus:outline-none focus:border-white" />
+            <button type="submit" class="w-full bg-white text-black text-xs font-bold uppercase tracking-wider py-2.5 rounded-sm hover:bg-neutral-200 transition">
+              Subscribe
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Bottom Bar with Payment Icons -->
+      <div class="pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-neutral-500">
+        <p>© 2026 <b>Luxos Bangladesh</b>. All rights reserved. Handcrafted with passion.</p>
+        
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="text-[11px] text-neutral-400 mr-2">Secure Payments:</span>
+          <span class="px-2 py-0.5 bg-neutral-900 border border-neutral-700 rounded text-[10px] text-neutral-300 font-semibold">bKash</span>
+          <span class="px-2 py-0.5 bg-neutral-900 border border-neutral-700 rounded text-[10px] text-neutral-300 font-semibold">Nagad</span>
+          <span class="px-2 py-0.5 bg-neutral-900 border border-neutral-700 rounded text-[10px] text-neutral-300 font-semibold">Visa</span>
+          <span class="px-2 py-0.5 bg-neutral-900 border border-neutral-700 rounded text-[10px] text-neutral-300 font-semibold">Mastercard</span>
+          <span class="px-2 py-0.5 bg-neutral-900 border border-neutral-700 rounded text-[10px] text-neutral-300 font-semibold">Cash on Delivery</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- =======================================================================
+       12. Slide-Over Cart Drawer
+       ======================================================================= -->
+  <div id="cartBackdrop" onclick="closeCartDrawer()" class="drawer-backdrop fixed inset-0 bg-black/60 z-50 backdrop-blur-sm"></div>
+  <aside id="cartDrawer" class="drawer-panel fixed top-0 right-0 bottom-0 w-full max-w-md bg-white z-50 flex flex-col shadow-2xl">
+    <!-- Header -->
+    <div class="p-4 border-b border-gray-200 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <h3 class="font-bold text-base uppercase tracking-wider text-gray-900">Shopping Bag</h3>
+        <span class="cart-count-badge bg-black text-white text-[10px] font-bold px-2 py-0.5 rounded-full">0</span>
+      </div>
+      <button onclick="closeCartDrawer()" aria-label="Close Bag" class="p-1 text-gray-400 hover:text-black">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+      </button>
+    </div>
+
+    <!-- Free Delivery Progress Bar -->
+    <div class="bg-gray-50 p-3 border-b border-gray-200 text-xs">
+      <p id="freeShippingText" class="text-gray-700 text-center font-medium">Add <b>৳ 3,000</b> more for <b>FREE Delivery</b>!</p>
+      <div class="w-full bg-gray-200 h-1.5 rounded-full mt-2 overflow-hidden">
+        <div id="freeShippingProgress" class="bg-black h-full rounded-full transition-all duration-300" style="width: 0%;"></div>
+      </div>
+    </div>
+
+    <!-- Items List (Scrollable) -->
+    <div id="cartItemsList" class="flex-1 overflow-y-auto p-4 space-y-2">
+      <!-- Injected by JavaScript -->
+    </div>
+
+    <!-- Footer Summary & Checkout Button -->
+    <div class="p-4 border-t border-gray-200 bg-gray-50 space-y-3">
+      <div class="flex justify-between text-sm font-medium text-gray-700">
+        <span>Estimated Subtotal:</span>
+        <span id="cartSubtotal" class="font-bold text-gray-900 text-base">৳ 0</span>
+      </div>
+      <p class="text-[11px] text-gray-400">Taxes and delivery fee calculated at checkout.</p>
+      
+      <button onclick="openCheckoutModal()" class="w-full bg-black text-white text-xs uppercase tracking-luxury font-bold py-3.5 rounded-sm hover:bg-neutral-800 transition shadow flex items-center justify-center gap-2">
+        <span>Proceed to Checkout</span>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg>
+      </button>
+    </div>
+  </aside>
+
+  <!-- =======================================================================
+       13. Quick View Modal
+       ======================================================================= -->
+  <div id="quickViewModal" class="modal-overlay fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+    <div class="modal-content relative bg-white w-full max-w-3xl rounded-sm shadow-2xl max-h-[90vh] overflow-y-auto">
+      <button onclick="closeQuickView()" class="absolute top-3 right-3 text-gray-400 hover:text-black z-10 p-1">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+      </button>
+      <div id="quickViewContent">
+        <!-- Injected by JavaScript -->
+      </div>
+    </div>
+  </div>
+
+  <!-- =======================================================================
+       14. Live Search Modal
+       ======================================================================= -->
+  <div id="searchModal" class="modal-overlay fixed inset-0 bg-black/60 z-50 flex items-start justify-center p-4 pt-16 sm:pt-24 backdrop-blur-sm">
+    <div class="modal-content bg-white w-full max-w-2xl rounded-sm shadow-2xl p-6 relative max-h-[85vh] flex flex-col">
+      <button onclick="closeSearchModal()" class="absolute top-4 right-4 text-gray-400 hover:text-black p-1">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+      </button>
+
+      <div class="flex items-center gap-3 border-b-2 border-black pb-2 mb-6">
+        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
+        <input 
+          id="searchInput" 
+          type="text" 
+          placeholder="Search tote bags, wallets, backpacks, loafers..." 
+          oninput="performSearch(this.value)"
+          class="w-full text-base sm:text-lg focus:outline-none text-gray-900" />
+      </div>
+
+      <div id="searchResults" class="flex-1 overflow-y-auto">
+        <!-- Injected by JavaScript -->
+      </div>
+    </div>
+  </div>
+
+  <!-- =======================================================================
+       15. Wishlist Modal
+       ======================================================================= -->
+  <div id="wishlistModal" class="modal-overlay fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+    <div class="modal-content bg-white w-full max-w-lg rounded-sm shadow-2xl p-6 relative max-h-[85vh] flex flex-col">
+      <div class="flex items-center justify-between border-b border-gray-200 pb-3 mb-4">
+        <h3 class="font-bold text-base uppercase tracking-wider text-gray-900">My Saved Wishlist</h3>
+        <button onclick="closeWishlistModal()" class="text-gray-400 hover:text-black p-1">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+      </div>
+      <div id="wishlistItems" class="flex-1 overflow-y-auto space-y-2">
+        <!-- Injected by JavaScript -->
+      </div>
+    </div>
+  </div>
+
+  <!-- =======================================================================
+       15.5. Customer Account & Order Tracking Modal
+       ======================================================================= -->
+  <div id="accountModal" class="modal-overlay fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+    <div class="modal-content bg-white w-full max-w-lg rounded-sm shadow-2xl p-6 relative max-h-[90vh] flex flex-col">
+      <div class="flex items-center justify-between border-b border-gray-200 pb-3 mb-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center text-black">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="7.8" r="3.8" />
+              <path d="M4.5 20.5a7.5 7.5 0 0 1 15 0" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="font-bold text-sm sm:text-base uppercase tracking-wider text-gray-900">My Account &amp; Orders</h3>
+            <p class="text-[11px] text-gray-500">Track shipment, saved info &amp; orders</p>
+          </div>
+        </div>
+        <button onclick="closeAccountModal()" class="text-gray-400 hover:text-black p-1 transition" aria-label="Close">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+      </div>
+
+      <!-- Account Tabs -->
+      <div class="flex border-b border-gray-200 mb-4 text-xs font-semibold uppercase tracking-wider">
+        <button id="accountTabTrack" onclick="switchAccountTab('track')" class="flex-1 py-2 text-center border-b-2 border-black text-black transition">Track Order</button>
+        <button id="accountTabOrders" onclick="switchAccountTab('orders')" class="flex-1 py-2 text-center text-gray-400 hover:text-black border-b-2 border-transparent transition">My Orders</button>
+        <button id="accountTabProfile" onclick="switchAccountTab('profile')" class="flex-1 py-2 text-center text-gray-400 hover:text-black border-b-2 border-transparent transition">Fast Checkout</button>
+      </div>
+
+      <!-- Content Container -->
+      <div class="flex-1 overflow-y-auto pr-1">
+        <!-- Tab 1: Live Order Tracking -->
+        <div id="accountTabContentTrack" class="space-y-4">
+          <div class="bg-neutral-50 p-4 rounded-sm border border-neutral-200">
+            <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">Enter Order ID or Mobile Number</label>
+            <div class="flex gap-2">
+              <input id="trackSearchInput" type="text" placeholder="e.g. LX-102948 or 017XXXXXXXX" onkeydown="if(event.key==='Enter') searchOrderStatus()" class="flex-1 border border-gray-300 text-xs px-3 py-2.5 rounded-sm focus:outline-none focus:border-black uppercase" />
+              <button onclick="searchOrderStatus()" class="bg-black text-white text-xs font-bold px-4 py-2.5 rounded-sm hover:bg-neutral-800 transition">Track</button>
+            </div>
+            <p class="text-[10px] text-gray-500 mt-1.5">Instant delivery status update for orders placed in Bangladesh.</p>
+          </div>
+
+          <div id="trackResultContainer" class="space-y-3">
+            <!-- Order tracking card injected dynamically -->
+          </div>
+        </div>
+
+        <!-- Tab 2: Recent Orders on This Device -->
+        <div id="accountTabContentOrders" class="hidden space-y-3">
+          <div id="accountRecentOrdersList" class="space-y-3">
+            <!-- Orders list injected dynamically -->
+          </div>
+        </div>
+
+        <!-- Tab 3: Fast Checkout Profile -->
+        <div id="accountTabContentProfile" class="hidden space-y-3">
+          <div class="bg-neutral-50 p-3 rounded-sm border border-neutral-200 text-xs text-gray-600 mb-2">
+            💡 Save your shipping information once and it will automatically fill during every checkout!
+          </div>
+          <form onsubmit="saveCustomerProfile(event)" class="space-y-3">
+            <div>
+              <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Customer Name *</label>
+              <input id="profileName" type="text" placeholder="e.g. Tanzim Rahman" class="w-full border border-gray-300 text-xs px-3 py-2 rounded-sm focus:outline-none focus:border-black" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Mobile Number (BD) *</label>
+              <input id="profilePhone" type="tel" placeholder="017XXXXXXXX" class="w-full border border-gray-300 text-xs px-3 py-2 rounded-sm focus:outline-none focus:border-black" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Delivery Address *</label>
+              <textarea id="profileAddress" rows="2" placeholder="House, Road, Area, Thana/District" class="w-full border border-gray-300 text-xs p-2.5 rounded-sm focus:outline-none focus:border-black"></textarea>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Default Delivery Zone</label>
+              <select id="profileZone" class="w-full border border-gray-300 text-xs px-3 py-2 rounded-sm focus:outline-none focus:border-black bg-white">
+                <option value="inside_dhaka">Inside Dhaka (৳ 70)</option>
+                <option value="outside_dhaka">Outside Dhaka (৳ 130)</option>
+              </select>
+            </div>
+            <button type="submit" class="w-full bg-black text-white text-xs uppercase tracking-widest font-bold py-2.5 rounded-sm hover:bg-neutral-800 transition">Save Fast Checkout Details</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Quick Shortcuts Footer -->
+      <div class="pt-3 mt-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-600">
+        <button onclick="closeAccountModal(); openWishlistModal();" class="flex items-center gap-1.5 hover:text-black font-medium">
+          <svg class="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+          <span>Saved Wishlist (<span class="wishlist-count-badge">0</span>)</span>
+        </button>
+        <a href="admin.html" class="flex items-center gap-1 hover:text-black text-amber-700 font-semibold">
+          <span>Admin Portal &rarr;</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- =======================================================================
+       16. Mobile Navigation Drawer
+       ======================================================================= -->
+  <div id="mobileNavBackdrop" onclick="closeMobileNav()" class="drawer-backdrop fixed inset-0 bg-black/60 z-50 backdrop-blur-sm"></div>
+  <aside id="mobileNavDrawer" class="drawer-panel-left fixed top-0 left-0 bottom-0 w-72 bg-white z-50 flex flex-col shadow-2xl">
+    <div class="p-4 border-b border-gray-200 flex items-center justify-between">
+      <a href="#" onclick="closeMobileNav()">
+        <img src="images/logo.png" alt="LUXOS" class="h-6 w-auto object-contain" />
+      </a>
+      <button onclick="closeMobileNav()" class="text-gray-400 hover:text-black p-1">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+      </button>
+    </div>
+    <div class="flex-1 overflow-y-auto p-4 space-y-4 text-xs font-semibold uppercase tracking-wider">
+      <a href="#collectionSection" onclick="closeMobileNav(); filterByTab('all');" class="block py-2 border-b border-gray-100">All Collections</a>
+      <a href="#collectionSection" onclick="closeMobileNav(); filterByTab('Tote Bags');" class="block py-2 border-b border-gray-100">Tote Bags</a>
+      <a href="#collectionSection" onclick="closeMobileNav(); filterByTab('Shoulder Bags');" class="block py-2 border-b border-gray-100">Shoulder Bags</a>
+      <a href="#collectionSection" onclick="closeMobileNav(); filterByTab('Crossbody Bags');" class="block py-2 border-b border-gray-100">Crossbody Bags</a>
+      <a href="#collectionSection" onclick="closeMobileNav(); filterByTab('Wallets & Cards');" class="block py-2 border-b border-gray-100">Wallets &amp; Card Holders</a>
+      <a href="#collectionSection" onclick="closeMobileNav(); filterByTab('Prime Shoes');" class="block py-2 border-b border-gray-100">Footwear &amp; Loafers</a>
+      <a href="#collectionSection" onclick="closeMobileNav(); filterByTab('The Prime Drop');" class="block py-2 text-red-600 font-bold border-b border-gray-100">Clearance Sale</a>
+      
+      <!-- Account & Wishlist shortcuts in mobile drawer -->
+      <button onclick="closeMobileNav(); openAccountModal();" class="w-full text-left py-2.5 border-b border-gray-100 flex items-center justify-between text-gray-800 hover:text-black">
+        <span class="flex items-center gap-2">
+          <svg class="w-4 h-4 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="7.8" r="3.8"/><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/></svg>
+          <span>My Account &amp; Track Order</span>
+        </span>
+        <svg class="w-4 h-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6" /></svg>
+      </button>
+      <button onclick="closeMobileNav(); openWishlistModal();" class="w-full text-left py-2.5 border-b border-gray-100 flex items-center justify-between text-gray-800 hover:text-black">
+        <span class="flex items-center gap-2">
+          <svg class="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+          <span>Saved Wishlist (<span class="wishlist-count-badge">0</span>)</span>
+        </span>
+        <svg class="w-4 h-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6" /></svg>
+      </button>
+    </div>
+    <div class="p-4 border-t border-gray-200 bg-gray-50 text-xs text-gray-600 space-y-2">
+      <a href="admin.html" class="flex items-center justify-between p-2.5 bg-black text-white rounded-sm font-semibold mb-2">
+        <span>Admin Panel</span>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg>
+      </a>
+      <p class="font-bold text-gray-900">Need Assistance?</p>
+      <p>📞 +880 1700-LUXOS</p>
+      <p>🇧🇩 Dhaka, Bangladesh</p>
+    </div>
+  </aside>
+
+  <!-- =======================================================================
+       17. Interactive Checkout Modal (Bangladesh eCommerce)
+       ======================================================================= -->
+  <div id="checkoutModal" class="modal-overlay fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+    <div id="checkoutModalContent" class="modal-content bg-white w-full max-w-xl rounded-sm shadow-2xl max-h-[90vh] overflow-y-auto relative">
+      <button onclick="closeCheckoutModal()" class="absolute top-4 right-4 text-gray-400 hover:text-black p-1">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+      </button>
+
+      <div class="p-6">
+        <span class="text-xs font-semibold uppercase tracking-widest text-gray-500">Fast Checkout</span>
+        <h2 class="text-xl font-bold text-gray-900 mt-1">Complete Your Order</h2>
+
+        <!-- Order Items Preview -->
+        <div id="checkoutItemsPreview" class="my-4 max-h-36 overflow-y-auto">
+          <!-- Injected by JavaScript -->
+        </div>
+
+        <!-- Form -->
+        <form onsubmit="placeOrder(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Full Name *</label>
+            <input id="custName" type="text" required placeholder="e.g. Farhan Ahmed" class="w-full border border-gray-300 text-xs px-3 py-2.5 rounded-sm focus:outline-none focus:border-black" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Mobile Number (For Delivery Confirmation) *</label>
+            <input id="custPhone" type="tel" required placeholder="017XXXXXXXX" class="w-full border border-gray-300 text-xs px-3 py-2.5 rounded-sm focus:outline-none focus:border-black" />
+          </div>
+
+          <!-- Delivery Zone Toggle -->
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">Delivery Area *</label>
+            <div class="grid grid-cols-2 gap-3">
+              <label class="flex items-center gap-2 p-3 border border-gray-300 rounded-sm cursor-pointer hover:border-black">
+                <input type="radio" name="deliveryZone" value="inside_dhaka" checked onchange="setDeliveryZone('inside_dhaka')" />
+                <div class="text-xs">
+                  <p class="font-bold text-gray-900">Inside Dhaka</p>
+                  <p class="text-gray-500">৳ 70 (2-3 Days)</p>
+                </div>
+              </label>
+              <label class="flex items-center gap-2 p-3 border border-gray-300 rounded-sm cursor-pointer hover:border-black">
+                <input type="radio" name="deliveryZone" value="outside_dhaka" onchange="setDeliveryZone('outside_dhaka')" />
+                <div class="text-xs">
+                  <p class="font-bold text-gray-900">Outside Dhaka</p>
+                  <p class="text-gray-500">৳ 130 (3-5 Days)</p>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Full Delivery Address *</label>
+            <textarea id="custAddress" required rows="2" placeholder="House, Road, Area, District/Thana" class="w-full border border-gray-300 text-xs p-2.5 rounded-sm focus:outline-none focus:border-black"></textarea>
+          </div>
+
+          <!-- Promo Code Box -->
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Discount Coupon</label>
+            <div class="flex gap-2">
+              <input id="couponInput" type="text" placeholder="Try LUXOS10" class="flex-1 border border-gray-300 text-xs px-3 py-2 rounded-sm uppercase focus:outline-none focus:border-black" />
+              <button type="button" onclick="applyCoupon()" class="bg-gray-800 text-white text-xs font-bold px-4 py-2 rounded-sm hover:bg-black transition">
+                Apply
+              </button>
+            </div>
+          </div>
+
+          <!-- Payment Options -->
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">Payment Method *</label>
+            <div class="space-y-2 text-xs">
+              <label class="flex items-center gap-2 p-2.5 border border-gray-300 rounded-sm cursor-pointer hover:border-black">
+                <input type="radio" name="paymentMethod" value="Cash on Delivery" checked />
+                <span class="font-bold text-gray-900">Cash on Delivery (Pay when you receive)</span>
+              </label>
+              <label class="flex items-center gap-2 p-2.5 border border-gray-300 rounded-sm cursor-pointer hover:border-black">
+                <input type="radio" name="paymentMethod" value="bKash / Nagad" />
+                <span class="font-bold text-gray-900">bKash / Nagad Online Payment</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Final Price Breakdown -->
+          <div class="border-t border-gray-200 pt-3 space-y-1.5 text-xs text-gray-600">
+            <div class="flex justify-between">
+              <span>Subtotal:</span>
+              <span id="checkoutSubtotal" class="font-semibold text-gray-900">৳ 0</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Delivery Fee:</span>
+              <span id="checkoutShipping" class="font-semibold text-gray-900">৳ 70</span>
+            </div>
+            <div id="checkoutDiscountRow" class="flex justify-between text-emerald-600 font-semibold hidden">
+              <span>Promo Discount (10%):</span>
+              <span id="checkoutDiscount">- ৳ 0</span>
+            </div>
+            <div class="flex justify-between text-sm font-bold text-gray-900 pt-2 border-t border-gray-200">
+              <span>Total Payable:</span>
+              <span id="checkoutGrandTotal" class="text-base text-gray-900">৳ 0</span>
+            </div>
+          </div>
+
+          <button type="submit" class="w-full bg-black text-white text-xs uppercase tracking-luxury font-bold py-3.5 rounded-sm hover:bg-neutral-800 transition shadow mt-4">
+            Confirm &amp; Place Order
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- =======================================================================
+       18. Toast Notification
+       ======================================================================= -->
+  <div id="toastNotification" class="toast-notification fixed bottom-5 right-5 z-50 bg-black text-white text-xs px-4 py-3 rounded-sm shadow-2xl flex items-center gap-2 border border-neutral-700">
+    <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+    <span id="toastText">Product added to your cart.</span>
+  </div>
+
+  <!-- Application Scripts -->
+  <script src="js/products.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

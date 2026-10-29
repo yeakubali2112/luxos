@@ -1,0 +1,363 @@
+/* ==========================================================================
+   Luxos Luxury eCommerce Styling
+   Inspired by prestige boutique storefronts
+   ========================================================================== */
+
+:root {
+  --luxos-black: #111111;
+  --luxos-charcoal: #1e1e1e;
+  --luxos-gold: #c5a880;
+  --luxos-gold-dark: #a88b63;
+  --luxos-cream: #fbf9f5;
+  --luxos-sand: #f4efe6;
+  --luxos-gray-light: #f7f7f7;
+  --luxos-border: #e7e5e0;
+  --luxos-red: #d93829;
+  --font-heading: 'Jost', sans-serif;
+  --font-serif: 'Playfair Display', serif;
+  --transition-smooth: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  font-family: var(--font-heading);
+  color: var(--luxos-black);
+  background-color: #ffffff;
+  overflow-x: hidden;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}
+
+/* Typography Helpers */
+.font-serif {
+  font-family: var(--font-serif);
+}
+.tracking-luxury {
+  letter-spacing: 0.18em;
+}
+.tracking-wide-sm {
+  letter-spacing: 0.08em;
+}
+
+/* Infinite Marquee Animation */
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  display: flex;
+  width: 200%;
+  animation: marquee 25s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* Pulse Animation for Hotspots */
+@keyframes pulse-pin {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 14px rgba(255, 255, 255, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+  }
+}
+
+.hotspot-pin {
+  animation: pulse-pin 2s infinite;
+}
+
+/* Product Card Image Transitions */
+.product-card {
+  position: relative;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.product-image-container {
+  position: relative;
+  overflow: hidden;
+  background-color: #f8f8f8;
+  aspect-ratio: 1 / 1;
+}
+
+.product-primary-img {
+  transition: opacity 0.4s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.product-hover-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.4s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.product-card:hover .product-primary-img {
+  opacity: 0;
+  transform: scale(1.05);
+}
+
+.product-card:hover .product-hover-img {
+  opacity: 1;
+  transform: scale(1.05);
+}
+
+.product-card:hover .quick-action-buttons {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.quick-action-buttons {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: all 0.25s ease-in-out;
+}
+
+/* Slide Drawer Overlay */
+.drawer-backdrop {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.drawer-backdrop.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.drawer-panel {
+  transform: translateX(100%);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.drawer-panel.active {
+  transform: translateX(0);
+}
+
+/* Left drawer for mobile menu */
+.drawer-panel-left {
+  transform: translateX(-100%);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.drawer-panel-left.active {
+  transform: translateX(0);
+}
+
+/* Modal animations */
+.modal-overlay {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+.modal-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-content {
+  transform: scale(0.95);
+  opacity: 0;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+.modal-overlay.active .modal-content {
+  transform: scale(1);
+  opacity: 1;
+}
+
+/* Toast Notifications */
+.toast-notification {
+  transform: translateY(100px);
+  opacity: 0;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.toast-notification.show {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* Hero Slideshow & Zoom In/Out Animation */
+@keyframes heroZoomInOut {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.14);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes heroTextReveal {
+  0% {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero-slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  visibility: hidden;
+  overflow: hidden;
+  transition: opacity 0.9s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.9s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hero-slide.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.hero-slide picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.hero-slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transform: scale(1);
+  transform-origin: center center;
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transition: transform 0.5s ease-out;
+}
+
+/* Smooth Luxury Zoom In to Zoom Out */
+.hero-slide.active img {
+  animation: heroZoomInOut 7.5s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+}
+
+body.disable-hero-zoom .hero-slide.active img {
+  animation: none !important;
+  transform: scale(1) !important;
+}
+
+/* Elegant Text Caption Glide Entrance */
+.hero-slide.active .hero-text-content {
+  animation: heroTextReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.15s;
+}
+
+/* Header Shrink on Scroll */
+header.scrolled {
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.06);
+}
+
+/* Category Story Bubble */
+.category-bubble {
+  transition: transform 0.25s ease;
+}
+.category-bubble:hover {
+  transform: translateY(-4px);
+}
+
+.category-bubble:hover .bubble-img {
+  border-color: var(--luxos-black);
+}
+
+/* Gold Button Hover */
+.btn-gold {
+  background-color: var(--luxos-gold);
+  color: #ffffff;
+  transition: background-color 0.2s ease, transform 0.15s ease;
+}
+.btn-gold:hover {
+  background-color: var(--luxos-gold-dark);
+  transform: translateY(-1px);
+}
+
+/* Swatch Circle */
+.color-swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+.color-swatch:hover, .color-swatch.active {
+  transform: scale(1.2);
+  outline: 2px solid var(--luxos-black);
+  outline-offset: 1px;
+}
+
+/* Badge Styling */
+.badge-discount {
+  background-color: var(--luxos-red);
+  color: #fff;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  padding: 3px 8px;
+  text-transform: uppercase;
+}
+
+.badge-tag {
+  background-color: var(--luxos-black);
+  color: #fff;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  padding: 3px 8px;
+  text-transform: uppercase;
+}
+
+/* Hide Spinners for Number Inputs */
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+  -webkit-appearance: none; 
+  margin: 0; 
+}
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+/* Header Action Badges */
+.cart-count-badge {
+  font-feature-settings: "tnum";
+  line-height: 1;
+  transform-origin: center;
+}
