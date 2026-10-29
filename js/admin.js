@@ -383,7 +383,6 @@ window.switchTab = function (tabName) {
     dashboard: 'Operations Dashboard',
     orders: 'Customer Orders Management',
     products: 'Product Catalog Management',
-    'landing-page': 'Product Landing Page Management (PDP)',
     banners: 'Hero Banners & Slideshow',
     collections: 'Shop by Collection (Curated Story Circles)',
     ticker: 'Scrolling Marquee Ticker Management',
@@ -397,7 +396,6 @@ window.switchTab = function (tabName) {
   if (tabName === 'dashboard') renderDashboard();
   if (tabName === 'orders') renderOrdersTable();
   if (tabName === 'products') renderProductsTable();
-  if (tabName === 'landing-page') renderLandingPageManager();
   if (tabName === 'banners') renderBannersTable();
   if (tabName === 'collections') renderCollectionsManager();
   if (tabName === 'ticker') renderTickerSettings();
