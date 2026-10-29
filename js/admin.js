@@ -735,7 +735,7 @@ function renderProductsTable() {
   }
 
   tbody.innerHTML = products.map(p => `
-    <tr class="hover:bg-slate-50 transition">
+    <tr class="hover:bg-slate-50 transition" data-product-id="${p.id}">
       <td class="py-3 px-4 flex items-center gap-3">
         <img src="${p.image}" alt="${p.title}" class="w-10 h-10 object-cover rounded-lg bg-slate-100 flex-shrink-0" />
         <div class="max-w-xs">
@@ -779,7 +779,7 @@ window.openProductModal = function () {
   $('#productModalTitle').textContent = 'Add New Product';
   $('#editProductId').value = '';
   $('#prodTitle').value = '';
-  $('#prodCategory').value = 'Tote Bags';
+  $('#prodCategory').value = 'Accessories';
   $('#prodCollection').value = 'Just Landed';
   $('#prodPrice').value = '';
   $('#prodOriginalPrice').value = '';
@@ -795,6 +795,14 @@ window.openProductModal = function () {
   if ($('#prodPrimaryImgPreviewBox')) $('#prodPrimaryImgPreviewBox').classList.add('hidden');
   if ($('#prodPrimaryImgInfo')) $('#prodPrimaryImgInfo').textContent = 'Preview';
 
+  const overlay = $('#productSaveSuccessOverlay');
+  if (overlay) overlay.classList.add('hidden');
+  const saveBtn = $('#saveProductBtn');
+  if (saveBtn) {
+    saveBtn.disabled = false;
+    saveBtn.innerHTML = '<span>Save Product</span>';
+  }
+
   currentProductSecondaryPhotos = [];
   renderSecondaryPhotosGrid();
 
@@ -803,6 +811,13 @@ window.openProductModal = function () {
 
 window.closeProductModal = function () {
   $('#productFormModal').classList.remove('active');
+  const overlay = $('#productSaveSuccessOverlay');
+  if (overlay) overlay.classList.add('hidden');
+  const saveBtn = $('#saveProductBtn');
+  if (saveBtn) {
+    saveBtn.disabled = false;
+    saveBtn.innerHTML = '<span>Save Product</span>';
+  }
 };
 
 window.handleProductFileUpload = function (event, type) {
@@ -990,6 +1005,21 @@ window.editProduct = function (productId) {
 window.handleSaveProduct = function (e) {
   e.preventDefault();
 
+  const saveBtn = $('#saveProductBtn');
+  const overlay = $('#productSaveSuccessOverlay');
+
+  // 1. Show button saving state
+  if (saveBtn) {
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = `
+      <svg class="animate-spin w-4 h-4 text-amber-400 shrink-0" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+      </svg>
+      <span>Saving...</span>
+    `;
+  }
+
   const id = $('#editProductId').value;
   const title = $('#prodTitle').value.trim();
   const category = $('#prodCategory').value;
@@ -1007,6 +1037,7 @@ window.handleSaveProduct = function (e) {
   if (!price.startsWith('৳')) price = '৳ ' + price.replace(/[^\d,]/g, '');
   if (originalPrice && !originalPrice.startsWith('৳')) originalPrice = '৳ ' + originalPrice.replace(/[^\d,]/g, '');
 
+  let savedId = id;
   if (id) {
     // Update existing
     const existingIndex = AdminState.products.findIndex(p => p.id == id);
@@ -1026,11 +1057,11 @@ window.handleSaveProduct = function (e) {
         gallery,
         description
       };
-      showAdminToast(`Updated "${title}"`);
     }
   } else {
     // Add new product
     const newId = Math.max(0, ...AdminState.products.map(p => p.id)) + 1;
+    savedId = newId;
     const newProduct = {
       id: newId,
       slug: title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
@@ -1053,15 +1084,31 @@ window.handleSaveProduct = function (e) {
       ]
     };
     AdminState.products.unshift(newProduct);
-    showAdminToast(`Added new product "${title}"`);
   }
 
   // Persist to localStorage so storefront index.html sees it immediately!
   localStorage.setItem('luxos_products_data', JSON.stringify(AdminState.products));
 
-  closeProductModal();
-  renderProductsTable();
-  renderDashboard();
+  // 2. Trigger Animated Success Pop Overlay
+  if (overlay) {
+    overlay.classList.remove('hidden');
+  }
+
+  // 3. Smooth exit animation & update after 700ms
+  setTimeout(() => {
+    closeProductModal();
+    renderProductsTable();
+    renderDashboard();
+
+    // Highlight the saved product row in the table with brief pulse animation
+    const savedRow = document.querySelector(`tr[data-product-id="${savedId}"]`);
+    if (savedRow) {
+      savedRow.classList.add('animate-row-highlight');
+      savedRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    showAdminToast(id ? `Updated "${title}"` : `Added new product "${title}"`);
+  }, 750);
 };
 
 window.deleteProduct = function (productId) {

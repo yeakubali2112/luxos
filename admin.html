@@ -48,6 +48,22 @@
     .modal-content { transform: scale(0.95); opacity: 0; transition: all 0.25s ease; }
     .modal-overlay.active .modal-content { transform: scale(1); opacity: 1; }
 
+    @keyframes successPop {
+      0% { transform: scale(0.4); opacity: 0; }
+      70% { transform: scale(1.15); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .animate-success-pop {
+      animation: successPop 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+    @keyframes rowHighlight {
+      0% { background-color: rgba(16, 185, 129, 0.35); }
+      100% { background-color: transparent; }
+    }
+    .animate-row-highlight {
+      animation: rowHighlight 2s ease-out forwards;
+    }
+
     /* Status Badges */
     .badge-pending { background-color: #fef3c7; color: #b45309; }
     .badge-processing { background-color: #e0e7ff; color: #4338ca; }
@@ -452,15 +468,8 @@
             <!-- Category filter -->
             <select id="productCategoryFilter" onchange="filterAdminProducts()" class="text-xs border border-slate-300 py-2 px-3 rounded-lg focus:outline-none focus:border-black bg-white">
               <option value="all">All Categories</option>
-              <option value="Tote Bags">Tote Bags</option>
-              <option value="Shoulder Bags">Shoulder Bags</option>
-              <option value="Crossbody Bags">Crossbody Bags</option>
-              <option value="Wallets & Cards">Wallets &amp; Cards</option>
-              <option value="Footwear">Footwear</option>
-              <option value="Duffle Bags">Duffle Bags</option>
-              <option value="Backpack">Backpack</option>
-              <option value="Backpacks">Backpacks</option>
               <option value="Accessories">Accessories</option>
+              <option value="Backpack">Backpack</option>
             </select>
           </div>
 
@@ -816,6 +825,17 @@
        ======================================================================= -->
   <div id="productFormModal" class="modal-overlay fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
     <div class="modal-content bg-white w-full max-w-2xl rounded-xl shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto">
+      <!-- Animated Success Overlay -->
+      <div id="productSaveSuccessOverlay" class="absolute inset-0 bg-white/95 backdrop-blur-xs rounded-xl flex flex-col items-center justify-center z-50 hidden transition-all duration-300">
+        <div class="w-16 h-16 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-xl shadow-emerald-500/30 mb-3 animate-success-pop">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+          </svg>
+        </div>
+        <h4 class="text-base font-bold text-slate-900">Product Saved Successfully!</h4>
+        <p class="text-xs text-slate-500 mt-1">Live storefront updated</p>
+      </div>
+
       <button onclick="closeProductModal()" class="absolute top-4 right-4 text-slate-400 hover:text-black p-1">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
       </button>
@@ -834,15 +854,8 @@
           <div>
             <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Category *</label>
             <select id="prodCategory" class="w-full border border-slate-300 rounded-lg p-2.5 bg-white focus:outline-none focus:border-black">
-              <option value="Tote Bags">Tote Bags</option>
-              <option value="Shoulder Bags">Shoulder Bags</option>
-              <option value="Crossbody Bags">Crossbody Bags</option>
-              <option value="Wallets & Cards">Wallets &amp; Cards</option>
-              <option value="Footwear">Footwear</option>
-              <option value="Duffle Bags">Duffle Bags</option>
-              <option value="Backpack">Backpack</option>
-              <option value="Backpacks">Backpacks</option>
               <option value="Accessories">Accessories</option>
+              <option value="Backpack">Backpack</option>
             </select>
           </div>
 
@@ -947,7 +960,7 @@
 
         <div class="pt-2 flex justify-end gap-3">
           <button type="button" onclick="closeProductModal()" class="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50 font-semibold text-slate-700">Cancel</button>
-          <button type="submit" class="px-6 py-2 bg-black text-white rounded-lg hover:bg-slate-800 font-semibold shadow">Save Product</button>
+          <button id="saveProductBtn" type="submit" class="px-6 py-2 bg-black text-white rounded-lg hover:bg-slate-800 font-semibold shadow flex items-center justify-center gap-2 min-w-[140px] transition-all"><span>Save Product</span></button>
         </div>
       </form>
     </div>
