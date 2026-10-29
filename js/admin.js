@@ -2284,6 +2284,9 @@ window.loadLandingPageProductData = function (productId) {
     const feats = (prod.featuresList && prod.featuresList.length > 0) ? prod.featuresList : defaultFeatures;
     $('#pdpAdminFeatures').value = Array.isArray(feats) ? feats.join('\n') : feats;
   }
+  if ($('#pdpAdminVideoUrl')) {
+    $('#pdpAdminVideoUrl').value = prod.videoUrl || '';
+  }
 
   // Features
   const f1 = (prod.features && prod.features[0]) || { title: 'Quick-Access Slider', desc: 'Ergonomic one-click ejection mechanism fans cards out smoothly in a cascading sequence for instant access.' };
@@ -2483,6 +2486,9 @@ window.saveLandingPageSettings = function () {
   if ($('#pdpAdminFeatures')) {
     const featsText = $('#pdpAdminFeatures').value.trim();
     currentPdpProduct.featuresList = featsText ? featsText.split('\n').map(s => s.trim()).filter(Boolean) : defaultFeatures;
+  }
+  if ($('#pdpAdminVideoUrl')) {
+    currentPdpProduct.videoUrl = $('#pdpAdminVideoUrl').value.trim();
   }
 
   // Update in memory product

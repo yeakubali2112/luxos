@@ -339,6 +339,7 @@
     if (descEl) {
       descEl.textContent = currentProduct.description || 'Crafted for modern executives, the Executive RFID Card Holder merges minimalist architectural design with smart functionality. Features an ergonomic one-click card ejector mechanism, aerospace-grade aluminum casing with 13.56 MHz RFID signal blocking, and premium hand-finished leather casing.';
     }
+    renderProductVideo();
 
     // Render Bag Dimensions & Features (Requested: Reference Screenshot Style)
     const dimContainer = document.getElementById('pdpDimensionsItems');
@@ -737,11 +738,71 @@
     return revs.length > 0 ? revs.length : (currentProduct ? currentProduct.reviewsCount || 65 : 65);
   }
 
+  function switchPdpTab(tabName) {
+    const descTabBtn = document.getElementById('tabBtnDescription');
+    const revTabBtn = document.getElementById('tabBtnReviews');
+    const descPanel = document.getElementById('panelDescription');
+    const revPanel = document.getElementById('panelReviews');
+
+    if (tabName === 'description') {
+      if (descTabBtn) {
+        descTabBtn.classList.add('border-black', 'text-black');
+        descTabBtn.classList.remove('border-transparent', 'text-gray-400');
+      }
+      if (revTabBtn) {
+        revTabBtn.classList.remove('border-black', 'text-black');
+        revTabBtn.classList.add('border-transparent', 'text-gray-400');
+      }
+      if (descPanel) descPanel.classList.remove('hidden');
+      if (revPanel) revPanel.classList.add('hidden');
+    } else if (tabName === 'reviews') {
+      if (revTabBtn) {
+        revTabBtn.classList.add('border-black', 'text-black');
+        revTabBtn.classList.remove('border-transparent', 'text-gray-400');
+      }
+      if (descTabBtn) {
+        descTabBtn.classList.remove('border-black', 'text-black');
+        descTabBtn.classList.add('border-transparent', 'text-gray-400');
+      }
+      if (revPanel) revPanel.classList.remove('hidden');
+      if (descPanel) descPanel.classList.add('hidden');
+    }
+  }
+  window.switchPdpTab = switchPdpTab;
+
+  function renderProductVideo() {
+    const container = document.getElementById('pdpVideoContainer');
+    if (!container) return;
+    const videoUrl = currentProduct ? currentProduct.videoUrl : '';
+    if (!videoUrl) {
+      container.classList.add('hidden');
+      container.innerHTML = '';
+      return;
+    }
+
+    const ytMatch = videoUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+    if (ytMatch && ytMatch[1]) {
+      container.innerHTML = `<iframe class="w-full h-full" src="https://www.youtube.com/embed/${ytMatch[1]}?autoplay=0&rel=0" title="Product Showcase Video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+      container.classList.remove('hidden');
+    } else if (videoUrl.includes('vimeo.com/')) {
+      const vimeoId = videoUrl.split('vimeo.com/')[1].split(/[?#]/)[0];
+      container.innerHTML = `<iframe class="w-full h-full" src="https://player.vimeo.com/video/${vimeoId}" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>`;
+      container.classList.remove('hidden');
+    } else {
+      container.innerHTML = `<video class="w-full h-full object-cover" controls playsinline preload="metadata" src="${videoUrl}">Your browser does not support the video tag.</video>`;
+      container.classList.remove('hidden');
+    }
+  }
+
   function initReviewsSection() {
-    if (!document.getElementById('reviewsSection')) return;
+    if (!document.getElementById('reviewsSection') && !document.getElementById('panelReviews')) return;
     renderReviewsScorecard();
     renderReviewsList('all');
     initReviewStarsPicker();
+    const tabBadge = document.getElementById('tabReviewsBadge');
+    if (tabBadge && currentProduct) {
+      tabBadge.textContent = getProductReviewsCount(currentProduct.id);
+    }
   }
 
   function renderReviewsScorecard() {
@@ -996,6 +1057,8 @@
     const count = getProductReviewsCount(currentProduct.id);
     const revCountEl = document.getElementById('pdpReviewCount');
     if (revCountEl) revCountEl.textContent = `${count} reviews`;
+    const tabBadge = document.getElementById('tabReviewsBadge');
+    if (tabBadge) tabBadge.textContent = count;
 
     showToast('Thank you! Your verified review has been published.');
   }
