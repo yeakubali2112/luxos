@@ -51,6 +51,7 @@ function formatPrice(num) {
 document.addEventListener('DOMContentLoaded', () => {
   // Load custom settings if modified from admin
   loadStoreSettings();
+  renderStorefrontTicker();
   initHeroSlideshow();
   renderProducts();
   renderFeaturedCategories();
@@ -68,6 +69,48 @@ function loadStoreSettings() {
     if (settings.freeShippingThreshold) AppState.FREE_SHIPPING_THRESHOLD = parseInt(settings.freeShippingThreshold, 10);
   }
 }
+
+function renderStorefrontTicker() {
+  const wrapper = $('#marqueeTickerWrapper');
+  const track = $('#marqueeTickerTrack');
+  if (!wrapper || !track) return;
+
+  const stored = localStorage.getItem('luxos_ticker_settings');
+  if (!stored) return;
+
+  try {
+    const settings = JSON.parse(stored);
+    if (settings.enabled === false) {
+      wrapper.classList.add('hidden');
+      return;
+    }
+
+    wrapper.classList.remove('hidden');
+    if (settings.bgColor) {
+      wrapper.style.backgroundColor = settings.bgColor;
+      wrapper.style.borderColor = settings.bgColor === '#111111' ? '#262626' : '#e5e5e5';
+    }
+    if (settings.textColor) {
+      track.style.color = settings.textColor;
+    }
+    if (settings.speed) {
+      track.style.animationDuration = `${settings.speed}s`;
+    }
+
+    if (Array.isArray(settings.items) && settings.items.length > 0) {
+      const itemsHtml = settings.items.map(txt => `<span>${txt}</span><span>•</span>`).join(' ');
+      track.innerHTML = itemsHtml + ' ' + itemsHtml;
+    }
+  } catch (err) {
+    console.error('Error loading marquee ticker settings', err);
+  }
+}
+
+window.addEventListener('storage', (e) => {
+  if (e.key === 'luxos_ticker_settings') {
+    renderStorefrontTicker();
+  }
+});
 
 /* ==========================================================================
    Hero Slideshow (Dynamic from Admin or Default)

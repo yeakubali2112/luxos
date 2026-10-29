@@ -10,6 +10,7 @@ const AdminState = {
   products: [],
   heroSlides: [],
   bannerSettings: { autoplayDuration: 5, enableZoom: true },
+  tickerSettings: getDefaultTickerSettings(),
   coupons: [],
   settings: {},
   orderFilter: 'all',
@@ -46,12 +47,14 @@ document.addEventListener('DOMContentLoaded', () => {
   renderCouponsTable();
   renderCustomersTable();
   loadSettingsForm();
+  if (typeof renderTickerSettings === 'function') renderTickerSettings();
 });
 
 /* ==========================================================================
    1. Data Initialization & Seeding
    ========================================================================== */
 function initData() {
+  loadTickerSettings();
   // Load products (from custom admin data or default catalog)
   const storedProducts = localStorage.getItem('luxos_products_data');
   if (storedProducts) {
@@ -352,6 +355,7 @@ window.switchTab = function (tabName) {
     orders: 'Customer Orders Management',
     products: 'Product Catalog Management',
     banners: 'Hero Banners & Slideshow',
+    ticker: 'Scrolling Marquee Ticker Management',
     coupons: 'Promo Codes & Offers',
     customers: 'Customer Directory',
     settings: 'Store & Delivery Configuration'
@@ -363,6 +367,7 @@ window.switchTab = function (tabName) {
   if (tabName === 'orders') renderOrdersTable();
   if (tabName === 'products') renderProductsTable();
   if (tabName === 'banners') renderBannersTable();
+  if (tabName === 'ticker') renderTickerSettings();
   if (tabName === 'coupons') renderCouponsTable();
   if (tabName === 'customers') renderCustomersTable();
 };
@@ -1271,3 +1276,240 @@ function showAdminToast(msg) {
     toast.classList.remove('show');
   }, 3000);
 }
+
+/* ==========================================================================
+   Scrolling Ticker / Marquee Management
+   ========================================================================== */
+
+function getDefaultTickerSettings() {
+  return {
+    enabled: true,
+    speed: 25,
+    bgColor: '#f5f5f5',
+    textColor: '#262626',
+    pauseOnHover: true,
+    items: [
+      "🌿 GET 10% OFF ONLINE WITH CODE: LUXOS10",
+      "🚚 FREE NATIONWIDE SHIPPING OVER ৳ 3,000",
+      "🔄 7 DAYS EASY EXCHANGE & MONEY BACK GUARANTEE",
+      "💎 100% PREMIUM LEATHER & VEGAN CRAFTSMANSHIP",
+      "💵 CASH ON DELIVERY AVAILABLE ACROSS BANGLADESH",
+      "⭐ OVER 50,000+ HAPPY CUSTOMERS"
+    ]
+  };
+}
+
+function loadTickerSettings() {
+  const stored = localStorage.getItem('luxos_ticker_settings');
+  if (stored) {
+    try {
+      AdminState.tickerSettings = JSON.parse(stored);
+    } catch (e) {
+      AdminState.tickerSettings = getDefaultTickerSettings();
+    }
+  } else {
+    AdminState.tickerSettings = getDefaultTickerSettings();
+    localStorage.setItem('luxos_ticker_settings', JSON.stringify(AdminState.tickerSettings));
+  }
+}
+
+window.renderTickerSettings = function () {
+  loadTickerSettings();
+  const settings = AdminState.tickerSettings;
+
+  if ($('#tickerEnableToggle')) $('#tickerEnableToggle').checked = settings.enabled !== false;
+  if ($('#tickerSpeedSelect')) $('#tickerSpeedSelect').value = settings.speed || 25;
+  if ($('#tickerBgColor')) $('#tickerBgColor').value = settings.bgColor || '#f5f5f5';
+  if ($('#tickerBgColorText')) $('#tickerBgColorText').value = settings.bgColor || '#f5f5f5';
+  if ($('#tickerTextColor')) $('#tickerTextColor').value = settings.textColor || '#262626';
+  if ($('#tickerTextColorText')) $('#tickerTextColorText').value = settings.textColor || '#262626';
+  if ($('#tickerPauseOnHover')) $('#tickerPauseOnHover').checked = settings.pauseOnHover !== false;
+
+  updateTickerStatusBadge();
+  renderTickerItemsList();
+  updateTickerPreviewLive();
+};
+
+function updateTickerStatusBadge() {
+  const toggle = $('#tickerEnableToggle');
+  const enabled = toggle ? toggle.checked : true;
+  const badge = $('#tickerStatusBadge');
+  const sidebarBadge = $('#sidebarTickerBadge');
+  
+  if (badge) {
+    badge.className = enabled 
+      ? 'bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200'
+      : 'bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded-full border border-slate-200';
+    badge.textContent = enabled ? 'Enabled' : 'Disabled';
+  }
+  if (sidebarBadge) {
+    sidebarBadge.className = enabled
+      ? 'bg-emerald-500/20 text-emerald-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-500/30'
+      : 'bg-slate-700 text-slate-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-slate-600';
+    sidebarBadge.textContent = enabled ? 'Active' : 'Off';
+  }
+}
+
+window.toggleTickerEnabled = function () {
+  updateTickerStatusBadge();
+  updateTickerPreviewLive();
+};
+
+window.applyTickerThemePreset = function (preset) {
+  const themes = {
+    neutral: { bg: '#f5f5f5', text: '#262626' },
+    black: { bg: '#111111', text: '#c5a880' },
+    gold: { bg: '#c5a880', text: '#111111' },
+    cream: { bg: '#fbf9f5', text: '#1f1f1f' }
+  };
+
+  if (themes[preset]) {
+    if ($('#tickerBgColor')) $('#tickerBgColor').value = themes[preset].bg;
+    if ($('#tickerBgColorText')) $('#tickerBgColorText').value = themes[preset].bg;
+    if ($('#tickerTextColor')) $('#tickerTextColor').value = themes[preset].text;
+    if ($('#tickerTextColorText')) $('#tickerTextColorText').value = themes[preset].text;
+  }
+  updateTickerPreviewLive();
+};
+
+window.updateTickerPreviewLive = function () {
+  const previewWrapper = $('#adminTickerPreviewWrapper');
+  const previewTrack = $('#adminTickerPreviewTrack');
+  if (!previewWrapper || !previewTrack) return;
+
+  const toggle = $('#tickerEnableToggle');
+  const enabled = toggle ? toggle.checked : true;
+  const speed = ($('#tickerSpeedSelect') && $('#tickerSpeedSelect').value) || 25;
+  const bgColor = ($('#tickerBgColor') && $('#tickerBgColor').value) || '#f5f5f5';
+  const textColor = ($('#tickerTextColor') && $('#tickerTextColor').value) || '#262626';
+  const items = (AdminState.tickerSettings && AdminState.tickerSettings.items) || [];
+
+  if (!enabled) {
+    previewWrapper.style.opacity = '0.4';
+  } else {
+    previewWrapper.style.opacity = '1';
+  }
+
+  previewWrapper.style.backgroundColor = bgColor;
+  previewTrack.style.color = textColor;
+  previewTrack.style.animationDuration = `${speed}s`;
+
+  if (items.length > 0) {
+    const html = items.map(item => `<span>${item}</span><span>•</span>`).join(' ');
+    previewTrack.innerHTML = html + ' ' + html;
+  } else {
+    previewTrack.innerHTML = '<span>No announcements</span>';
+  }
+};
+
+function renderTickerItemsList() {
+  const container = $('#tickerItemsList');
+  const countBadge = $('#tickerItemsCount');
+  if (!container) return;
+
+  const items = (AdminState.tickerSettings && AdminState.tickerSettings.items) || [];
+  if (countBadge) countBadge.textContent = items.length;
+
+  if (items.length === 0) {
+    container.innerHTML = `
+      <div class="p-6 text-center text-xs text-slate-400 bg-slate-50 rounded-lg border border-dashed border-slate-200">
+        No announcements added. Add one above!
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = items.map((item, index) => `
+    <div class="flex items-center justify-between gap-3 p-2.5 bg-slate-50 hover:bg-slate-100 rounded-lg border border-slate-200 transition">
+      <div class="flex items-center gap-2 flex-1 min-w-0">
+        <span class="w-5 h-5 rounded-full bg-slate-200 text-slate-600 text-[10px] font-bold flex items-center justify-center shrink-0">
+          ${index + 1}
+        </span>
+        <input type="text" value="${item.replace(/"/g, '&quot;')}" onchange="updateTickerItemText(${index}, this.value)" class="flex-1 text-xs text-slate-800 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-black focus:bg-white focus:outline-none px-1 py-0.5 rounded" />
+      </div>
+      <div class="flex items-center gap-1 shrink-0">
+        ${index > 0 ? `<button type="button" onclick="moveTickerItem(${index}, -1)" class="p-1 text-slate-400 hover:text-slate-800 rounded" title="Move Up"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5"/></svg></button>` : ''}
+        ${index < items.length - 1 ? `<button type="button" onclick="moveTickerItem(${index}, 1)" class="p-1 text-slate-400 hover:text-slate-800 rounded" title="Move Down"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/></svg></button>` : ''}
+        <button type="button" onclick="deleteTickerItem(${index})" class="p-1 text-slate-400 hover:text-red-600 rounded transition" title="Delete Announcement">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+window.handleAddNewTickerItem = function (e) {
+  if (e) e.preventDefault();
+  const input = $('#newTickerItemInput');
+  const text = (input ? input.value : '').trim();
+  if (!text) {
+    showAdminToast('Please write some announcement text');
+    return;
+  }
+
+  if (!AdminState.tickerSettings.items) AdminState.tickerSettings.items = [];
+  AdminState.tickerSettings.items.push(text);
+  input.value = '';
+  renderTickerItemsList();
+  updateTickerPreviewLive();
+  showAdminToast('New announcement item added!');
+};
+
+window.updateTickerItemText = function (index, newText) {
+  if (index >= 0 && index < AdminState.tickerSettings.items.length) {
+    AdminState.tickerSettings.items[index] = newText.trim();
+    updateTickerPreviewLive();
+  }
+};
+
+window.moveTickerItem = function (index, direction) {
+  const items = AdminState.tickerSettings.items;
+  const newIndex = index + direction;
+  if (newIndex < 0 || newIndex >= items.length) return;
+  const temp = items[index];
+  items[index] = items[newIndex];
+  items[newIndex] = temp;
+  renderTickerItemsList();
+  updateTickerPreviewLive();
+};
+
+window.deleteTickerItem = function (index) {
+  if (AdminState.tickerSettings.items.length <= 1) {
+    showAdminToast('You must have at least 1 announcement item!');
+    return;
+  }
+  AdminState.tickerSettings.items.splice(index, 1);
+  renderTickerItemsList();
+  updateTickerPreviewLive();
+  showAdminToast('Announcement removed.');
+};
+
+window.resetTickerDefaults = function () {
+  if (confirm('Reset marquee ticker to default messages and colors?')) {
+    AdminState.tickerSettings = getDefaultTickerSettings();
+    renderTickerSettings();
+    showAdminToast('Reset to defaults.');
+  }
+};
+
+window.saveTickerSettings = function () {
+  const toggle = $('#tickerEnableToggle');
+  const enabled = toggle ? toggle.checked : true;
+  const speed = parseInt(($('#tickerSpeedSelect') && $('#tickerSpeedSelect').value) || 25, 10);
+  const bgColor = ($('#tickerBgColor') && $('#tickerBgColor').value) || '#f5f5f5';
+  const textColor = ($('#tickerTextColor') && $('#tickerTextColor').value) || '#262626';
+  const pauseOnHover = $('#tickerPauseOnHover') ? $('#tickerPauseOnHover').checked : true;
+
+  AdminState.tickerSettings = {
+    ...AdminState.tickerSettings,
+    enabled,
+    speed,
+    bgColor,
+    textColor,
+    pauseOnHover
+  };
+
+  localStorage.setItem('luxos_ticker_settings', JSON.stringify(AdminState.tickerSettings));
+  updateTickerStatusBadge();
+  showAdminToast('Scrolling Ticker settings saved & published to storefront! 🎉');
+};

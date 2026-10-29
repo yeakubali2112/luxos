@@ -58,6 +58,20 @@
     /* Toast */
     .toast-msg { transform: translateY(100px); opacity: 0; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
     .toast-msg.show { transform: translateY(0); opacity: 1; }
+
+    /* Infinite Marquee Animation for Live Preview */
+    @keyframes marquee {
+      0% { transform: translateX(0%); }
+      100% { transform: translateX(-50%); }
+    }
+    .animate-marquee {
+      display: flex;
+      width: 200%;
+      animation: marquee 25s linear infinite;
+    }
+    .animate-marquee:hover {
+      animation-play-state: paused;
+    }
   </style>
 </head>
 <body class="bg-[#f8fafc] text-slate-800 font-sans antialiased flex h-screen overflow-hidden">
@@ -105,6 +119,14 @@
           <span>Hero Banners</span>
         </div>
         <span id="sidebarBannersCount" class="text-amber-400 text-xs font-bold">3</span>
+      </button>
+
+      <button onclick="switchTab('ticker')" id="nav-ticker" class="nav-item w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition">
+        <div class="flex items-center gap-3">
+          <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.34 15.84c-.688-.06-1.386-.09-2.09-.09H7.5a4.5 4.5 0 110-9h.75c.704 0 1.402-.03 2.09-.09m0 9.18c.253.962.584 1.892.985 2.783.247.55.06 1.21-.463 1.511l-.657.38c-.551.318-1.26.117-1.527-.455a20.89 20.89 0 01-1.637-4.22m3.292-9.18a20.89 20.89 0 00-3.292-9.18c.267-.572.976-.773 1.527-.455l.657.38c.523.301.71.961.463 1.511a19.014 19.014 0 01-.985 2.783m1.02 4.18H18.75a3 3 0 013 3v0a3 3 0 01-3 3H11.36" /></svg>
+          <span>Scrolling Ticker</span>
+        </div>
+        <span id="sidebarTickerBadge" class="bg-emerald-500/20 text-emerald-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-500/30">Active</span>
       </button>
 
       <button onclick="switchTab('coupons')" id="nav-coupons" class="nav-item w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition">
@@ -511,6 +533,126 @@
         <!-- Banner Cards Grid -->
         <div id="adminBannersGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <!-- Rendered by JS -->
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           TAB: SCROLLING TICKER & MARQUEE MANAGEMENT
+           ===================================================================== -->
+      <section id="tab-ticker" class="space-y-6 hidden">
+        <!-- Top Banner & Controls -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h3 class="text-sm font-bold text-slate-800 font-heading flex items-center gap-2">
+              <span>Scrolling Marquee Ticker</span>
+              <span id="tickerStatusBadge" class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200">Enabled</span>
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5">Manage the text animation, speed, colors, and announcements running below hero slider</p>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <!-- Master Switch -->
+            <label class="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer bg-slate-50 px-3.5 py-2 rounded-lg border border-slate-200 hover:bg-slate-100 transition">
+              <input id="tickerEnableToggle" type="checkbox" checked onchange="toggleTickerEnabled()" class="rounded text-black focus:ring-black h-4 w-4" />
+              <span>Show on Website</span>
+            </label>
+
+            <button onclick="saveTickerSettings()" class="bg-black hover:bg-slate-800 text-white text-xs font-semibold px-4 py-2 rounded-lg transition flex items-center gap-1.5 shadow-sm">
+              <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+              <span>Save &amp; Publish</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Live Preview Widget -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              Live Storefront Preview
+            </span>
+            <span class="text-[11px] text-slate-400">Hover over preview to pause</span>
+          </div>
+          <div id="adminTickerPreviewWrapper" class="border border-slate-200 rounded-lg overflow-hidden py-3 bg-neutral-100 transition">
+            <div id="adminTickerPreviewTrack" class="animate-marquee whitespace-nowrap text-xs font-medium tracking-[0.2em] uppercase text-neutral-800 flex items-center gap-10">
+              <!-- Dynamic Preview -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Settings Grid: Speed, Styling, Add Item -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Col 1: Speed & Appearance -->
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+            <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider border-b border-slate-100 pb-2">Animation &amp; Theme</h4>
+            
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Scrolling Speed</label>
+              <select id="tickerSpeedSelect" onchange="updateTickerPreviewLive()" class="w-full border border-slate-300 rounded-lg p-2 text-xs bg-white focus:outline-none focus:border-black font-semibold">
+                <option value="15">⚡ Fast (15 Seconds)</option>
+                <option value="25" selected>🚀 Normal (25 Seconds - Recommended)</option>
+                <option value="35">🚶 Gentle (35 Seconds)</option>
+                <option value="50">🐢 Slow &amp; Relaxed (50 Seconds)</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Color Theme Preset</label>
+              <select id="tickerThemePreset" onchange="applyTickerThemePreset(this.value)" class="w-full border border-slate-300 rounded-lg p-2 text-xs bg-white focus:outline-none focus:border-black">
+                <option value="neutral">Classic Light Gray (#f5f5f5)</option>
+                <option value="black">Luxury Midnight Black (#111111)</option>
+                <option value="gold">Royal Luxos Gold (#c5a880)</option>
+                <option value="cream">Soft Ivory Cream (#fbf9f5)</option>
+              </select>
+            </div>
+
+            <div id="customColorsRow" class="grid grid-cols-2 gap-3 pt-1">
+              <div>
+                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Background Color</label>
+                <div class="flex items-center gap-2">
+                  <input id="tickerBgColor" type="color" value="#f5f5f5" oninput="updateTickerPreviewLive()" class="w-8 h-8 rounded border border-slate-300 p-0.5 cursor-pointer" />
+                  <input id="tickerBgColorText" type="text" value="#f5f5f5" oninput="$('#tickerBgColor').value=this.value; updateTickerPreviewLive()" class="w-full border border-slate-300 rounded-md p-1.5 text-xs font-mono uppercase" />
+                </div>
+              </div>
+              <div>
+                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Text Color</label>
+                <div class="flex items-center gap-2">
+                  <input id="tickerTextColor" type="color" value="#262626" oninput="updateTickerPreviewLive()" class="w-8 h-8 rounded border border-slate-300 p-0.5 cursor-pointer" />
+                  <input id="tickerTextColorText" type="text" value="#262626" oninput="$('#tickerTextColor').value=this.value; updateTickerPreviewLive()" class="w-full border border-slate-300 rounded-md p-1.5 text-xs font-mono uppercase" />
+                </div>
+              </div>
+            </div>
+
+            <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
+              <label class="flex items-center gap-2 text-xs text-slate-700 cursor-pointer">
+                <input id="tickerPauseOnHover" type="checkbox" checked onchange="updateTickerPreviewLive()" class="rounded text-black focus:ring-black" />
+                <span>Pause on Hover</span>
+              </label>
+              <button type="button" onclick="resetTickerDefaults()" class="text-[11px] text-amber-600 hover:underline">Reset to Default</button>
+            </div>
+          </div>
+
+          <!-- Col 2 & 3: Announcement Items List -->
+          <div class="lg:col-span-2 bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+              <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Announcement Text Items (<span id="tickerItemsCount">6</span>)</h4>
+              <span class="text-[11px] text-slate-400">Continuous loop animation</span>
+            </div>
+
+            <!-- Add New Item Form -->
+            <form onsubmit="handleAddNewTickerItem(event)" class="flex gap-2">
+              <input id="newTickerItemInput" type="text" placeholder="e.g. ⚡ EID SPECIAL: ENJOY 20% DISCOUNT WITH CODE: EID20" class="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-black bg-white" />
+              <button type="submit" class="bg-black hover:bg-slate-800 text-white text-xs font-semibold px-4 py-2 rounded-lg transition shrink-0 flex items-center gap-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                <span>Add Item</span>
+              </button>
+            </form>
+
+            <!-- Items List -->
+            <div id="tickerItemsList" class="space-y-2 max-h-[360px] overflow-y-auto pr-1">
+              <!-- Injected by JS -->
+            </div>
+          </div>
         </div>
       </section>
 
