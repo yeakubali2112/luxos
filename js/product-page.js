@@ -414,30 +414,38 @@
   function handleAddToCartPDP() {
     if (!currentProduct) return;
     const qty = parseInt(document.getElementById('pdpQuantity')?.value || 1, 10) || 1;
-    
+    const priceNum = parseInt(String(currentProduct.price).replace(/[^\d]/g, ''), 10) || 687;
+
+    const prodToAdd = {
+      id: currentProduct.id,
+      title: currentProduct.title,
+      price: currentProduct.price,
+      priceNum: priceNum,
+      originalPrice: currentProduct.originalPrice,
+      image: currentProduct.image || (currentGalleryImages && currentGalleryImages[0]) || '',
+      category: currentProduct.category || 'Luxury Collection',
+      color: selectedColor || 'Standard',
+      quantity: qty
+    };
+
     if (typeof window.addToCart === 'function') {
-      window.addToCart(currentProduct.id, selectedColor, qty);
+      window.addToCart(prodToAdd, selectedColor, qty, false);
     } else {
-      const cart = JSON.parse(localStorage.getItem('luxos_cart')) || [];
-      const existing = cart.find(i => i.id === currentProduct.id && i.color === selectedColor);
+      let cart = JSON.parse(localStorage.getItem('luxos_cart')) || [];
+      cart = cart.filter(i => i && i.id && i.title && i.title !== 'undefined');
+      const existing = cart.find(i => i.id === prodToAdd.id && i.color === (selectedColor || 'Standard'));
       if (existing) {
         existing.quantity += qty;
+        existing.priceNum = priceNum;
       } else {
-        cart.push({
-          id: currentProduct.id,
-          title: currentProduct.title,
-          price: currentProduct.price,
-          image: currentProduct.image,
-          color: selectedColor,
-          quantity: qty
-        });
+        cart.push(prodToAdd);
       }
       localStorage.setItem('luxos_cart', JSON.stringify(cart));
       if (typeof window.updateCartBadge === 'function') window.updateCartBadge();
       if (typeof window.openCartDrawer === 'function') window.openCartDrawer();
     }
 
-    showToast(`Added ${qty}x ${currentProduct.title} (${selectedColor}) to your bag!`);
+    showToast(`Added ${qty}x ${currentProduct.title} to your bag!`);
   }
   window.handleAddToCartPDP = handleAddToCartPDP;
 
@@ -447,29 +455,42 @@
   function handleOrderNowCOD() {
     if (!currentProduct) return;
     const qty = parseInt(document.getElementById('pdpQuantity')?.value || 1, 10) || 1;
+    const priceNum = parseInt(String(currentProduct.price).replace(/[^\d]/g, ''), 10) || 687;
 
-    // Add to cart first
+    const prodToBuy = {
+      id: currentProduct.id,
+      title: currentProduct.title,
+      price: currentProduct.price,
+      priceNum: priceNum,
+      originalPrice: currentProduct.originalPrice,
+      image: currentProduct.image || (currentGalleryImages && currentGalleryImages[0]) || '',
+      category: currentProduct.category || 'Luxury Collection',
+      color: selectedColor || 'Standard',
+      quantity: qty
+    };
+
+    // Close cart drawer if already open
+    if (typeof window.closeCartDrawer === 'function') window.closeCartDrawer();
+
+    // Add to cart without opening cart drawer
     if (typeof window.addToCart === 'function') {
-      window.addToCart(currentProduct.id, selectedColor, qty);
+      window.addToCart(prodToBuy, selectedColor, qty, true);
     } else {
-      const cart = JSON.parse(localStorage.getItem('luxos_cart')) || [];
-      const existing = cart.find(i => i.id === currentProduct.id && i.color === selectedColor);
+      let cart = JSON.parse(localStorage.getItem('luxos_cart')) || [];
+      cart = cart.filter(i => i && i.id && i.title && i.title !== 'undefined');
+      const existing = cart.find(i => i.id === prodToBuy.id && i.color === (selectedColor || 'Standard'));
       if (existing) {
-        existing.quantity += qty;
+        existing.quantity = qty;
+        existing.priceNum = priceNum;
+        existing.price = prodToBuy.price;
+        existing.image = prodToBuy.image;
       } else {
-        cart.push({
-          id: currentProduct.id,
-          title: currentProduct.title,
-          price: currentProduct.price,
-          image: currentProduct.image,
-          color: selectedColor,
-          quantity: qty
-        });
+        cart.push(prodToBuy);
       }
       localStorage.setItem('luxos_cart', JSON.stringify(cart));
     }
 
-    // Open Checkout Modal
+    // Open Checkout Modal directly
     if (typeof window.openCheckoutModal === 'function') {
       window.openCheckoutModal();
     } else {
@@ -477,7 +498,9 @@
       if (checkoutModal) {
         checkoutModal.classList.add('active');
         document.body.style.overflow = 'hidden';
-        if (typeof window.renderCheckoutSummary === 'function') window.renderCheckoutSummary();
+      }
+      if (typeof window.updateCheckoutSummary === 'function') {
+        window.updateCheckoutSummary();
       }
     }
   }

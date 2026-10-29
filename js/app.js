@@ -19,7 +19,14 @@ function getStoreProducts() {
 
 // Application State
 const AppState = {
-  cart: JSON.parse(localStorage.getItem('luxos_cart')) || [],
+  cart: (function() {
+    try {
+      const stored = JSON.parse(localStorage.getItem('luxos_cart')) || [];
+      return stored.filter(item => item && item.id && item.title && item.title !== 'undefined');
+    } catch(e) {
+      return [];
+    }
+  })(),
   wishlist: JSON.parse(localStorage.getItem('luxos_wishlist')) || [],
   activeCollection: 'all',
   currentSlide: 0,
@@ -30,6 +37,10 @@ const AppState = {
   couponDiscount: 0,
   FREE_SHIPPING_THRESHOLD: 3000
 };
+window.AppState = AppState;
+try {
+  localStorage.setItem('luxos_cart', JSON.stringify(AppState.cart));
+} catch(e) {}
 
 // DOM Utility
 const $ = (selector) => document.querySelector(selector);
@@ -515,21 +526,45 @@ window.quickAddToCart = function (productId, event) {
   addToCart(product, defaultColor, 1);
 };
 
-function addToCart(product, colorName, quantity = 1) {
-  const existingIndex = AppState.cart.findIndex(item => item.id === product.id && item.color === colorName);
+function addToCart(product, colorName, quantity = 1, skipOpenDrawer = false) {
+  // If product is passed as an ID (number or numeric string), resolve the product object
+  if (typeof product === 'number' || (typeof product === 'string' && /^\d+$/.test(product))) {
+    const pId = parseInt(product, 10);
+    const storeProds = typeof getStoreProducts === 'function' ? getStoreProducts() : [];
+    const found = storeProds.find(p => p.id === pId) || (typeof LUXOS_PRODUCTS !== 'undefined' ? LUXOS_PRODUCTS.find(p => p.id === pId) : null);
+    if (found) {
+      product = found;
+    }
+  }
+
+  if (!product || !product.id) return;
+
+  // Purge any corrupted items from cart
+  AppState.cart = (AppState.cart || []).filter(item => item && item.id && item.title && item.title !== 'undefined');
+
+  const pPriceNum = typeof product.priceNum === 'number' && !isNaN(product.priceNum) && product.priceNum > 0 
+    ? product.priceNum 
+    : parsePrice(product.price);
+  const color = colorName || (product.colors && product.colors[0]?.name) || 'Standard';
+
+  const existingIndex = AppState.cart.findIndex(item => item.id === product.id && item.color === color);
 
   if (existingIndex > -1) {
     AppState.cart[existingIndex].quantity += quantity;
+    AppState.cart[existingIndex].priceNum = pPriceNum;
+    AppState.cart[existingIndex].price = product.price;
+    AppState.cart[existingIndex].title = product.title;
+    AppState.cart[existingIndex].image = product.image;
   } else {
     AppState.cart.push({
       id: product.id,
       title: product.title,
       price: product.price,
-      priceNum: parsePrice(product.price),
+      priceNum: pPriceNum,
       originalPrice: product.originalPrice,
       image: product.image,
       category: product.category,
-      color: colorName,
+      color: color,
       quantity: quantity
     });
   }
@@ -537,9 +572,14 @@ function addToCart(product, colorName, quantity = 1) {
   saveCart();
   updateCartBadge();
   renderCartDrawer();
-  openCartDrawer();
-  showToast(`Added "${product.title}" to your cart.`);
+  updateCheckoutSummary();
+
+  if (!skipOpenDrawer) {
+    openCartDrawer();
+    showToast(`Added "${product.title}" to your cart.`);
+  }
 }
+window.addToCart = addToCart;
 
 window.updateCartQty = function (index, delta) {
   if (!AppState.cart[index]) return;
@@ -865,6 +905,18 @@ window.performSearch = function (query) {
    Checkout System (Optimized for Bangladesh E-commerce)
    ========================================================================== */
 window.openCheckoutModal = function () {
+  // Sync AppState.cart from localStorage
+  try {
+    const stored = JSON.parse(localStorage.getItem('luxos_cart')) || [];
+    if (stored.length > 0) {
+      AppState.cart = stored.filter(item => item && item.id && item.title && item.title !== 'undefined');
+    }
+  } catch (e) {}
+
+  // Purge any corrupted / undefined items from cart
+  AppState.cart = (AppState.cart || []).filter(item => item && item.id && item.title && item.title !== 'undefined');
+  saveCart();
+
   if (AppState.cart.length === 0) {
     showToast('Your cart is empty.');
     return;
@@ -929,7 +981,17 @@ window.applyCoupon = function () {
 };
 
 function updateCheckoutSummary() {
-  const subtotal = AppState.cart.reduce((sum, item) => sum + item.priceNum * item.quantity, 0);
+  // Ensure every item has a valid numeric price
+  AppState.cart.forEach(item => {
+    if (!item.priceNum || isNaN(item.priceNum) || item.priceNum <= 0) {
+      item.priceNum = parsePrice(item.price);
+    }
+  });
+
+  const subtotal = AppState.cart.reduce((sum, item) => {
+    const price = (item.priceNum && !isNaN(item.priceNum) && item.priceNum > 0) ? item.priceNum : parsePrice(item.price);
+    return sum + (price * (item.quantity || 1));
+  }, 0);
   
   let shipping = AppState.deliveryFee;
   if (subtotal >= AppState.FREE_SHIPPING_THRESHOLD || AppState.couponDiscount === 'FREE_SHIPPING') {
@@ -954,18 +1016,24 @@ function updateCheckoutSummary() {
   // Render items preview in checkout modal
   const preview = $('#checkoutItemsPreview');
   if (preview) {
-    preview.innerHTML = AppState.cart.map(item => `
-      <div class="flex items-center gap-2 py-2 border-b border-gray-100 text-xs">
-        <img src="${item.image}" class="w-10 h-10 object-cover rounded bg-gray-50" />
-        <div class="flex-1">
-          <p class="font-medium text-gray-900 line-clamp-1">${item.title}</p>
-          <p class="text-gray-500">${item.color} × ${item.quantity}</p>
+    preview.innerHTML = AppState.cart.map(item => {
+      const price = (item.priceNum && !isNaN(item.priceNum) && item.priceNum > 0) ? item.priceNum : parsePrice(item.price);
+      const itemTotal = price * (item.quantity || 1);
+      return `
+        <div class="flex items-center gap-3 py-2.5 border-b border-gray-100 text-xs">
+          <img src="${item.image || 'https://thepatchee.com/cdn/shop/files/654a7e83-c512-4ec1-8ebf-af44c488e776.png?v=1781362688'}" class="w-12 h-12 object-contain rounded border border-gray-200 bg-white p-1 shrink-0" alt="${item.title || 'Product'}" />
+          <div class="flex-1 min-w-0">
+            <p class="font-bold text-gray-900 truncate">${item.title || 'Luxos Product'}</p>
+            <p class="text-gray-500 text-[11px]">${item.color || 'Standard'} × ${item.quantity || 1}</p>
+          </div>
+          <span class="font-bold text-gray-900 shrink-0">${formatPrice(itemTotal)}</span>
         </div>
-        <span class="font-semibold">${formatPrice(item.priceNum * item.quantity)}</span>
-      </div>
-    `).join('');
+      `;
+    }).join('');
   }
 }
+window.updateCheckoutSummary = updateCheckoutSummary;
+window.renderCheckoutSummary = updateCheckoutSummary;
 
 window.placeOrder = function (e) {
   if (e) e.preventDefault();
@@ -986,8 +1054,11 @@ window.placeOrder = function (e) {
   }
 
   const orderId = 'LX-' + Math.floor(100000 + Math.random() * 900000);
-  const paymentMethod = $('input[name="paymentMethod"]:checked').value;
-  const subtotal = AppState.cart.reduce((sum, item) => sum + item.priceNum * item.quantity, 0);
+  const paymentMethod = $('input[name="paymentMethod"]:checked')?.value || 'Cash on Delivery';
+  const subtotal = AppState.cart.reduce((sum, item) => {
+    const price = (item.priceNum && !isNaN(item.priceNum) && item.priceNum > 0) ? item.priceNum : parsePrice(item.price);
+    return sum + (price * (item.quantity || 1));
+  }, 0);
   
   let shipping = AppState.deliveryFee;
   if (subtotal >= AppState.FREE_SHIPPING_THRESHOLD || AppState.couponDiscount === 'FREE_SHIPPING') {
