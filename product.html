@@ -51,6 +51,14 @@
       background: #d1d5db;
       border-radius: 4px;
     }
+    /* Hide scrollbar for smooth carousel */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
   </style>
 </head>
 <body class="bg-white text-luxos-black selection:bg-neutral-900 selection:text-white">
@@ -518,9 +526,9 @@
 
 
   <!-- =======================================================================
-       6. Recommended / Related Products ("You May Also Like")
+       6. Recommended / Related Products ("You May Also Like") - Smooth Carousel
        ======================================================================= -->
-  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative">
     <div class="text-center mb-10">
       <span class="text-xs font-bold uppercase tracking-[0.2em] text-neutral-400">Curated For You</span>
       <h3 class="text-2xl font-bold uppercase tracking-wider text-gray-900 mt-1 font-sans">
@@ -528,8 +536,34 @@
       </h3>
     </div>
     
-    <div id="relatedProductsGrid" class="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
-      <!-- Injected by JavaScript -->
+    <!-- Carousel Slider Wrapper with Left & Right Nav Options -->
+    <div class="relative group/slider">
+      <!-- Left / Prev Option Button -->
+      <button 
+        type="button" 
+        id="relatedSliderPrevBtn"
+        onclick="scrollRelatedSlider('prev')"
+        aria-label="Previous products"
+        class="absolute -left-3 sm:-left-5 top-1/2 -translate-y-1/2 z-20 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white text-gray-900 border border-gray-300 shadow-xl flex items-center justify-center transition-all duration-300 hover:bg-black hover:text-white hover:scale-110 active:scale-95 cursor-pointer backdrop-blur-sm">
+        <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/></svg>
+      </button>
+
+      <!-- Carousel Scrollable Track (4 items on desktop, 3 on tablet, 2 on mobile) -->
+      <div 
+        id="relatedProductsTrack" 
+        class="flex gap-4 sm:gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory no-scrollbar py-3 px-1">
+        <!-- Injected dynamically by JavaScript -->
+      </div>
+
+      <!-- Right / Next Option Button -->
+      <button 
+        type="button" 
+        id="relatedSliderNextBtn"
+        onclick="scrollRelatedSlider('next')"
+        aria-label="Next products"
+        class="absolute -right-3 sm:-right-5 top-1/2 -translate-y-1/2 z-20 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white text-gray-900 border border-gray-300 shadow-xl flex items-center justify-center transition-all duration-300 hover:bg-black hover:text-white hover:scale-110 active:scale-95 cursor-pointer backdrop-blur-sm">
+        <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
+      </button>
     </div>
   </section>
 

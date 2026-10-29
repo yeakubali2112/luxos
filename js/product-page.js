@@ -1138,34 +1138,81 @@
   }
   window.upvoteReview = upvoteReview;
 
+  function getRelatedDiscountBadge(p) {
+    if (p.badge) return p.badge.toUpperCase();
+    const numP = parseInt(String(p.price || '').replace(/[^\d]/g, ''), 10);
+    const numO = parseInt(String(p.originalPrice || '').replace(/[^\d]/g, ''), 10);
+    if (numP && numO && numO > numP) {
+      const pct = Math.round(((numO - numP) / numO) * 100);
+      return `SAVE ${pct}%`;
+    }
+    return 'SAVE 40%';
+  }
+
   function renderRelatedProducts() {
-    const container = document.getElementById('relatedProductsGrid');
+    const container = document.getElementById('relatedProductsTrack') || document.getElementById('relatedProductsGrid');
     if (!container) return;
 
-    const catalog = typeof LUXOS_PRODUCTS !== 'undefined' ? LUXOS_PRODUCTS : [];
-    const related = catalog.filter(p => p.id !== currentProduct.id).slice(0, 4);
+    const catalog = (typeof getStoreProducts === 'function' ? getStoreProducts() : []) || (typeof LUXOS_PRODUCTS !== 'undefined' ? LUXOS_PRODUCTS : []);
+    const related = catalog.filter(p => p.id !== (currentProduct ? currentProduct.id : -1));
 
-    container.innerHTML = related.map(p => `
-      <div class="product-card group relative bg-white border border-gray-100 rounded-sm overflow-hidden flex flex-col justify-between hover:shadow-md transition">
-        <div class="relative aspect-square overflow-hidden bg-gray-50">
-          <a href="product.html?id=${p.id}" class="block w-full h-full">
-            <img src="${p.image}" alt="${p.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
-          </a>
-          <span class="absolute top-2 left-2 text-[10px] uppercase font-bold bg-black text-white px-2 py-0.5 rounded-sm">${p.badge || 'New'}</span>
-        </div>
-        <div class="p-3.5 space-y-1">
-          <span class="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">${p.category}</span>
-          <h4 class="text-xs font-semibold text-gray-900 line-clamp-1">
-            <a href="product.html?id=${p.id}" class="hover:text-blue-600 transition">${p.title}</a>
-          </h4>
-          <div class="flex items-baseline gap-2 pt-1 text-xs">
-            <span class="font-bold text-gray-900">${p.price}</span>
-            ${p.originalPrice ? `<span class="text-gray-400 line-through text-[11px]">${p.originalPrice}</span>` : ''}
+    if (related.length === 0) return;
+
+    container.innerHTML = related.map(p => {
+      const discountBadge = getRelatedDiscountBadge(p);
+      return `
+        <div class="snap-start shrink-0 w-[calc(50%-8px)] sm:w-[calc(33.333%-16px)] lg:w-[calc(25%-18px)] min-w-[calc(50%-8px)] sm:min-w-[calc(33.333%-16px)] lg:min-w-[calc(25%-18px)] bg-white border border-gray-100 rounded-sm overflow-hidden flex flex-col justify-between hover:shadow-lg transition-all duration-300 group">
+          <div class="relative aspect-square overflow-hidden bg-white p-3 flex items-center justify-center">
+            <a href="product.html?id=${p.id}" class="block w-full h-full flex items-center justify-center">
+              <img src="${p.image}" alt="${p.title}" class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+            </a>
+            <!-- Badges matching reference screenshot -->
+            <span class="absolute top-2 left-2 text-[9px] sm:text-[10px] font-extrabold bg-black text-white px-2 py-0.5 tracking-wider uppercase">${discountBadge}</span>
+            <span class="absolute top-2 right-2 text-[9px] sm:text-[10px] font-extrabold bg-black text-white px-2 py-0.5 tracking-wider uppercase">TRENDING</span>
+          </div>
+          <div class="p-3 sm:p-3.5 space-y-1.5 bg-white border-t border-gray-50 flex-1 flex flex-col justify-between">
+            <div>
+              <span class="text-[10px] uppercase tracking-wider text-gray-400 font-bold block">${p.category || 'LUXURY BAGS'}</span>
+              <h4 class="text-xs sm:text-sm font-semibold text-gray-900 line-clamp-1 mt-0.5">
+                <a href="product.html?id=${p.id}" class="hover:text-amber-800 transition">${p.title}</a>
+              </h4>
+            </div>
+            <div class="flex items-baseline gap-2 pt-1 text-xs sm:text-sm">
+              <span class="font-bold text-gray-900">${p.price}</span>
+              ${p.originalPrice ? `<span class="text-gray-400 line-through text-[11px] sm:text-xs">${p.originalPrice}</span>` : ''}
+            </div>
           </div>
         </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
   }
+
+  window.scrollRelatedSlider = function (direction) {
+    const track = document.getElementById('relatedProductsTrack') || document.getElementById('relatedProductsGrid');
+    if (!track) return;
+
+    const card = track.querySelector('.snap-start');
+    const cardWidth = card ? card.offsetWidth : 280;
+    const gap = window.innerWidth >= 640 ? 24 : 16;
+    const cardsToScroll = window.innerWidth >= 1024 ? 4 : (window.innerWidth >= 640 ? 3 : 2);
+    const scrollAmount = (cardWidth + gap) * cardsToScroll;
+
+    const maxScroll = track.scrollWidth - track.clientWidth;
+
+    if (direction === 'next') {
+      if (track.scrollLeft >= maxScroll - 15) {
+        track.scrollTo({ left: 0, behavior: 'smooth' });
+      } else {
+        track.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+      }
+    } else {
+      if (track.scrollLeft <= 15) {
+        track.scrollTo({ left: maxScroll, behavior: 'smooth' });
+      } else {
+        track.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+      }
+    }
+  };
 
   function showToast(msg) {
     let toast = document.getElementById('luxosToast');
