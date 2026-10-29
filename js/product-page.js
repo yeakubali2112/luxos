@@ -428,14 +428,35 @@
       });
     }
 
-    // Check custom delivery notice
-    try {
-      const extra = JSON.parse(localStorage.getItem(`luxos_pdp_extra_${currentProduct.id}`));
-      if (extra && extra.deliveryNotice) {
-        const delEl = document.querySelector('#estimatedDeliveryBanner span');
-        if (delEl) delEl.innerHTML = extra.deliveryNotice;
+    // Render custom delivery notice
+    const deliveryBanner = document.getElementById('estimatedDeliveryBanner');
+    const delEl = document.getElementById('pdpDeliveryNoticeText') || document.querySelector('#estimatedDeliveryBanner span');
+    
+    let noticeText = null;
+    if (typeof currentProduct.deliveryNotice === 'string') {
+      noticeText = currentProduct.deliveryNotice.trim();
+    } else {
+      try {
+        const extra = JSON.parse(localStorage.getItem(`luxos_pdp_extra_${currentProduct.id}`));
+        if (extra && typeof extra.deliveryNotice === 'string') {
+          noticeText = extra.deliveryNotice.trim();
+        }
+      } catch (e) {}
+    }
+
+    if (deliveryBanner) {
+      if (noticeText !== null && noticeText !== '') {
+        deliveryBanner.classList.remove('hidden');
+        if (delEl) delEl.innerHTML = noticeText;
+      } else if (noticeText === '') {
+        // Explicitly cleared by admin
+        deliveryBanner.classList.add('hidden');
+      } else {
+        // Default when not customized
+        deliveryBanner.classList.remove('hidden');
+        if (delEl) delEl.innerHTML = 'Estimated Delivery: <b>3–5 Days</b> — Ships directly from Dhaka';
       }
-    } catch(e) {}
+    }
 
     renderVariantSwatches();
   }

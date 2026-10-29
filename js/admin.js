@@ -916,6 +916,7 @@ window.openProductModal = function () {
 
   if ($('#prodDimensions')) $('#prodDimensions').value = '';
   if ($('#prodFeatures')) $('#prodFeatures').value = '';
+  if ($('#prodDeliveryNotice')) $('#prodDeliveryNotice').value = '';
   if ($('#prodVideoUrl')) $('#prodVideoUrl').value = '';
   if ($('#prodVideoFileInput')) $('#prodVideoFileInput').value = '';
   currentEditProductVideo = { url: '', fileName: '', isLocal: false, file: null };
@@ -1221,6 +1222,18 @@ window.editProduct = async function (productId) {
       : (product.featuresList || '');
   }
 
+  // Load Estimated Delivery Notice
+  if ($('#prodDeliveryNotice')) {
+    let delNotice = product.deliveryNotice;
+    if (delNotice === undefined || delNotice === null) {
+      try {
+        const extra = JSON.parse(localStorage.getItem(`luxos_pdp_extra_${product.id}`));
+        if (extra && extra.deliveryNotice) delNotice = extra.deliveryNotice;
+      } catch (e) {}
+    }
+    $('#prodDeliveryNotice').value = delNotice || 'Estimated Delivery: 3–5 Days — Ships directly from Dhaka';
+  }
+
   // Load Showcase Video (IndexedDB or URL)
   if ($('#prodVideoFileInput')) $('#prodVideoFileInput').value = '';
   currentEditProductVideo = {
@@ -1337,6 +1350,8 @@ window.handleSaveProduct = async function (e) {
     const featsRaw = $('#prodFeatures') ? $('#prodFeatures').value.trim() : '';
     const finalFeats = featsRaw ? featsRaw.split('\n').map(s => s.trim()).filter(Boolean) : [];
 
+    const deliveryNotice = $('#prodDeliveryNotice') ? $('#prodDeliveryNotice').value.trim() : '';
+
     let savedId = id ? parseInt(id, 10) : (Math.max(0, ...AdminState.products.map(p => parseInt(p.id, 10) || 0)) + 1);
 
     if (currentEditProductVideo.isLocal && currentEditProductVideo.file) {
@@ -1372,6 +1387,7 @@ window.handleSaveProduct = async function (e) {
           description,
           dimensionsList: finalDims,
           featuresList: finalFeats,
+          deliveryNotice: deliveryNotice,
           videoUrl: finalVideoUrl,
           videoFileName: finalVideoFileName
         };
@@ -1379,6 +1395,7 @@ window.handleSaveProduct = async function (e) {
       if (typeof currentPdpProduct !== 'undefined' && currentPdpProduct && currentPdpProduct.id == id) {
         currentPdpProduct.dimensionsList = finalDims;
         currentPdpProduct.featuresList = finalFeats;
+        currentPdpProduct.deliveryNotice = deliveryNotice;
         currentPdpProduct.videoUrl = finalVideoUrl;
         currentPdpProduct.videoFileName = finalVideoFileName;
       }
@@ -1404,6 +1421,7 @@ window.handleSaveProduct = async function (e) {
         description,
         dimensionsList: finalDims,
         featuresList: finalFeats,
+        deliveryNotice: deliveryNotice,
         videoUrl: finalVideoUrl,
         videoFileName: finalVideoFileName,
         colors: [
@@ -1413,6 +1431,14 @@ window.handleSaveProduct = async function (e) {
       };
       AdminState.products.unshift(newProduct);
     }
+
+    // Also sync extra delivery notice key for storefront backward compatibility
+    try {
+      const extraKey = `luxos_pdp_extra_${savedId}`;
+      const existingExtra = JSON.parse(localStorage.getItem(extraKey) || '{}');
+      existingExtra.deliveryNotice = deliveryNotice;
+      localStorage.setItem(extraKey, JSON.stringify(existingExtra));
+    } catch (e) {}
 
     // Persist to localStorage safely with quota protection
     saveProductsSafely(AdminState.products);
