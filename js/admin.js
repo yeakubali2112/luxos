@@ -2840,9 +2840,11 @@ window.saveLandingPageSettings = function () {
   currentPdpProduct.description = description;
   currentPdpProduct.features = features;
   currentPdpProduct.specs = specs;
-  currentPdpProduct.gallery = [...currentPdpGalleryImages];
-  if (currentPdpGalleryImages[0]) {
-    currentPdpProduct.image = currentPdpGalleryImages[0];
+  if (currentPdpGalleryImages && currentPdpGalleryImages.length > 0) {
+    currentPdpProduct.gallery = [...currentPdpGalleryImages];
+    if (currentPdpGalleryImages[0]) {
+      currentPdpProduct.image = currentPdpGalleryImages[0];
+    }
   }
 
   // Update in AdminState.products array

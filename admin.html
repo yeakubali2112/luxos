@@ -185,16 +185,7 @@
       </button>
     </nav>
 
-    <!-- Bottom Quick Link to Frontend -->
-    <div class="p-3 border-t border-slate-800">
-      <a href="index.html" target="_blank" class="flex items-center justify-between px-3 py-2.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 text-xs font-semibold transition border border-amber-500/20">
-        <span class="flex items-center gap-2">
-          <span>View Storefront</span>
-        </span>
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
-      </a>
-    </div>
-  </aside>
+    </aside>
 
   <!-- =======================================================================
        2. Main Content Area
@@ -1063,37 +1054,6 @@
                   <textarea id="pdpAdminFeatures" rows="5" placeholder="Number Lock&#10;Sunglass Hook&#10;Water Resistant&#10;Trolley Support&#10;Luggage Style Indoor&#10;Shoulder Strap Pocket&#10;Multi-Storage Pockets&#10;Hidden two types USB port&#10;Unisex Designs Suitable for Daily Life&#10;Cell phone pocket, key chain clip" class="w-full border border-slate-300 rounded-lg p-2.5 text-xs font-mono leading-relaxed focus:outline-none focus:border-black"></textarea>
                 </div>
               </div>
-            </div>
-          </div>
-
-          <!-- Grid 3: Side Gallery Photos Manager -->
-          <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div>
-                <h4 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-                  <span>🖼️</span> Vertical Gallery Photos (Side Thumbnails)
-                </h4>
-                <p class="text-xs text-slate-500">All photos shown in the side thumbnail strip and main zoomable viewport.</p>
-              </div>
-              <span id="pdpAdminGalleryCount" class="text-xs font-semibold px-2.5 py-1 bg-slate-100 rounded-full text-slate-700">0 Photos</span>
-            </div>
-
-            <!-- Add new photo row -->
-            <div class="flex flex-col sm:flex-row gap-2">
-              <input type="file" id="pdpAdminGalleryFileInput" accept="image/*" class="hidden" onchange="handlePdpGalleryUpload(event)" />
-              <button type="button" onclick="$('#pdpAdminGalleryFileInput').click()" class="bg-slate-800 hover:bg-black text-white px-4 py-2.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 shrink-0 transition">
-                <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
-                <span>Upload Photo</span>
-              </button>
-              <input id="pdpAdminNewPhotoUrl" type="text" placeholder="Or paste image URL (https://...)" class="flex-1 border border-slate-300 rounded-lg p-2.5 text-xs focus:outline-none focus:border-black" />
-              <button type="button" onclick="addPdpGalleryPhoto()" class="bg-black hover:bg-slate-800 text-white px-5 py-2.5 rounded-lg text-xs font-semibold shrink-0 transition">
-                + Add Photo
-              </button>
-            </div>
-
-            <!-- Gallery Images Grid List -->
-            <div id="pdpAdminGalleryGrid" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 pt-2">
-              <!-- Injected by JS -->
             </div>
           </div>
 
