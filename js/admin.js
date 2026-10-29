@@ -938,7 +938,27 @@ window.editProduct = function (productId) {
   $('#productModalTitle').textContent = 'Edit Product';
   $('#editProductId').value = product.id;
   $('#prodTitle').value = product.title;
-  $('#prodCategory').value = product.category;
+  
+  // Set category with case-insensitive fallback & auto-add if custom
+  const catSelect = $('#prodCategory');
+  if (catSelect) {
+    let matched = false;
+    for (let opt of catSelect.options) {
+      if (opt.value.toLowerCase() === (product.category || '').toLowerCase()) {
+        catSelect.value = opt.value;
+        matched = true;
+        break;
+      }
+    }
+    if (!matched && product.category) {
+      const newOpt = document.createElement('option');
+      newOpt.value = product.category;
+      newOpt.textContent = product.category;
+      catSelect.appendChild(newOpt);
+      catSelect.value = product.category;
+    }
+  }
+
   $('#prodCollection').value = product.collection || 'Just Landed';
   $('#prodPrice').value = product.price;
   $('#prodOriginalPrice').value = product.originalPrice || '';
