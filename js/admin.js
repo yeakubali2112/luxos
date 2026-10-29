@@ -783,7 +783,16 @@ function renderProductsTable() {
         ${p.badge ? `<span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded">${p.badge}</span>` : '-'}
       </td>
       <td class="py-3 px-4">
-        <span class="font-semibold ${p.stock < 5 ? 'text-red-600' : 'text-slate-800'}">${p.stock || 12} in stock</span>
+        ${(() => {
+          const s = (typeof p.stock !== 'undefined' && p.stock !== null && p.stock !== '') ? parseInt(p.stock, 10) : 10;
+          if (isNaN(s) || s <= 0) {
+            return `<span class="inline-flex items-center gap-1 font-bold text-red-600 bg-red-50 border border-red-200 px-2 py-0.5 rounded text-xs"><span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>Out of stock (0)</span>`;
+          } else if (s < 5) {
+            return `<span class="inline-flex items-center gap-1 font-semibold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded text-xs">${s} in stock</span>`;
+          } else {
+            return `<span class="font-semibold text-slate-800">${s} in stock</span>`;
+          }
+        })()}
       </td>
       <td class="py-3 px-4 text-amber-500 font-bold">★ ${p.rating || '4.8'}</td>
       <td class="py-3 px-4 text-right">
@@ -1241,7 +1250,7 @@ window.editProduct = async function (productId) {
   $('#prodPrice').value = product.price;
   $('#prodOriginalPrice').value = product.originalPrice || '';
   $('#prodBadge').value = product.badge || '';
-  $('#prodStock').value = product.stock || 10;
+  $('#prodStock').value = (typeof product.stock !== 'undefined' && product.stock !== null && product.stock !== '') ? parseInt(product.stock, 10) : 10;
   if ($('#prodRating')) $('#prodRating').value = product.rating || '4.8';
   $('#prodImage').value = product.image;
   if ($('#prodDescription')) $('#prodDescription').value = product.description || '';
@@ -1351,7 +1360,8 @@ window.handleSaveProduct = async function (e) {
     let price = $('#prodPrice').value.trim();
     let originalPrice = $('#prodOriginalPrice').value.trim();
     const badge = $('#prodBadge').value.trim();
-    const stock = parseInt($('#prodStock').value || 10, 10);
+    const stockRaw = $('#prodStock') ? $('#prodStock').value.trim() : '';
+    const stock = (stockRaw !== '' && !isNaN(parseInt(stockRaw, 10))) ? Math.max(0, parseInt(stockRaw, 10)) : 0;
     const rating = ($('#prodRating') && $('#prodRating').value.trim()) || (id ? (AdminState.products.find(p => p.id == id)?.rating || '4.8') : '4.8');
     
     // Auto-compress primary image if uncompressed base64 string
