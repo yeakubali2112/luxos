@@ -232,9 +232,9 @@
         <!-- 3. Star Rating & Reviews Link -->
         <div class="flex items-center gap-2">
           <div class="flex text-amber-500 text-sm tracking-tight">★★★★★</div>
-          <a href="#reviewsSection" class="text-xs text-gray-500 hover:text-black font-medium transition cursor-pointer">
+          <span class="text-xs text-gray-500 font-medium">
             <span id="pdpReviewCount">65 reviews</span>
-          </a>
+          </span>
         </div>
 
         <!-- 5. Discount Tag -->
@@ -384,156 +384,7 @@
     </div>
   </section>
 
-  <!-- =======================================================================
-       5. Customer Reviews & Ratings Engine (Requested Feature)
-       "ei page er niche sei product er revire golo dekha jabe ar new review dite parbe user"
-       ======================================================================= -->
-  <section id="reviewsSection" class="bg-gray-50 border-t border-gray-200 py-16">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      
-      <!-- Section Title -->
-      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10 pb-4 border-b border-gray-200">
-        <div>
-          <span class="text-xs font-bold uppercase tracking-[0.2em] text-neutral-400">Verified Feedback</span>
-          <h2 class="text-2xl sm:text-3xl font-bold uppercase tracking-wider text-gray-900 font-sans mt-1">
-            Customer Reviews &amp; Experiences
-          </h2>
-          <p class="text-xs text-gray-500 mt-1">Real ratings and verified reviews from buyers across Bangladesh.</p>
-        </div>
 
-        <div>
-          <button 
-            onclick="toggleReviewForm()" 
-            class="bg-black hover:bg-neutral-800 text-white text-xs font-bold uppercase tracking-wider px-6 py-3 rounded-sm transition shadow flex items-center gap-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg>
-            <span>Write a Review</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Rating Scorecard Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-center bg-white border border-gray-200 rounded-sm p-6 sm:p-8 mb-10 shadow-sm">
-        
-        <!-- Score Overview (col 4) -->
-        <div class="md:col-span-4 text-center md:border-r md:border-gray-200 md:pr-8">
-          <div id="scorecardAvgRating" class="text-5xl font-extrabold text-gray-900 font-sans">4.9</div>
-          <div id="scorecardStars" class="flex justify-center text-amber-500 text-lg tracking-tight my-2">★★★★★</div>
-          <p id="scorecardTotalReviews" class="text-xs text-gray-500 font-medium">Based on 65 verified reviews</p>
-          <span class="inline-block mt-3 bg-emerald-50 text-emerald-700 text-[11px] font-semibold px-3 py-1 rounded-full border border-emerald-200">
-            ✓ 98% Buyers Recommend This Product
-          </span>
-        </div>
-
-        <!-- Rating Distribution Progress Bars (col 8) -->
-        <div id="ratingBarsContainer" class="md:col-span-8 space-y-2 sm:pl-4">
-          <!-- Injected by JavaScript -->
-        </div>
-
-      </div>
-
-      <!-- Interactive Review Submission Form (Collapsible) -->
-      <div id="writeReviewFormContainer" class="hidden mb-12 bg-white border-2 border-black rounded-sm p-6 sm:p-8 shadow-xl transition-all duration-300">
-        <div class="flex items-center justify-between pb-4 border-b border-gray-200 mb-6">
-          <div>
-            <h3 class="text-base font-bold uppercase tracking-wider text-gray-900">Share Your Experience</h3>
-            <p class="text-xs text-gray-500">Your review helps other buyers make confident decisions.</p>
-          </div>
-          <button onclick="toggleReviewForm()" class="text-gray-400 hover:text-black p-1">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-          </button>
-        </div>
-
-        <form onsubmit="handleReviewSubmit(event)" class="space-y-4">
-          <!-- Star Rating Picker -->
-          <div>
-            <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">Overall Rating *</label>
-            <div class="flex items-center gap-2">
-              <div class="flex gap-1 text-2xl cursor-pointer">
-                <button type="button" data-value="1" class="review-star-picker-btn text-amber-500 hover:scale-110 transition">★</button>
-                <button type="button" data-value="2" class="review-star-picker-btn text-amber-500 hover:scale-110 transition">★</button>
-                <button type="button" data-value="3" class="review-star-picker-btn text-amber-500 hover:scale-110 transition">★</button>
-                <button type="button" data-value="4" class="review-star-picker-btn text-amber-500 hover:scale-110 transition">★</button>
-                <button type="button" data-value="5" class="review-star-picker-btn text-amber-500 hover:scale-110 transition">★</button>
-              </div>
-              <span id="starPickerLabel" class="text-xs font-semibold text-gray-600 pl-2">Excellent — Loved it!</span>
-            </div>
-          </div>
-
-          <!-- Customer Name & City Grid -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1">Your Full Name *</label>
-              <input id="reviewAuthorName" type="text" required placeholder="e.g. Tanvir Hasan" class="w-full border border-gray-300 text-xs px-3 py-2.5 rounded-sm focus:outline-none focus:border-black" />
-            </div>
-            <div>
-              <label class="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1">Location / District</label>
-              <input id="reviewAuthorCity" type="text" placeholder="e.g. Dhanmondi, Dhaka" class="w-full border border-gray-300 text-xs px-3 py-2.5 rounded-sm focus:outline-none focus:border-black" />
-            </div>
-          </div>
-
-          <!-- Color Variant Purchased -->
-          <div>
-            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1">Purchased Color / Variant</label>
-            <select id="reviewVariantSelect" class="w-full border border-gray-300 text-xs px-3 py-2.5 rounded-sm focus:outline-none focus:border-black bg-white">
-              <option value="Noir Black">Noir Black</option>
-              <option value="Mocha Brown">Mocha Brown</option>
-              <option value="Carbon Black">Carbon Black</option>
-              <option value="Tan Camel">Tan Camel</option>
-              <option value="Navy Blue">Navy Blue</option>
-            </select>
-          </div>
-
-          <!-- Review Headline -->
-          <div>
-            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1">Review Headline</label>
-            <input id="reviewHeadline" type="text" placeholder="e.g. Premium leather and smooth card popup!" class="w-full border border-gray-300 text-xs px-3 py-2.5 rounded-sm focus:outline-none focus:border-black" />
-          </div>
-
-          <!-- Review Message Body -->
-          <div>
-            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1">Review Description *</label>
-            <textarea id="reviewBody" required rows="4" placeholder="How is the quality, build, delivery, and everyday experience with this product?" class="w-full border border-gray-300 text-xs p-3 rounded-sm focus:outline-none focus:border-black"></textarea>
-          </div>
-
-          <!-- Photo Attachment -->
-          <div>
-            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1">Attach Photo (Optional)</label>
-            <input type="file" accept="image/*" onchange="handleReviewPhotoSelect(event)" class="text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-sm file:border-0 file:text-xs file:font-semibold file:bg-neutral-100 file:text-neutral-800 hover:file:bg-neutral-200 cursor-pointer" />
-            <img id="reviewPhotoPreview" class="hidden w-20 h-20 object-cover rounded mt-2 border border-gray-300" alt="Preview" />
-          </div>
-
-          <!-- Submit Buttons -->
-          <div class="pt-3 flex items-center gap-3">
-            <button type="submit" class="bg-black hover:bg-neutral-800 text-white text-xs font-bold uppercase tracking-wider px-8 py-3.5 rounded-sm transition shadow cursor-pointer">
-              Submit Verified Review
-            </button>
-            <button type="button" onclick="toggleReviewForm()" class="border border-gray-300 text-gray-700 text-xs font-semibold uppercase tracking-wider px-6 py-3.5 rounded-sm hover:border-black transition">
-              Cancel
-            </button>
-          </div>
-        </form>
-      </div>
-
-      <!-- Review Filter Pills -->
-      <div class="flex items-center gap-2 mb-6 overflow-x-auto pb-2 text-xs">
-        <button id="reviewFilterBtn_all" onclick="renderReviewsList('all')" class="review-filter-btn bg-black text-white px-4 py-2 rounded-full font-semibold shrink-0 transition">
-          All Reviews
-        </button>
-        <button id="reviewFilterBtn_5" onclick="renderReviewsList('5')" class="review-filter-btn bg-gray-100 text-gray-700 hover:bg-gray-200 px-4 py-2 rounded-full font-medium shrink-0 transition">
-          5 Stars Only
-        </button>
-        <button id="reviewFilterBtn_photos" onclick="renderReviewsList('photos')" class="review-filter-btn bg-gray-100 text-gray-700 hover:bg-gray-200 px-4 py-2 rounded-full font-medium shrink-0 transition">
-          With Photos Only
-        </button>
-      </div>
-
-      <!-- Customer Reviews List -->
-      <div id="reviewsListContainer" class="space-y-4">
-        <!-- Injected dynamically by JavaScript -->
-      </div>
-
-    </div>
-  </section>
 
   <!-- =======================================================================
        6. Recommended / Related Products ("You May Also Like")

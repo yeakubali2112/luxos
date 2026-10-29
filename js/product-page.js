@@ -699,6 +699,7 @@
   }
 
   function initReviewsSection() {
+    if (!document.getElementById('reviewsSection')) return;
     renderReviewsScorecard();
     renderReviewsList('all');
     initReviewStarsPicker();
