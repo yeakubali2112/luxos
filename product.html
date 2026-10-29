@@ -760,7 +760,7 @@
             </div>
           </div>
 
-          <button type="submit" class="w-full bg-black text-white text-xs uppercase tracking-luxury font-bold py-3.5 rounded-sm hover:bg-neutral-800 transition shadow mt-4 cursor-pointer">
+          <button id="placeOrderBtn" type="submit" class="w-full bg-black text-white text-xs uppercase tracking-luxury font-bold py-3.5 rounded-sm hover:bg-neutral-800 transition shadow mt-4 cursor-pointer">
             Confirm &amp; Place Order
           </button>
         </form>
@@ -918,6 +918,12 @@
     <div class="absolute bottom-4 text-center text-white/70 text-xs font-medium pointer-events-none">
       <span>Use +/- buttons or scroll to zoom deeply into texture, stitching &amp; finish</span>
     </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toastNotification" class="toast-notification fixed bottom-5 right-5 z-[9999] bg-black text-white text-xs px-4 py-3 rounded-sm shadow-2xl flex items-center gap-2 border border-neutral-700 pointer-events-none">
+    <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+    <span id="toastText">Product added to your cart</span>
   </div>
 
   <!-- Core Scripts -->

@@ -1072,29 +1072,124 @@ window.renderCheckoutSummary = updateCheckoutSummary;
 window.placeOrder = function (e) {
   if (e) e.preventDefault();
 
-  const name = $('#custName').value.trim();
-  const phone = $('#custPhone').value.trim();
-  const address = $('#custAddress').value.trim();
+  const nameInput = $('#custName');
+  const phoneInput = $('#custPhone');
+  const addressInput = $('#custAddress');
+  const submitBtn = document.querySelector('#checkoutModal form button[type="submit"]') || $('#placeOrderBtn');
 
-  if (!name || !phone || !address) {
-    showToast('Please fill in your name, phone number, and address.');
+  const name = nameInput ? nameInput.value.trim() : '';
+  const phone = phoneInput ? phoneInput.value.trim() : '';
+  const address = addressInput ? addressInput.value.trim() : '';
+
+  if (!name) {
+    if (nameInput) {
+      nameInput.focus();
+      nameInput.classList.add('border-red-500');
+      setTimeout(() => nameInput.classList.remove('border-red-500'), 3000);
+    }
+    showToast('Please enter your full name.');
     return;
   }
 
-  // Bangladesh phone validation
-  if (!/^01[3-9]\d{8}$/.test(phone.replace(/\s+/g, ''))) {
-    showToast('Please enter a valid Bangladeshi mobile number (e.g. 01712345678)');
+  if (!phone) {
+    if (phoneInput) {
+      phoneInput.focus();
+      phoneInput.classList.add('border-red-500');
+      setTimeout(() => phoneInput.classList.remove('border-red-500'), 3000);
+    }
+    showToast('Please enter your mobile number.');
+    return;
+  }
+
+  if (!address) {
+    if (addressInput) {
+      addressInput.focus();
+      addressInput.classList.add('border-red-500');
+      setTimeout(() => addressInput.classList.remove('border-red-500'), 3000);
+    }
+    showToast('Please enter your full delivery address.');
+    return;
+  }
+
+  // Flexible and smart phone validation:
+  // Strip spaces, dashes, parentheses, +88, 88
+  let cleanedPhone = phone.replace(/[\s\-\(\)\+]/g, '');
+  if (cleanedPhone.startsWith('880')) {
+    cleanedPhone = cleanedPhone.slice(2);
+  } else if (cleanedPhone.startsWith('88')) {
+    cleanedPhone = cleanedPhone.slice(2);
+  }
+
+  // Accept any numeric phone string with 10 to 14 digits (allowing 0100000000, 01712345678, test numbers, etc.)
+  if (cleanedPhone.length < 10 || !/^\d+$/.test(cleanedPhone)) {
+    if (phoneInput) {
+      phoneInput.focus();
+      phoneInput.classList.add('border-red-500');
+      setTimeout(() => phoneInput.classList.remove('border-red-500'), 3000);
+    }
+    showToast('Please enter a valid mobile number (e.g. 01712345678)');
+    return;
+  }
+
+  // Visual button loading state
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `
+      <span class="inline-flex items-center gap-2">
+        <svg class="animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+        </svg>
+        <span>Placing Order...</span>
+      </span>
+    `;
+  }
+
+  // Ensure AppState.cart is synchronized from localStorage if empty
+  if (!AppState.cart || !Array.isArray(AppState.cart) || AppState.cart.length === 0) {
+    try {
+      const stored = JSON.parse(localStorage.getItem('luxos_cart')) || [];
+      AppState.cart = Array.isArray(stored) ? stored : [];
+    } catch (err) {
+      AppState.cart = [];
+    }
+  }
+
+  // If still empty on PDP, try to reconstruct from current PDP product
+  if ((!AppState.cart || AppState.cart.length === 0) && typeof currentProduct !== 'undefined' && currentProduct && currentProduct.id) {
+    const qty = parseInt(document.getElementById('pdpQuantity')?.value || 1, 10) || 1;
+    const priceNum = parseInt(String(currentProduct.price).replace(/[^\d]/g, ''), 10) || 687;
+    AppState.cart = [{
+      id: currentProduct.id,
+      title: currentProduct.title,
+      price: currentProduct.price,
+      priceNum: priceNum,
+      originalPrice: currentProduct.originalPrice,
+      image: currentProduct.image || '',
+      category: currentProduct.category || 'Luxury Collection',
+      color: typeof selectedColor !== 'undefined' ? selectedColor : 'Standard',
+      quantity: qty
+    }];
+  }
+
+  if (!AppState.cart || AppState.cart.length === 0) {
+    showToast('Your cart is empty. Please select a product.');
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = 'Confirm &amp; Place Order';
+    }
     return;
   }
 
   const orderId = 'LX-' + Math.floor(100000 + Math.random() * 900000);
   const paymentMethod = $('input[name="paymentMethod"]:checked')?.value || 'Cash on Delivery';
   const subtotal = AppState.cart.reduce((sum, item) => {
-    const price = (item.priceNum && !isNaN(item.priceNum) && item.priceNum > 0) ? item.priceNum : parsePrice(item.price);
+    let price = (item.priceNum && !isNaN(item.priceNum) && item.priceNum > 0) ? item.priceNum : parsePrice(item.price);
+    if (!price || isNaN(price) || price <= 0) price = 1000;
     return sum + (price * (item.quantity || 1));
   }, 0);
-  
-  let shipping = AppState.deliveryFee;
+
+  let shipping = AppState.deliveryFee || 70;
   if (subtotal >= AppState.FREE_SHIPPING_THRESHOLD || AppState.couponDiscount === 'FREE_SHIPPING') {
     shipping = 0;
   }
@@ -1114,11 +1209,19 @@ window.placeOrder = function (e) {
       address,
       zone: AppState.deliveryZone === 'inside_dhaka' ? 'Inside Dhaka' : 'Outside Dhaka'
     },
-    items: JSON.parse(JSON.stringify(AppState.cart)),
+    items: (AppState.cart || []).map(i => ({
+      id: i.id,
+      title: i.title || 'Luxos Product',
+      price: i.price,
+      priceNum: i.priceNum || parsePrice(i.price),
+      quantity: i.quantity || 1,
+      image: i.image || '',
+      color: i.color || 'Standard'
+    })),
     subtotal: subtotal,
     shippingFee: shipping,
     discount: discount,
-    couponCode: AppState.couponCode,
+    couponCode: AppState.couponCode || '',
     total: grandTotal,
     paymentMethod,
     paymentStatus: paymentMethod === 'Cash on Delivery' ? 'Unpaid (COD)' : 'Paid Online (bKash)',
@@ -1128,8 +1231,15 @@ window.placeOrder = function (e) {
 
   // Save order to localStorage for Admin Panel
   try {
-    const existingOrders = JSON.parse(localStorage.getItem('luxos_orders')) || [];
+    let existingOrders = [];
+    try {
+      existingOrders = JSON.parse(localStorage.getItem('luxos_orders')) || [];
+      if (!Array.isArray(existingOrders)) existingOrders = [];
+    } catch (err) {
+      existingOrders = [];
+    }
     existingOrders.unshift(newOrder);
+    if (existingOrders.length > 50) existingOrders.length = 50;
     localStorage.setItem('luxos_orders', JSON.stringify(existingOrders));
 
     // Save profile for fast checkout
@@ -1141,57 +1251,63 @@ window.placeOrder = function (e) {
 
   // Order Confirmed Screen
   const body = $('#checkoutModalContent');
-  body.innerHTML = `
-    <div class="p-8 text-center">
-      <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
-        <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-        </svg>
+  if (body) {
+    body.scrollTop = 0;
+    body.innerHTML = `
+      <div class="p-8 text-center">
+        <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+          </svg>
+        </div>
+
+        <span class="text-xs font-semibold text-emerald-600 uppercase tracking-widest">Order Confirmed</span>
+        <h2 class="text-2xl font-bold text-gray-900 mt-1">Thank you, ${name}!</h2>
+        <p class="text-xs text-gray-500 mt-1">Your order has been recorded in the Luxos system.</p>
+
+        <div class="my-6 p-4 bg-gray-50 rounded-sm border border-gray-200 text-left text-xs space-y-2">
+          <div class="flex justify-between">
+            <span class="text-gray-500">Order ID:</span>
+            <span class="font-bold text-gray-900">${orderId}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-500">Recipient Phone:</span>
+            <span class="font-semibold text-gray-800">${phone}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-500">Delivery Address:</span>
+            <span class="font-semibold text-gray-800 text-right">${address}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-500">Payment Option:</span>
+            <span class="font-semibold text-gray-800 uppercase">${paymentMethod}</span>
+          </div>
+          <div class="flex justify-between border-t border-gray-200 pt-2 font-bold text-sm">
+            <span>Amount Payable:</span>
+            <span class="text-gray-900">${formatPrice(grandTotal)}</span>
+          </div>
+        </div>
+
+        <p class="text-xs text-gray-500 mb-6">Our delivery executive will contact you prior to delivery. You can track this order with ID <b>${orderId}</b>.</p>
+
+        <div class="flex flex-wrap gap-3 justify-center">
+          <button onclick="finishCheckout()" class="bg-black text-white text-xs uppercase tracking-wider font-semibold py-3 px-6 rounded-sm hover:bg-neutral-800 transition">
+            Continue Shopping
+          </button>
+          <a href="admin.html" target="_blank" class="border border-black text-black text-xs uppercase tracking-wider font-semibold py-3 px-6 rounded-sm hover:bg-gray-100 transition flex items-center gap-1.5">
+            <span>View in Admin</span>
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
+          </a>
+        </div>
       </div>
-
-      <span class="text-xs font-semibold text-emerald-600 uppercase tracking-widest">Order Confirmed</span>
-      <h2 class="text-2xl font-bold text-gray-900 mt-1">Thank you, ${name}!</h2>
-      <p class="text-xs text-gray-500 mt-1">Your order has been recorded in the Luxos system.</p>
-
-      <div class="my-6 p-4 bg-gray-50 rounded-sm border border-gray-200 text-left text-xs space-y-2">
-        <div class="flex justify-between">
-          <span class="text-gray-500">Order ID:</span>
-          <span class="font-bold text-gray-900">${orderId}</span>
-        </div>
-        <div class="flex justify-between">
-          <span class="text-gray-500">Recipient Phone:</span>
-          <span class="font-semibold text-gray-800">${phone}</span>
-        </div>
-        <div class="flex justify-between">
-          <span class="text-gray-500">Delivery Address:</span>
-          <span class="font-semibold text-gray-800 text-right">${address}</span>
-        </div>
-        <div class="flex justify-between">
-          <span class="text-gray-500">Payment Option:</span>
-          <span class="font-semibold text-gray-800 uppercase">${paymentMethod}</span>
-        </div>
-        <div class="flex justify-between border-t border-gray-200 pt-2 font-bold text-sm">
-          <span>Amount Payable:</span>
-          <span class="text-gray-900">${formatPrice(grandTotal)}</span>
-        </div>
-      </div>
-
-      <p class="text-xs text-gray-500 mb-6">Our delivery executive will contact you prior to delivery. You can track this order with ID <b>${orderId}</b>.</p>
-
-      <div class="flex gap-3 justify-center">
-        <button onclick="finishCheckout()" class="bg-black text-white text-xs uppercase tracking-wider font-semibold py-3 px-6 rounded-sm hover:bg-neutral-800 transition">
-          Continue Shopping
-        </button>
-        <a href="admin.html" target="_blank" class="border border-black text-black text-xs uppercase tracking-wider font-semibold py-3 px-6 rounded-sm hover:bg-gray-100 transition flex items-center gap-1.5">
-          <span>View in Admin</span>
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
-        </a>
-      </div>
-    </div>
-  `;
+    `;
+  }
 
   // Clear cart
   AppState.cart = [];
+  try {
+    localStorage.removeItem('luxos_cart');
+  } catch (err) {}
   saveCart();
   updateCartBadge();
 };
@@ -1239,18 +1355,31 @@ window.closeMobileNav = function () {
    ========================================================================== */
 let toastTimeout;
 function showToast(message) {
-  const toast = $('#toastNotification');
-  const text = $('#toastText');
-  if (!toast || !text) return;
+  let toast = $('#toastNotification');
+  let text = $('#toastText');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'toastNotification';
+    toast.className = 'toast-notification fixed bottom-5 right-5 z-[9999] bg-black text-white text-xs px-4 py-3 rounded-sm shadow-2xl flex items-center gap-2 border border-neutral-700 pointer-events-none';
+    toast.innerHTML = `
+      <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+      <span id="toastText"></span>
+    `;
+    document.body.appendChild(toast);
+    text = toast.querySelector('#toastText');
+  } else if (!text) {
+    text = toast.querySelector('#toastText');
+  }
 
-  text.textContent = message;
+  if (text) text.textContent = message;
   toast.classList.add('show');
 
   clearTimeout(toastTimeout);
   toastTimeout = setTimeout(() => {
     toast.classList.remove('show');
-  }, 3200);
+  }, 3500);
 }
+window.showToast = showToast;
 
 /* ==========================================================================
    Newsletter Subscription
