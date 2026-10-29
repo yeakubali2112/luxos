@@ -59,7 +59,8 @@ const LUXOS_PRODUCTS = [
       "https://thepatchee.com/cdn/shop/files/15_1Knw4N.jpg?v=1781362716",
       "https://thepatchee.com/cdn/shop/files/dc64c41d-ae95-4a7f-912f-1c2a664d35f1.jpg?v=1781362693"
     ],
-    "description": "Crafted for modern executives, the Executive RFID Card Holder by Luxos merges minimalist architectural design with smart functionality. Features an ergonomic one-click card ejector mechanism, aerospace-grade aluminum casing with 13.56 MHz RFID signal blocking, and premium hand-finished leather casing."
+    "description": "Crafted for modern executives, the Executive RFID Card Holder by Luxos merges minimalist architectural design with smart functionality. Features an ergonomic one-click card ejector mechanism, aerospace-grade aluminum casing with 13.56 MHz RFID signal blocking, and premium hand-finished leather casing.",
+    "videoUrl": "https://www.youtube.com/watch?v=dJKiFbEDcmw"
   },
   {
     "id": 2,

@@ -770,26 +770,88 @@
   }
   window.switchPdpTab = switchPdpTab;
 
-  function renderProductVideo() {
+  const VIDEO_DB_NAME = 'luxos_video_db';
+  const VIDEO_STORE_NAME = 'videos';
+
+  function openVideoDB() {
+    return new Promise((resolve, reject) => {
+      if (!window.indexedDB) {
+        return reject(new Error('IndexedDB not supported'));
+      }
+      const req = indexedDB.open(VIDEO_DB_NAME, 1);
+      req.onupgradeneeded = function (e) {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains(VIDEO_STORE_NAME)) {
+          db.createObjectStore(VIDEO_STORE_NAME, { keyPath: 'id' });
+        }
+      };
+      req.onsuccess = function (e) {
+        resolve(e.target.result);
+      };
+      req.onerror = function (e) {
+        reject(e.target.error);
+      };
+    });
+  }
+
+  async function getVideoFromDB(productId) {
+    try {
+      const db = await openVideoDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(VIDEO_STORE_NAME, 'readonly');
+        const store = tx.objectStore(VIDEO_STORE_NAME);
+        const req = store.get('pdp_video_' + productId);
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror = () => reject(req.error);
+      });
+    } catch (err) {
+      console.warn('getVideoFromDB error:', err);
+      return null;
+    }
+  }
+
+  async function renderProductVideo() {
     const container = document.getElementById('pdpVideoContainer');
     if (!container) return;
-    const videoUrl = currentProduct ? currentProduct.videoUrl : '';
+
+    let videoUrl = currentProduct ? (currentProduct.videoUrl || '') : '';
+
+    // Check IndexedDB if product has uploaded local file or if url starts with idb:
+    if ((videoUrl && videoUrl.startsWith('idb:')) || (!videoUrl && currentProduct && currentProduct.id)) {
+      try {
+        const stored = await getVideoFromDB(currentProduct.id);
+        if (stored && stored.blob) {
+          const blobUrl = URL.createObjectURL(stored.blob);
+          container.innerHTML = '<video class="w-full h-full object-cover" controls playsinline preload="metadata" src="' + blobUrl + '">Your browser does not support HTML5 video.</video>';
+          container.classList.remove('hidden');
+          return;
+        }
+      } catch (e) {
+        console.warn('Error reading video from IndexedDB:', e);
+      }
+    }
+
+    // Default showcase video for product 1 if no custom video set
+    if (!videoUrl && currentProduct && currentProduct.id === 1) {
+      videoUrl = 'https://www.youtube.com/watch?v=dJKiFbEDcmw';
+    }
+
     if (!videoUrl) {
       container.classList.add('hidden');
       container.innerHTML = '';
       return;
     }
 
-    const ytMatch = videoUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+    const ytMatch = videoUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/);
     if (ytMatch && ytMatch[1]) {
-      container.innerHTML = `<iframe class="w-full h-full" src="https://www.youtube.com/embed/${ytMatch[1]}?autoplay=0&rel=0" title="Product Showcase Video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+      container.innerHTML = '<iframe class="w-full h-full" src="https://www.youtube.com/embed/' + ytMatch[1] + '?autoplay=0&rel=0" title="Product Showcase Video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
       container.classList.remove('hidden');
     } else if (videoUrl.includes('vimeo.com/')) {
       const vimeoId = videoUrl.split('vimeo.com/')[1].split(/[?#]/)[0];
-      container.innerHTML = `<iframe class="w-full h-full" src="https://player.vimeo.com/video/${vimeoId}" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>`;
+      container.innerHTML = '<iframe class="w-full h-full" src="https://player.vimeo.com/video/' + vimeoId + '" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>';
       container.classList.remove('hidden');
     } else {
-      container.innerHTML = `<video class="w-full h-full object-cover" controls playsinline preload="metadata" src="${videoUrl}">Your browser does not support the video tag.</video>`;
+      container.innerHTML = '<video class="w-full h-full object-cover" controls playsinline preload="metadata" src="' + videoUrl + '">Your browser does not support the video tag.</video>';
       container.classList.remove('hidden');
     }
   }

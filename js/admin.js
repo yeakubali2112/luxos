@@ -2284,9 +2284,8 @@ window.loadLandingPageProductData = function (productId) {
     const feats = (prod.featuresList && prod.featuresList.length > 0) ? prod.featuresList : defaultFeatures;
     $('#pdpAdminFeatures').value = Array.isArray(feats) ? feats.join('\n') : feats;
   }
-  if ($('#pdpAdminVideoUrl')) {
-    $('#pdpAdminVideoUrl').value = prod.videoUrl || '';
-  }
+  // Load Showcase Video (IndexedDB or URL)
+  loadAdminProductVideo(prod);
 
   // Features
   const f1 = (prod.features && prod.features[0]) || { title: 'Quick-Access Slider', desc: 'Ergonomic one-click ejection mechanism fans cards out smoothly in a cascading sequence for instant access.' };
@@ -2420,6 +2419,223 @@ window.removePdpGalleryPhoto = function (index) {
   showAdminToast('Photo removed.');
 };
 
+// =========================================================================
+// Product Showcase Video: IndexedDB Storage & Live Preview Manager
+// =========================================================================
+const VIDEO_DB_NAME = 'luxos_video_db';
+const VIDEO_STORE_NAME = 'videos';
+
+function openVideoDB() {
+  return new Promise((resolve, reject) => {
+    if (!window.indexedDB) {
+      return reject(new Error('IndexedDB not supported'));
+    }
+    const req = indexedDB.open(VIDEO_DB_NAME, 1);
+    req.onupgradeneeded = function (e) {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(VIDEO_STORE_NAME)) {
+        db.createObjectStore(VIDEO_STORE_NAME, { keyPath: 'id' });
+      }
+    };
+    req.onsuccess = function (e) {
+      resolve(e.target.result);
+    };
+    req.onerror = function (e) {
+      reject(e.target.error);
+    };
+  });
+}
+
+async function saveVideoToDB(productId, file) {
+  const db = await openVideoDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(VIDEO_STORE_NAME, 'readwrite');
+    const store = tx.objectStore(VIDEO_STORE_NAME);
+    const record = {
+      id: 'pdp_video_' + productId,
+      blob: file,
+      name: file.name,
+      type: file.type || 'video/mp4',
+      size: file.size,
+      updatedAt: Date.now()
+    };
+    const req = store.put(record);
+    req.onsuccess = () => resolve(record);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function getVideoFromDB(productId) {
+  try {
+    const db = await openVideoDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(VIDEO_STORE_NAME, 'readonly');
+      const store = tx.objectStore(VIDEO_STORE_NAME);
+      const req = store.get('pdp_video_' + productId);
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => reject(req.error);
+    });
+  } catch (err) {
+    console.warn('getVideoFromDB error:', err);
+    return null;
+  }
+}
+
+async function deleteVideoFromDB(productId) {
+  try {
+    const db = await openVideoDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(VIDEO_STORE_NAME, 'readwrite');
+      const store = tx.objectStore(VIDEO_STORE_NAME);
+      const req = store.delete('pdp_video_' + productId);
+      req.onsuccess = () => resolve();
+      req.onerror = () => reject(req.error);
+    });
+  } catch (err) {
+    console.warn('deleteVideoFromDB error:', err);
+  }
+}
+
+function renderAdminVideoPreview(sourceUrl, isLocal = false, fileName = '') {
+  const previewWrapper = $('#pdpAdminVideoPreviewWrapper');
+  const previewContainer = $('#pdpAdminVideoPreviewContainer');
+  const statusEl = $('#pdpAdminVideoStatus');
+
+  if (!previewContainer) return;
+
+  if (!sourceUrl) {
+    if (previewWrapper) previewWrapper.classList.add('hidden');
+    previewContainer.innerHTML = '';
+    if (statusEl) {
+      statusEl.textContent = 'No video selected';
+      statusEl.className = 'text-[11px] font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200';
+    }
+    return;
+  }
+
+  if (previewWrapper) previewWrapper.classList.remove('hidden');
+
+  if (isLocal) {
+    if (statusEl) {
+      statusEl.textContent = '📁 File: ' + (fileName || 'Uploaded Video');
+      statusEl.className = 'text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200';
+    }
+    previewContainer.innerHTML = '<video class="w-full h-full object-cover" controls playsinline src="' + sourceUrl + '">Your browser does not support HTML5 video.</video>';
+    return;
+  }
+
+  // URL (YouTube / Vimeo / MP4)
+  const ytMatch = sourceUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/);
+  if (ytMatch && ytMatch[1]) {
+    if (statusEl) {
+      statusEl.textContent = '🎬 YouTube Video Linked';
+      statusEl.className = 'text-[11px] font-semibold text-red-700 bg-red-50 px-2.5 py-1 rounded-full border border-red-200';
+    }
+    previewContainer.innerHTML = '<iframe class="w-full h-full" src="https://www.youtube.com/embed/' + ytMatch[1] + '?autoplay=0&rel=0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
+  } else if (sourceUrl.includes('vimeo.com/')) {
+    const vimeoId = sourceUrl.split('vimeo.com/')[1].split(/[?#]/)[0];
+    if (statusEl) {
+      statusEl.textContent = '🎬 Vimeo Video Linked';
+      statusEl.className = 'text-[11px] font-semibold text-sky-700 bg-sky-50 px-2.5 py-1 rounded-full border border-sky-200';
+    }
+    previewContainer.innerHTML = '<iframe class="w-full h-full" src="https://player.vimeo.com/video/' + vimeoId + '" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>';
+  } else {
+    if (statusEl) {
+      statusEl.textContent = '🎬 Direct Video URL';
+      statusEl.className = 'text-[11px] font-semibold text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-full border border-indigo-200';
+    }
+    previewContainer.innerHTML = '<video class="w-full h-full object-cover" controls playsinline src="' + sourceUrl + '">Your browser does not support HTML5 video.</video>';
+  }
+}
+
+async function loadAdminProductVideo(prod) {
+  if (!prod) return;
+
+  if (prod.videoUrl && prod.videoUrl.startsWith('idb:')) {
+    if ($('#pdpAdminVideoUrl')) $('#pdpAdminVideoUrl').value = '';
+    const record = await getVideoFromDB(prod.id);
+    if (record && record.blob) {
+      const objUrl = URL.createObjectURL(record.blob);
+      renderAdminVideoPreview(objUrl, true, record.name || prod.videoFileName);
+    } else {
+      renderAdminVideoPreview('');
+    }
+  } else if (prod.videoUrl) {
+    if ($('#pdpAdminVideoUrl')) $('#pdpAdminVideoUrl').value = prod.videoUrl;
+    renderAdminVideoPreview(prod.videoUrl, false);
+  } else {
+    // Check if there is an existing indexedDB video anyway
+    const record = await getVideoFromDB(prod.id);
+    if (record && record.blob) {
+      prod.videoUrl = 'idb:pdp_video_' + prod.id;
+      prod.videoFileName = record.name;
+      const objUrl = URL.createObjectURL(record.blob);
+      renderAdminVideoPreview(objUrl, true, record.name);
+    } else {
+      if ($('#pdpAdminVideoUrl')) $('#pdpAdminVideoUrl').value = '';
+      renderAdminVideoPreview('');
+    }
+  }
+}
+
+window.handlePdpVideoUpload = async function (e) {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+
+  if (!file.type.startsWith('video/')) {
+    showAdminToast('Please upload a valid video file (MP4, WebM, MOV).');
+    return;
+  }
+
+  if (!currentPdpProduct) return;
+
+  try {
+    await saveVideoToDB(currentPdpProduct.id, file);
+    currentPdpProduct.videoUrl = 'idb:pdp_video_' + currentPdpProduct.id;
+    currentPdpProduct.videoFileName = file.name;
+
+    if ($('#pdpAdminVideoUrl')) {
+      $('#pdpAdminVideoUrl').value = '';
+    }
+
+    const previewBlobUrl = URL.createObjectURL(file);
+    renderAdminVideoPreview(previewBlobUrl, true, file.name);
+    showAdminToast('Video "' + file.name + '" uploaded successfully! Click Save to apply.');
+  } catch (err) {
+    console.error('Failed to save uploaded video:', err);
+    showAdminToast('Could not store video file. Please try a smaller video or YouTube URL.');
+  }
+};
+
+window.handlePdpVideoUrlInput = function (val) {
+  const url = (val || '').trim();
+  if (!currentPdpProduct) return;
+
+  if (!url) {
+    if (!currentPdpProduct.videoUrl || !currentPdpProduct.videoUrl.startsWith('idb:')) {
+      currentPdpProduct.videoUrl = '';
+      renderAdminVideoPreview('');
+    }
+    return;
+  }
+
+  currentPdpProduct.videoUrl = url;
+  renderAdminVideoPreview(url, false);
+};
+
+window.clearPdpAdminVideo = async function () {
+  if (!currentPdpProduct) return;
+  await deleteVideoFromDB(currentPdpProduct.id);
+  currentPdpProduct.videoUrl = '';
+  currentPdpProduct.videoFileName = '';
+
+  if ($('#pdpAdminVideoUrl')) $('#pdpAdminVideoUrl').value = '';
+  if ($('#pdpAdminVideoFileInput')) $('#pdpAdminVideoFileInput').value = '';
+
+  renderAdminVideoPreview('');
+  showAdminToast('Video removed.');
+};
+
 window.saveLandingPageSettings = function () {
   if (!currentPdpProduct) return;
 
@@ -2488,7 +2704,12 @@ window.saveLandingPageSettings = function () {
     currentPdpProduct.featuresList = featsText ? featsText.split('\n').map(s => s.trim()).filter(Boolean) : defaultFeatures;
   }
   if ($('#pdpAdminVideoUrl')) {
-    currentPdpProduct.videoUrl = $('#pdpAdminVideoUrl').value.trim();
+    const inputUrl = $('#pdpAdminVideoUrl').value.trim();
+    if (inputUrl) {
+      currentPdpProduct.videoUrl = inputUrl;
+    } else if (!currentPdpProduct.videoUrl || !currentPdpProduct.videoUrl.startsWith('idb:')) {
+      currentPdpProduct.videoUrl = '';
+    }
   }
 
   // Update in memory product
