@@ -158,40 +158,61 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-start">
       
       <!-- ===================================================================
-           LEFT COLUMN: Vertical Thumbnails + Main Viewport + DETAILS Section
+           LEFT COLUMN: Vertical Thumbnails on the side + Main Zoomable Viewport
            =================================================================== -->
       <div class="lg:col-span-7">
         
         <!-- Gallery Container -->
         <div class="flex flex-col-reverse sm:flex-row gap-4 items-start">
           
-          <!-- Vertical Thumbnail Column (as in screenshot) -->
-          <div id="thumbnailContainer" class="flex sm:flex-col gap-2.5 overflow-x-auto sm:overflow-y-auto w-full sm:w-20 shrink-0 max-h-[560px] pb-2 sm:pb-0 scrollbar-thin">
-            <!-- Dynamic Thumbnails injected by JS -->
+          <!-- Vertical Thumbnail Column (All Product Photos on the Side) -->
+          <div id="thumbnailContainer" class="flex sm:flex-col gap-2.5 overflow-x-auto sm:overflow-y-auto w-full sm:w-20 shrink-0 max-h-[580px] pb-2 sm:pb-0 scrollbar-thin">
+            <!-- Initial High-Res Thumbnails for Instant Load -->
+            <button type="button" onclick="switchMainImage('https://thepatchee.com/cdn/shop/files/654a7e83-c512-4ec1-8ebf-af44c488e776.png?v=1781362688', this, 0)" class="thumbnail-btn w-14 h-14 md:w-16 md:h-16 rounded border-2 border-black ring-1 ring-black overflow-hidden shrink-0 transition bg-white p-0.5 shadow-sm">
+              <img src="https://thepatchee.com/cdn/shop/files/654a7e83-c512-4ec1-8ebf-af44c488e776.png?v=1781362688" alt="Thumbnail 1" class="w-full h-full object-cover rounded-sm pointer-events-none" />
+            </button>
+            <button type="button" onclick="switchMainImage('https://thepatchee.com/cdn/shop/files/dc64c41d-ae95-4a7f-912f-1c2a664d35f1.jpg?v=1781362693', this, 1)" class="thumbnail-btn w-14 h-14 md:w-16 md:h-16 rounded border border-gray-200 overflow-hidden shrink-0 hover:border-black transition bg-white p-0.5 shadow-sm">
+              <img src="https://thepatchee.com/cdn/shop/files/dc64c41d-ae95-4a7f-912f-1c2a664d35f1.jpg?v=1781362693" alt="Thumbnail 2" class="w-full h-full object-cover rounded-sm pointer-events-none" />
+            </button>
+            <button type="button" onclick="switchMainImage('https://thepatchee.com/cdn/shop/files/572c906d-1d96-48a7-9724-f99155bba413.jpg?v=1781362696', this, 2)" class="thumbnail-btn w-14 h-14 md:w-16 md:h-16 rounded border border-gray-200 overflow-hidden shrink-0 hover:border-black transition bg-white p-0.5 shadow-sm">
+              <img src="https://thepatchee.com/cdn/shop/files/572c906d-1d96-48a7-9724-f99155bba413.jpg?v=1781362696" alt="Thumbnail 3" class="w-full h-full object-cover rounded-sm pointer-events-none" />
+            </button>
+            <button type="button" onclick="switchMainImage('https://thepatchee.com/cdn/shop/files/7_JDF6Lx.jpg?v=1781362700', this, 3)" class="thumbnail-btn w-14 h-14 md:w-16 md:h-16 rounded border border-gray-200 overflow-hidden shrink-0 hover:border-black transition bg-white p-0.5 shadow-sm">
+              <img src="https://thepatchee.com/cdn/shop/files/7_JDF6Lx.jpg?v=1781362700" alt="Thumbnail 4" class="w-full h-full object-cover rounded-sm pointer-events-none" />
+            </button>
+            <button type="button" onclick="switchMainImage('https://thepatchee.com/cdn/shop/files/16_oF8xw5.jpg?v=1781362703', this, 4)" class="thumbnail-btn w-14 h-14 md:w-16 md:h-16 rounded border border-gray-200 overflow-hidden shrink-0 hover:border-black transition bg-white p-0.5 shadow-sm">
+              <img src="https://thepatchee.com/cdn/shop/files/16_oF8xw5.jpg?v=1781362703" alt="Thumbnail 5" class="w-full h-full object-cover rounded-sm pointer-events-none" />
+            </button>
+            <button type="button" onclick="switchMainImage('https://thepatchee.com/cdn/shop/files/1_Sr7vuQ.jpg?v=1781362706', this, 5)" class="thumbnail-btn w-14 h-14 md:w-16 md:h-16 rounded border border-gray-200 overflow-hidden shrink-0 hover:border-black transition bg-white p-0.5 shadow-sm">
+              <img src="https://thepatchee.com/cdn/shop/files/1_Sr7vuQ.jpg?v=1781362706" alt="Thumbnail 6" class="w-full h-full object-cover rounded-sm pointer-events-none" />
+            </button>
+            <button type="button" onclick="switchMainImage('https://thepatchee.com/cdn/shop/files/17_9tpHkH.jpg?v=1781362710', this, 6)" class="thumbnail-btn w-14 h-14 md:w-16 md:h-16 rounded border border-gray-200 overflow-hidden shrink-0 hover:border-black transition bg-white p-0.5 shadow-sm">
+              <img src="https://thepatchee.com/cdn/shop/files/17_9tpHkH.jpg?v=1781362710" alt="Thumbnail 7" class="w-full h-full object-cover rounded-sm pointer-events-none" />
+            </button>
+            <button type="button" onclick="switchMainImage('https://thepatchee.com/cdn/shop/files/18_2rgYCr.jpg?v=1781362713', this, 7)" class="thumbnail-btn w-14 h-14 md:w-16 md:h-16 rounded border border-gray-200 overflow-hidden shrink-0 hover:border-black transition bg-white p-0.5 shadow-sm">
+              <img src="https://thepatchee.com/cdn/shop/files/18_2rgYCr.jpg?v=1781362713" alt="Thumbnail 8" class="w-full h-full object-cover rounded-sm pointer-events-none" />
+            </button>
+            <button type="button" onclick="switchMainImage('https://thepatchee.com/cdn/shop/files/15_1Knw4N.jpg?v=1781362716', this, 8)" class="thumbnail-btn w-14 h-14 md:w-16 md:h-16 rounded border border-gray-200 overflow-hidden shrink-0 hover:border-black transition bg-white p-0.5 shadow-sm">
+              <img src="https://thepatchee.com/cdn/shop/files/15_1Knw4N.jpg?v=1781362716" alt="Thumbnail 9" class="w-full h-full object-cover rounded-sm pointer-events-none" />
+            </button>
           </div>
 
-          <!-- Main High-Res Image Viewport -->
-          <div class="flex-1 w-full relative bg-white border border-gray-100 rounded-sm overflow-hidden min-h-[380px] sm:min-h-[480px] lg:min-h-[560px] flex items-center justify-center group shadow-sm">
+          <!-- Main High-Res Image Viewport with Hover Magnifier Zoom & Click Lightbox -->
+          <div id="mainImageContainer" class="flex-1 w-full relative bg-white border border-gray-200 rounded-sm overflow-hidden min-h-[380px] sm:min-h-[480px] lg:min-h-[580px] flex items-center justify-center group shadow-sm cursor-zoom-in select-none">
+            
             <img 
               id="mainProductImage" 
               src="https://thepatchee.com/cdn/shop/files/654a7e83-c512-4ec1-8ebf-af44c488e776.png?v=1781362688" 
               alt="Executive RFID Card Holder" 
-              class="w-full h-full object-contain p-4 transition-transform duration-500 ease-out group-hover:scale-105 select-none" />
+              class="w-full h-full object-contain p-4 transition-transform duration-150 ease-out origin-center pointer-events-none" />
+
+            <!-- Zoom Hint Pill -->
+            <div class="absolute bottom-3 right-3 bg-black/75 backdrop-blur-sm text-white text-[11px] font-medium px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow pointer-events-none transition-opacity opacity-75 group-hover:opacity-100">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" /></svg>
+              <span>Hover or click to zoom</span>
+            </div>
           </div>
 
-        </div>
-
-        <!-- DETAILS: Macro Images & Specifications (Below Image, Matching Screenshot) -->
-        <div class="mt-12 pt-8 border-t border-gray-200">
-          <div class="flex items-center gap-3 mb-6">
-            <h3 class="text-xs font-bold uppercase tracking-[0.2em] text-neutral-400">DETAILS:</h3>
-            <div class="flex-1 h-px bg-gray-200"></div>
-          </div>
-          
-          <!-- Injected Macro Details (e.g. Carbon Fiber texture close-up) -->
-          <div id="detailsSectionContent" class="space-y-6">
-            <!-- Injected by JavaScript -->
-          </div>
         </div>
 
       </div>
@@ -878,9 +899,42 @@
     </svg>
   </a>
 
+  <!-- =======================================================================
+       15. Image Lightbox / Fullscreen Zoom Modal (Inspect Product Quality)
+       ======================================================================= -->
+  <div id="imageLightboxModal" class="fixed inset-0 z-50 bg-black/95 backdrop-blur-md hidden flex-col items-center justify-center p-4">
+    <!-- Top Bar with Close and Controls -->
+    <div class="absolute top-4 right-4 z-50 flex items-center gap-2 sm:gap-3">
+      <button onclick="zoomLightbox(0.25)" title="Zoom In (+)" class="w-10 h-10 rounded-full bg-white/20 hover:bg-white text-white hover:text-black flex items-center justify-center font-bold text-lg transition cursor-pointer">＋</button>
+      <button onclick="zoomLightbox(-0.25)" title="Zoom Out (-)" class="w-10 h-10 rounded-full bg-white/20 hover:bg-white text-white hover:text-black flex items-center justify-center font-bold text-lg transition cursor-pointer">－</button>
+      <button onclick="resetLightboxZoom()" title="Reset Zoom" class="px-3 h-10 rounded-full bg-white/20 hover:bg-white text-white hover:text-black flex items-center justify-center text-xs uppercase font-bold tracking-wider transition cursor-pointer">Reset</button>
+      <button onclick="closeLightboxModal()" title="Close (Esc)" class="w-10 h-10 rounded-full bg-white/20 hover:bg-white text-white hover:text-black flex items-center justify-center transition cursor-pointer">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+      </button>
+    </div>
+
+    <!-- Navigation Arrows -->
+    <button onclick="prevLightboxImage()" title="Previous Image" class="absolute left-4 top-1/2 -translate-y-1/2 z-50 w-12 h-12 rounded-full bg-white/20 hover:bg-white text-white hover:text-black flex items-center justify-center transition shadow-lg cursor-pointer">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
+    </button>
+    <button onclick="nextLightboxImage()" title="Next Image" class="absolute right-4 top-1/2 -translate-y-1/2 z-50 w-12 h-12 rounded-full bg-white/20 hover:bg-white text-white hover:text-black flex items-center justify-center transition shadow-lg cursor-pointer">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+    </button>
+
+    <!-- Main Zoomed Image Container -->
+    <div id="lightboxViewport" class="w-full h-full flex items-center justify-center overflow-auto p-4 cursor-grab">
+      <img id="lightboxImage" src="" alt="Zoomed Product Quality" class="max-w-[90vw] max-h-[85vh] object-contain transition-transform duration-200 select-none shadow-2xl" />
+    </div>
+
+    <div class="absolute bottom-4 text-center text-white/70 text-xs font-medium pointer-events-none">
+      <span>Use +/- buttons or scroll to zoom deeply into texture, stitching &amp; finish</span>
+    </div>
+  </div>
+
   <!-- Core Scripts -->
   <script src="js/products.js"></script>
   <script src="js/app.js"></script>
   <script src="js/product-page.js"></script>
 </body>
 </html>
+

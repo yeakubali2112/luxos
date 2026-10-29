@@ -1,28 +1,50 @@
 /**
- * Luxos - Dedicated Product Landing Page & Customer Reviews Controller
- * Handles PDP dynamic data injection, gallery navigation, countdown timer,
- * variant switching, cart/COD actions, review submissions, and persistence.
+ * Luxos - Dedicated Product Landing Page & Interactive Zoom Engine
+ * Features:
+ * - Full Side Thumbnail Gallery with auto-sync
+ * - Interactive Magnifier Hover Zoom (inspect product fabric, texture, mechanism)
+ * - Click Fullscreen HD Lightbox Modal with zoom controls (+ / - / pan / keyboard)
+ * - Variant switching with live color & photo sync
+ * - Real-time Countdown Timer
+ * - Comprehensive Customer Reviews Scorecard & Review Submission Engine
  */
 
-// Helper: Query selectors
+// Helper selectors
 const $ = selector => document.querySelector(selector);
 const $$ = selector => document.querySelectorAll(selector);
 
-// State for current product
+// State variables
 let currentProduct = null;
-let selectedColor = null;
+let currentGalleryImages = [];
+let activeImageIndex = 0;
+let selectedColor = 'Noir Black';
 let currentQuantity = 1;
 let selectedStarRating = 5;
 let uploadedPhotoData = null;
+let lightboxZoomLevel = 1;
 
-// Initialize on DOM ready
+// Default Full Gallery for Product #1 (Executive RFID Card Holder)
+const DEFAULT_PRODUCT1_GALLERY = [
+  'https://thepatchee.com/cdn/shop/files/654a7e83-c512-4ec1-8ebf-af44c488e776.png?v=1781362688',
+  'https://thepatchee.com/cdn/shop/files/dc64c41d-ae95-4a7f-912f-1c2a664d35f1.jpg?v=1781362693',
+  'https://thepatchee.com/cdn/shop/files/572c906d-1d96-48a7-9724-f99155bba413.jpg?v=1781362696',
+  'https://thepatchee.com/cdn/shop/files/7_JDF6Lx.jpg?v=1781362700',
+  'https://thepatchee.com/cdn/shop/files/16_oF8xw5.jpg?v=1781362703',
+  'https://thepatchee.com/cdn/shop/files/1_Sr7vuQ.jpg?v=1781362706',
+  'https://thepatchee.com/cdn/shop/files/17_9tpHkH.jpg?v=1781362710',
+  'https://thepatchee.com/cdn/shop/files/18_2rgYCr.jpg?v=1781362713',
+  'https://thepatchee.com/cdn/shop/files/15_1Knw4N.jpg?v=1781362716'
+];
+
+// Initialize on DOM Ready
 document.addEventListener('DOMContentLoaded', () => {
   initProductPage();
+  initImageZoomEngine();
   initCountdownTimer();
 });
 
 /**
- * Extract product ID from URL query param (?id=1 or ?slug=...)
+ * Extract product ID from URL query param (?id=1)
  */
 function getProductIdFromUrl() {
   const params = new URLSearchParams(window.location.search);
@@ -30,63 +52,67 @@ function getProductIdFromUrl() {
   if (idParam) return parseInt(idParam, 10);
   
   const slugParam = params.get('slug');
-  if (slugParam) {
-    const products = typeof getStoreProducts === 'function' ? getStoreProducts() : LUXOS_PRODUCTS;
-    const found = products.find(p => p.slug === slugParam);
+  if (slugParam && typeof LUXOS_PRODUCTS !== 'undefined') {
+    const found = LUXOS_PRODUCTS.find(p => p.slug === slugParam);
     if (found) return found.id;
   }
-  
-  // Default to Product #1 (Executive RFID Card Holder)
   return 1;
 }
 
 /**
- * Load and render the product landing page
+ * Initialize PDP data and gallery
  */
 function initProductPage() {
-  const productId = getProductIdFromUrl();
-  const allProducts = typeof getStoreProducts === 'function' ? getStoreProducts() : LUXOS_PRODUCTS;
-  currentProduct = allProducts.find(p => p.id === productId) || allProducts[0];
+  const targetId = getProductIdFromUrl();
+  const catalog = typeof LUXOS_PRODUCTS !== 'undefined' ? LUXOS_PRODUCTS : [];
   
-  if (!currentProduct) return;
+  // Safe merge from catalog and localStorage
+  let baseProduct = catalog.find(p => p.id === targetId) || catalog[0] || {};
+  if (typeof getStoreProducts === 'function') {
+    const customList = getStoreProducts();
+    const foundCustom = customList.find(p => p.id === targetId);
+    if (foundCustom) {
+      baseProduct = { ...baseProduct, ...foundCustom };
+    }
+  }
 
-  // Set page meta title
-  document.title = `${currentProduct.title} | Luxos Official`;
+  currentProduct = baseProduct;
+  if (!currentProduct || !currentProduct.id) return;
+
+  // Set meta title & breadcrumbs
+  document.title = `${currentProduct.title || 'Product'} | Luxos Official`;
   const metaTitleEl = $('#pageTitle');
   if (metaTitleEl) metaTitleEl.textContent = `${currentProduct.title} | Luxos`;
 
-  // Breadcrumbs
-  const breadcrumbCategory = $('#breadcrumbCategory');
-  const breadcrumbTitle = $('#breadcrumbTitle');
-  if (breadcrumbCategory) breadcrumbCategory.textContent = currentProduct.category || 'Luxury Collection';
-  if (breadcrumbTitle) breadcrumbTitle.textContent = currentProduct.title;
+  const breadCategory = $('#breadcrumbCategory');
+  const breadTitle = $('#breadcrumbTitle');
+  if (breadCategory) breadCategory.textContent = currentProduct.category || 'Luxury Collection';
+  if (breadTitle) breadTitle.textContent = currentProduct.title || '';
 
-  // Setup gallery images
+  // Setup Gallery and Side Thumbnails
   setupGallery();
 
   // Setup Product Details / Meta
   renderProductDetails();
 
-  // Setup Details Section below gallery
-  renderDetailsSection();
-
-  // Setup and render customer reviews
+  // Setup Reviews Section
   initReviewsSection();
 
-  // Setup related products
+  // Setup Related Products
   renderRelatedProducts();
 }
 
 /**
- * Setup thumbnail strip and main image
+ * Setup side thumbnail list and main image
  */
 function setupGallery() {
   const mainImg = $('#mainProductImage');
   const thumbContainer = $('#thumbnailContainer');
   if (!mainImg || !thumbContainer) return;
 
-  // Collect all gallery images
   const images = [];
+  
+  // Collect all product images
   if (currentProduct.image) images.push(currentProduct.image);
   if (currentProduct.hoverImage && !images.includes(currentProduct.hoverImage)) {
     images.push(currentProduct.hoverImage);
@@ -96,101 +122,228 @@ function setupGallery() {
       if (img && !images.includes(img)) images.push(img);
     });
   }
-
-  // Fallback defaults for Product #1 if needed
-  if (currentProduct.id === 1 && images.length < 5) {
-    const defaults = [
-      'https://thepatchee.com/cdn/shop/files/654a7e83-c512-4ec1-8ebf-af44c488e776.png?v=1781362688',
-      'https://thepatchee.com/cdn/shop/files/dc64c41d-ae95-4a7f-912f-1c2a664d35f1.jpg?v=1781362693',
-      'https://thepatchee.com/cdn/shop/files/572c906d-1d96-48a7-9724-f99155bba413.jpg?v=1781362696',
-      'https://thepatchee.com/cdn/shop/files/7_JDF6Lx.jpg?v=1781362700',
-      'https://thepatchee.com/cdn/shop/files/16_oF8xw5.jpg?v=1781362703',
-      'https://thepatchee.com/cdn/shop/files/1_Sr7vuQ.jpg?v=1781362706',
-      'https://thepatchee.com/cdn/shop/files/17_9tpHkH.jpg?v=1781362710',
-      'https://thepatchee.com/cdn/shop/files/18_2rgYCr.jpg?v=1781362713'
-    ];
-    defaults.forEach(d => { if (!images.includes(d)) images.push(d); });
+  if (Array.isArray(currentProduct.colors)) {
+    currentProduct.colors.forEach(col => {
+      if (col && col.image && !images.includes(col.image)) images.push(col.image);
+    });
   }
 
-  // Set initial main image
-  mainImg.src = images[0];
-  mainImg.alt = currentProduct.title;
+  // Ensure Product #1 always has all 9 high-res studio photos
+  if (currentProduct.id === 1) {
+    DEFAULT_PRODUCT1_GALLERY.forEach(imgUrl => {
+      if (!images.includes(imgUrl)) images.push(imgUrl);
+    });
+  }
 
-  // Render thumbnails
+  currentGalleryImages = images;
+  activeImageIndex = 0;
+
+  // Set initial main image
+  if (images.length > 0) {
+    mainImg.src = images[0];
+    mainImg.alt = currentProduct.title || 'Luxos Product';
+  }
+
+  // Render vertical thumbnail buttons on the side
   thumbContainer.innerHTML = images.map((imgUrl, idx) => `
     <button 
       type="button"
-      onclick="switchMainImage('${imgUrl}', this)"
-      class="thumbnail-btn w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded border ${idx === 0 ? 'border-2 border-black' : 'border-gray-200'} overflow-hidden shrink-0 hover:border-black transition focus:outline-none bg-white p-0.5">
-      <img src="${imgUrl}" alt="Thumbnail ${idx + 1}" class="w-full h-full object-cover rounded-sm" />
+      onclick="switchMainImage('${imgUrl}', this, ${idx})"
+      class="thumbnail-btn w-14 h-14 md:w-16 md:h-16 rounded ${idx === 0 ? 'border-2 border-black ring-1 ring-black' : 'border border-gray-200'} overflow-hidden shrink-0 hover:border-black transition focus:outline-none bg-white p-0.5 shadow-sm"
+      title="View Photo ${idx + 1}">
+      <img src="${imgUrl}" alt="Thumbnail ${idx + 1}" class="w-full h-full object-cover rounded-sm pointer-events-none" loading="lazy" />
     </button>
   `).join('');
 }
 
 /**
- * Switch main product preview image
+ * Switch main image when thumbnail is clicked
  */
-window.switchMainImage = function(imgUrl, btnEl) {
+function switchMainImage(imgUrl, btnEl, index = 0) {
   const mainImg = $('#mainProductImage');
   if (mainImg) {
     mainImg.style.opacity = '0.4';
     setTimeout(() => {
       mainImg.src = imgUrl;
       mainImg.style.opacity = '1';
-    }, 120);
+    }, 100);
   }
+
+  activeImageIndex = index;
 
   // Highlight active thumbnail
   $$('.thumbnail-btn').forEach(btn => {
-    btn.classList.remove('border-2', 'border-black');
-    btn.classList.add('border-gray-200');
+    btn.classList.remove('border-2', 'border-black', 'ring-1', 'ring-black');
+    btn.classList.add('border', 'border-gray-200');
   });
+
   if (btnEl) {
-    btnEl.classList.remove('border-gray-200');
-    btnEl.classList.add('border-2', 'border-black');
+    btnEl.classList.remove('border', 'border-gray-200');
+    btnEl.classList.add('border-2', 'border-black', 'ring-1', 'ring-black');
   }
-};
+}
+window.switchMainImage = switchMainImage;
+
+/**
+ * ==============================================================================
+ * Interactive Zoom Engine:
+ * 1) Magnifier Zoom on Hover (Inspect leather, stitching, ejector mechanism)
+ * 2) Click Fullscreen HD Lightbox Modal (Zoom In, Zoom Out, Pan, Arrow navigation)
+ * ==============================================================================
+ */
+function initImageZoomEngine() {
+  const container = $('#mainImageContainer');
+  const img = $('#mainProductImage');
+  if (!container || !img) return;
+
+  // 1. Mousemove: Magnifier Zoom on Hover
+  container.addEventListener('mousemove', (e) => {
+    const rect = container.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    
+    img.style.transformOrigin = `${x}% ${y}%`;
+    img.style.transform = 'scale(2.2)';
+  });
+
+  // Mouseleave: Reset smoothly
+  container.addEventListener('mouseleave', () => {
+    img.style.transformOrigin = 'center center';
+    img.style.transform = 'scale(1)';
+  });
+
+  // 2. Click: Open Fullscreen HD Lightbox Modal
+  container.addEventListener('click', () => {
+    openLightboxModal(img.src);
+  });
+
+  // Keyboard navigation for Lightbox
+  document.addEventListener('keydown', (e) => {
+    const modal = $('#imageLightboxModal');
+    if (!modal || modal.classList.contains('hidden')) return;
+
+    if (e.key === 'Escape') closeLightboxModal();
+    if (e.key === 'ArrowRight') nextLightboxImage();
+    if (e.key === 'ArrowLeft') prevLightboxImage();
+  });
+}
+
+/**
+ * Lightbox Modal Controls
+ */
+function openLightboxModal(imgSrc) {
+  const modal = $('#imageLightboxModal');
+  const lightboxImg = $('#lightboxImage');
+  if (!modal || !lightboxImg) return;
+
+  lightboxImg.src = imgSrc || (currentGalleryImages[activeImageIndex] || '');
+  lightboxZoomLevel = 1;
+  lightboxImg.style.transform = 'scale(1)';
+
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+  document.body.style.overflow = 'hidden';
+}
+window.openLightboxModal = openLightboxModal;
+
+function closeLightboxModal() {
+  const modal = $('#imageLightboxModal');
+  if (!modal) return;
+
+  modal.classList.add('hidden');
+  modal.classList.remove('flex');
+  document.body.style.overflow = '';
+}
+window.closeLightboxModal = closeLightboxModal;
+
+function zoomLightbox(delta) {
+  const lightboxImg = $('#lightboxImage');
+  if (!lightboxImg) return;
+
+  lightboxZoomLevel = Math.max(0.75, Math.min(3.5, lightboxZoomLevel + delta));
+  lightboxImg.style.transform = `scale(${lightboxZoomLevel})`;
+}
+window.zoomLightbox = zoomLightbox;
+
+function resetLightboxZoom() {
+  const lightboxImg = $('#lightboxImage');
+  if (!lightboxImg) return;
+  lightboxZoomLevel = 1;
+  lightboxImg.style.transform = 'scale(1)';
+}
+window.resetLightboxZoom = resetLightboxZoom;
+
+function nextLightboxImage() {
+  if (!currentGalleryImages.length) return;
+  activeImageIndex = (activeImageIndex + 1) % currentGalleryImages.length;
+  const newSrc = currentGalleryImages[activeImageIndex];
+  const lightboxImg = $('#lightboxImage');
+  if (lightboxImg) lightboxImg.src = newSrc;
+  window.switchMainImage(newSrc, null, activeImageIndex);
+}
+window.nextLightboxImage = nextLightboxImage;
+
+function prevLightboxImage() {
+  if (!currentGalleryImages.length) return;
+  activeImageIndex = (activeImageIndex - 1 + currentGalleryImages.length) % currentGalleryImages.length;
+  const newSrc = currentGalleryImages[activeImageIndex];
+  const lightboxImg = $('#lightboxImage');
+  if (lightboxImg) lightboxImg.src = newSrc;
+  window.switchMainImage(newSrc, null, activeImageIndex);
+}
+window.prevLightboxImage = prevLightboxImage;
 
 /**
  * Render right column product details
  */
 function renderProductDetails() {
-  $('#pdpTitle').textContent = currentProduct.title;
-  $('#pdpSku').textContent = `SKU: ${currentProduct.sku || '190' + currentProduct.id + '32'}`;
-  $('#pdpPrice').textContent = currentProduct.price;
-  
-  if (currentProduct.originalPrice) {
-    $('#pdpOriginalPrice').textContent = currentProduct.originalPrice;
-    $('#pdpOriginalPrice').classList.remove('hidden');
+  const titleEl = $('#pdpTitle');
+  if (titleEl) titleEl.textContent = currentProduct.title;
 
-    // Calculate savings
-    const saleNum = parseInt(currentProduct.price.replace(/[^\d]/g, ''), 10) || 0;
-    const origNum = parseInt(currentProduct.originalPrice.replace(/[^\d]/g, ''), 10) || 0;
+  const skuEl = $('#pdpSku');
+  if (skuEl) skuEl.textContent = `SKU: ${currentProduct.sku || '190' + currentProduct.id + '32'}`;
+
+  const priceEl = $('#pdpPrice');
+  if (priceEl) priceEl.textContent = currentProduct.price;
+  
+  const origPriceEl = $('#pdpOriginalPrice');
+  const youSaveContainer = $('#pdpYouSaveContainer');
+  const youSaveEl = $('#pdpYouSave');
+
+  if (origPriceEl && currentProduct.originalPrice) {
+    origPriceEl.textContent = currentProduct.originalPrice;
+    origPriceEl.classList.remove('hidden');
+
+    const saleNum = parseInt(String(currentProduct.price).replace(/[^\d]/g, ''), 10) || 0;
+    const origNum = parseInt(String(currentProduct.originalPrice).replace(/[^\d]/g, ''), 10) || 0;
     const saveAmt = origNum - saleNum;
-    if (saveAmt > 0) {
-      $('#pdpYouSave').textContent = `YOU SAVE ৳ ${saveAmt.toLocaleString('en-IN')}`;
-      $('#pdpYouSaveContainer').classList.remove('hidden');
+    if (saveAmt > 0 && youSaveEl && youSaveContainer) {
+      youSaveEl.textContent = `YOU SAVE ৳ ${saveAmt.toLocaleString('en-IN')}`;
+      youSaveContainer.classList.remove('hidden');
     }
   } else {
-    $('#pdpOriginalPrice').classList.add('hidden');
-    $('#pdpYouSaveContainer').classList.add('hidden');
+    if (origPriceEl) origPriceEl.classList.add('hidden');
+    if (youSaveContainer) youSaveContainer.classList.add('hidden');
   }
 
   // Discount badge
-  const badgeText = currentProduct.badge || 'SAVE 46%';
-  $('#pdpDiscountBadge').textContent = badgeText.toUpperCase();
+  const badgeEl = $('#pdpDiscountBadge');
+  if (badgeEl) {
+    const badgeText = currentProduct.badge || 'SAVE 46%';
+    badgeEl.textContent = badgeText.toUpperCase();
+  }
 
-  // Ratings & review count in top header
+  // Review count in header
   const reviewCount = getProductReviewsCount(currentProduct.id);
-  $('#pdpReviewCount').textContent = `${reviewCount} reviews`;
-  $('#pdpReviewHeaderCount').textContent = `${reviewCount} reviews`;
+  const revCountEl = $('#pdpReviewCount');
+  if (revCountEl) revCountEl.textContent = `${reviewCount} reviews`;
 
-  // Render Variant / Color Swatches
+  // Render variant swatches
   renderVariantSwatches();
 }
 
 /**
- * Render color / variant swatches
+ * Render Color / Variant Swatches
  */
 function renderVariantSwatches() {
   const container = $('#colorSwatchesContainer');
@@ -199,36 +352,35 @@ function renderVariantSwatches() {
   let colors = currentProduct.colors;
   if (!colors || colors.length === 0) {
     colors = [
-      { name: 'Noir Black', hex: '#111111', image: currentProduct.image },
-      { name: 'Mocha Brown', hex: '#5A3825' },
-      { name: 'Carbon Black', hex: '#252525' },
-      { name: 'Tan Camel', hex: '#B57B43' },
-      { name: 'Navy Blue', hex: '#1F2E4A' }
+      { name: 'Noir Black', hex: '#111111', image: 'https://thepatchee.com/cdn/shop/files/654a7e83-c512-4ec1-8ebf-af44c488e776.png?v=1781362688' },
+      { name: 'Mocha Brown', hex: '#5A3825', image: 'https://thepatchee.com/cdn/shop/files/572c906d-1d96-48a7-9724-f99155bba413.jpg?v=1781362696' },
+      { name: 'Carbon Black', hex: '#252525', image: 'https://thepatchee.com/cdn/shop/files/1_Sr7vuQ.jpg?v=1781362706' },
+      { name: 'Tan Camel', hex: '#B57B43', image: 'https://thepatchee.com/cdn/shop/files/17_9tpHkH.jpg?v=1781362710' },
+      { name: 'Navy Blue', hex: '#1F2E4A', image: 'https://thepatchee.com/cdn/shop/files/16_oF8xw5.jpg?v=1781362703' }
     ];
   }
 
   selectedColor = colors[0].name;
-  $('#pdpSelectedColorName').textContent = selectedColor;
+  const selColorNameEl = $('#pdpSelectedColorName');
+  if (selColorNameEl) selColorNameEl.textContent = selectedColor;
 
   container.innerHTML = colors.map((col, idx) => `
     <button 
       type="button"
       onclick="selectVariantColor('${col.name}', '${col.image || ''}', this)"
-      class="variant-swatch-btn group relative border ${idx === 0 ? 'border-2 border-black ring-1 ring-black' : 'border-gray-200'} rounded p-1 flex items-center gap-1.5 hover:border-black transition bg-white"
+      class="variant-swatch-btn group relative border ${idx === 0 ? 'border-2 border-black ring-1 ring-black' : 'border-gray-200'} rounded p-1.5 flex items-center gap-2 hover:border-black transition bg-white cursor-pointer shadow-sm"
       title="${col.name}">
-      <span class="w-6 h-6 rounded-full border border-gray-300 shadow-inner shrink-0" style="background-color: ${col.hex || '#111'};"></span>
-      <span class="text-xs font-medium text-gray-700 pr-1.5 hidden sm:inline-block">${col.name}</span>
+      <span class="w-5 h-5 rounded-full border border-gray-300 shadow-inner shrink-0" style="background-color: ${col.hex || '#111'};"></span>
+      <span class="text-xs font-semibold text-gray-800 pr-1">${col.name}</span>
       <span class="text-[9px] bg-amber-100 text-amber-800 font-bold px-1 rounded">46%</span>
     </button>
   `).join('');
 }
 
-/**
- * Select variant color
- */
-window.selectVariantColor = function(colorName, colorImg, btnEl) {
+function selectVariantColor(colorName, colorImg, btnEl) {
   selectedColor = colorName;
-  $('#pdpSelectedColorName').textContent = colorName;
+  const selColorNameEl = $('#pdpSelectedColorName');
+  if (selColorNameEl) selColorNameEl.textContent = colorName;
 
   $$('.variant-swatch-btn').forEach(btn => {
     btn.classList.remove('border-2', 'border-black', 'ring-1', 'ring-black');
@@ -239,16 +391,18 @@ window.selectVariantColor = function(colorName, colorImg, btnEl) {
     btnEl.classList.add('border-2', 'border-black', 'ring-1', 'ring-black');
   }
 
-  // Switch to variant image if available
+  // Switch to variant image and highlight thumbnail
   if (colorImg) {
-    window.switchMainImage(colorImg);
+    const idx = currentGalleryImages.indexOf(colorImg);
+    window.switchMainImage(colorImg, null, idx !== -1 ? idx : 0);
   }
-};
+}
+window.selectVariantColor = selectVariantColor;
 
 /**
  * Quantity controls
  */
-window.updatePdpQty = function(delta) {
+function updatePdpQty(delta) {
   const input = $('#pdpQuantity');
   if (!input) return;
   let val = parseInt(input.value, 10) || 1;
@@ -257,19 +411,19 @@ window.updatePdpQty = function(delta) {
   if (val > 10) val = 10;
   input.value = val;
   currentQuantity = val;
-};
+}
+window.updatePdpQty = updatePdpQty;
 
 /**
- * Add To Cart handler
+ * Add To Cart
  */
-window.handleAddToCartPDP = function() {
+function handleAddToCartPDP() {
   if (!currentProduct) return;
-  const qty = parseInt($('#pdpQuantity').value, 10) || 1;
+  const qty = parseInt($('#pdpQuantity')?.value || 1, 10) || 1;
   
   if (typeof addToCart === 'function') {
     addToCart(currentProduct.id, selectedColor, qty);
   } else {
-    // Fallback direct storage
     const cart = JSON.parse(localStorage.getItem('luxos_cart')) || [];
     const existing = cart.find(i => i.id === currentProduct.id && i.color === selectedColor);
     if (existing) {
@@ -290,16 +444,16 @@ window.handleAddToCartPDP = function() {
   }
 
   showToast(`Added ${qty}x ${currentProduct.title} (${selectedColor}) to your bag!`);
-};
+}
+window.handleAddToCartPDP = handleAddToCartPDP;
 
 /**
  * 1-Click Order Now (Cash on Delivery)
  */
-window.handleOrderNowCOD = function() {
+function handleOrderNowCOD() {
   if (!currentProduct) return;
-  const qty = parseInt($('#pdpQuantity').value, 10) || 1;
+  const qty = parseInt($('#pdpQuantity')?.value || 1, 10) || 1;
 
-  // Add to cart first
   if (typeof addToCart === 'function') {
     addToCart(currentProduct.id, selectedColor, qty);
   } else {
@@ -320,11 +474,9 @@ window.handleOrderNowCOD = function() {
     localStorage.setItem('luxos_cart', JSON.stringify(cart));
   }
 
-  // Open Checkout Modal directly
   if (typeof openCheckoutModal === 'function') {
     openCheckoutModal();
   } else {
-    // Fallback trigger modal
     const checkoutModal = $('#checkoutModal');
     if (checkoutModal) {
       checkoutModal.classList.add('active');
@@ -332,66 +484,8 @@ window.handleOrderNowCOD = function() {
       if (typeof renderCheckoutSummary === 'function') renderCheckoutSummary();
     }
   }
-};
-
-/**
- * Render DETAILS: Section below Gallery
- */
-function renderDetailsSection() {
-  const container = $('#detailsSectionContent');
-  if (!container) return;
-
-  // Macro detail images matching user's screenshot
-  const macroImages = currentProduct.detailsImages || [
-    'https://thepatchee.com/cdn/shop/files/1_Sr7vuQ.jpg?v=1781362706',
-    'https://thepatchee.com/cdn/shop/files/15_1Knw4N.jpg?v=1781362716',
-    'https://thepatchee.com/cdn/shop/files/dc64c41d-ae95-4a7f-912f-1c2a664d35f1.jpg?v=1781362693'
-  ];
-
-  container.innerHTML = `
-    <!-- Macro Zoom Feature Images (As shown in screenshot) -->
-    <div class="space-y-6">
-      ${macroImages.map(img => `
-        <div class="rounded-sm overflow-hidden bg-gray-50 border border-gray-100 shadow-sm">
-          <img src="${img}" alt="${currentProduct.title} Detail" class="w-full h-auto object-cover" loading="lazy" />
-        </div>
-      `).join('')}
-    </div>
-
-    <!-- Technical Specifications Table -->
-    <div class="mt-8 bg-neutral-50 border border-neutral-200 rounded-sm p-6">
-      <h4 class="text-xs font-bold uppercase tracking-wider text-gray-900 mb-4 pb-2 border-b border-gray-200">
-        Product Specifications &amp; Features
-      </h4>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-        <div>
-          <span class="text-gray-500 block">Core Architecture:</span>
-          <span class="font-semibold text-gray-900">Aerospace Grade Aluminum Alloy Casing</span>
-        </div>
-        <div>
-          <span class="text-gray-500 block">Outer Finish:</span>
-          <span class="font-semibold text-gray-900">Handcrafted Textured Vegan Leather</span>
-        </div>
-        <div>
-          <span class="text-gray-500 block">Security Shielding:</span>
-          <span class="font-semibold text-gray-900">13.56 MHz RFID / NFC Digital Anti-Theft</span>
-        </div>
-        <div>
-          <span class="text-gray-500 block">Eject Mechanism:</span>
-          <span class="font-semibold text-gray-900">Ergonomic One-Touch Step-Card Fan Out</span>
-        </div>
-        <div>
-          <span class="text-gray-500 block">Capacity:</span>
-          <span class="font-semibold text-gray-900">6–7 Pop-up Cards + 2 Inner Slots + Cash Band</span>
-        </div>
-        <div>
-          <span class="text-gray-500 block">Warranty Coverage:</span>
-          <span class="font-semibold text-gray-900">1-Year Full Structural Replacement</span>
-        </div>
-      </div>
-    </div>
-  `;
 }
+window.handleOrderNowCOD = handleOrderNowCOD;
 
 /**
  * Countdown Timer
@@ -403,13 +497,10 @@ function initCountdownTimer() {
   const secondsEl = $('#timerSeconds');
   if (!daysEl || !hoursEl || !minutesEl || !secondsEl) return;
 
-  // Target time: 1 day, 1 hour, 29 mins, 40 secs from initial load
   let totalSeconds = (0 * 86400) + (1 * 3600) + (29 * 60) + 40;
 
   function update() {
-    if (totalSeconds <= 0) {
-      totalSeconds = 86400; // Reset
-    }
+    if (totalSeconds <= 0) totalSeconds = 86400;
     const d = Math.floor(totalSeconds / 86400);
     const h = Math.floor((totalSeconds % 86400) / 3600);
     const m = Math.floor((totalSeconds % 3600) / 60);
@@ -429,13 +520,9 @@ function initCountdownTimer() {
 
 /**
  * ==============================================================================
- * Customer Reviews & Rating Engine
- * User Requirement:
- * "ei page er niche sei product er revire golo dekha jabe ar new review dite parbe user"
+ * Customer Reviews & Ratings Engine
  * ==============================================================================
  */
-
-// Default Seed Reviews for Products
 const DEFAULT_REVIEWS = [
   {
     id: 101,
@@ -509,41 +596,26 @@ const DEFAULT_REVIEWS = [
   }
 ];
 
-/**
- * Get reviews for a specific product
- */
 function getProductReviews(productId) {
-  const customReviewsKey = `luxos_product_reviews_${productId}`;
-  const storedCustom = JSON.parse(localStorage.getItem(customReviewsKey)) || [];
-
-  // Match default seed reviews
+  const customKey = `luxos_product_reviews_${productId}`;
+  const storedCustom = JSON.parse(localStorage.getItem(customKey)) || [];
   const seeds = DEFAULT_REVIEWS.filter(r => r.productId === productId || productId === 1);
-
-  // User submitted reviews appear first
   return [...storedCustom, ...seeds];
 }
 
-/**
- * Get reviews count
- */
 function getProductReviewsCount(productId) {
   const revs = getProductReviews(productId);
-  return revs.length > 0 ? revs.length : (currentProduct ? currentProduct.reviewsCount : 65);
+  return revs.length > 0 ? revs.length : (currentProduct ? currentProduct.reviewsCount || 65 : 65);
 }
 
-/**
- * Initialize Reviews Section UI
- */
 function initReviewsSection() {
   renderReviewsScorecard();
   renderReviewsList('all');
   initReviewStarsPicker();
 }
 
-/**
- * Render the Scorecard & Rating Breakdown
- */
 function renderReviewsScorecard() {
+  if (!currentProduct) return;
   const reviews = getProductReviews(currentProduct.id);
   const total = reviews.length;
   
@@ -556,11 +628,15 @@ function renderReviewsScorecard() {
 
   const avg = total > 0 ? (sum / total).toFixed(1) : '4.9';
 
-  $('#scorecardAvgRating').textContent = avg;
-  $('#scorecardTotalReviews').textContent = `Based on ${total} verified reviews`;
-  $('#scorecardStars').innerHTML = getStarRatingHTML(Math.round(avg));
+  const avgEl = $('#scorecardAvgRating');
+  if (avgEl) avgEl.textContent = avg;
 
-  // Render distribution bars
+  const totalEl = $('#scorecardTotalReviews');
+  if (totalEl) totalEl.textContent = `Based on ${total} verified reviews`;
+
+  const starsEl = $('#scorecardStars');
+  if (starsEl) starsEl.innerHTML = getStarRatingHTML(Math.round(avg));
+
   const barsContainer = $('#ratingBarsContainer');
   if (barsContainer) {
     barsContainer.innerHTML = [5, 4, 3, 2, 1].map(stars => {
@@ -579,10 +655,8 @@ function renderReviewsScorecard() {
   }
 }
 
-/**
- * Render reviews list with filtering
- */
-window.renderReviewsList = function(filter = 'all') {
+function renderReviewsList(filter = 'all') {
+  if (!currentProduct) return;
   let reviews = getProductReviews(currentProduct.id);
 
   if (filter === '5') {
@@ -591,7 +665,6 @@ window.renderReviewsList = function(filter = 'all') {
     reviews = reviews.filter(r => r.photos && r.photos.length > 0);
   }
 
-  // Update active filter pill
   $$('.review-filter-btn').forEach(btn => {
     btn.classList.remove('bg-black', 'text-white');
     btn.classList.add('bg-gray-100', 'text-gray-700');
@@ -607,7 +680,7 @@ window.renderReviewsList = function(filter = 'all') {
 
   if (reviews.length === 0) {
     listContainer.innerHTML = `
-      <div class="text-center py-12 bg-gray-50 rounded border border-gray-100">
+      <div class="text-center py-12 bg-white rounded border border-gray-100">
         <p class="text-sm text-gray-500">No reviews found under this filter.</p>
       </div>
     `;
@@ -616,7 +689,6 @@ window.renderReviewsList = function(filter = 'all') {
 
   listContainer.innerHTML = reviews.map(rev => `
     <div class="p-6 bg-white border border-gray-100 rounded-sm shadow-sm space-y-3 transition hover:shadow-md">
-      <!-- Top Line: Author, Badge, Stars, Date -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-full bg-neutral-900 text-white font-bold text-xs flex items-center justify-center shrink-0">
@@ -644,20 +716,17 @@ window.renderReviewsList = function(filter = 'all') {
         </div>
       </div>
 
-      <!-- Variant purchased -->
       ${rev.variant ? `
         <div class="text-[11px] text-gray-500 font-medium">
           Color: <span class="text-gray-700">${rev.variant}</span>
         </div>
       ` : ''}
 
-      <!-- Title & Content -->
       <div>
         ${rev.title ? `<h5 class="text-xs font-bold text-gray-900 mb-1">${rev.title}</h5>` : ''}
         <p class="text-xs text-gray-700 leading-relaxed">${rev.content}</p>
       </div>
 
-      <!-- Attached Photos -->
       ${rev.photos && rev.photos.length > 0 ? `
         <div class="flex gap-2 pt-1 flex-wrap">
           ${rev.photos.map(p => `
@@ -668,20 +737,17 @@ window.renderReviewsList = function(filter = 'all') {
         </div>
       ` : ''}
 
-      <!-- Helpful button -->
       <div class="pt-2 border-t border-gray-50 flex items-center justify-between text-[11px] text-gray-400">
-        <button onclick="upvoteReview(this)" class="hover:text-black flex items-center gap-1 transition">
+        <button onclick="upvoteReview(this)" class="hover:text-black flex items-center gap-1 transition cursor-pointer">
           <span>👍 Helpful</span>
           <span>(${rev.helpfulCount || 0})</span>
         </button>
       </div>
     </div>
   `).join('');
-};
+}
+window.renderReviewsList = renderReviewsList;
 
-/**
- * Star HTML generator
- */
 function getStarRatingHTML(rating = 5) {
   let html = '';
   for (let i = 1; i <= 5; i++) {
@@ -690,10 +756,7 @@ function getStarRatingHTML(rating = 5) {
   return html;
 }
 
-/**
- * Toggle Review Form
- */
-window.toggleReviewForm = function() {
+function toggleReviewForm() {
   const form = $('#writeReviewFormContainer');
   if (form) {
     form.classList.toggle('hidden');
@@ -701,11 +764,9 @@ window.toggleReviewForm = function() {
       form.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   }
-};
+}
+window.toggleReviewForm = toggleReviewForm;
 
-/**
- * Star Picker in the review form
- */
 function initReviewStarsPicker() {
   const stars = $$('.review-star-picker-btn');
   stars.forEach(btn => {
@@ -739,10 +800,7 @@ function updateStarPickerVisuals(val) {
   }
 }
 
-/**
- * Handle Photo Attachment in review
- */
-window.handleReviewPhotoSelect = function(e) {
+function handleReviewPhotoSelect(e) {
   const file = e.target.files[0];
   if (!file) return;
 
@@ -756,12 +814,10 @@ window.handleReviewPhotoSelect = function(e) {
     }
   };
   reader.readAsDataURL(file);
-};
+}
+window.handleReviewPhotoSelect = handleReviewPhotoSelect;
 
-/**
- * Submit Review Action
- */
-window.handleReviewSubmit = function(e) {
+function handleReviewSubmit(e) {
   e.preventDefault();
 
   const nameInput = $('#reviewAuthorName');
@@ -770,8 +826,8 @@ window.handleReviewSubmit = function(e) {
   const contentInput = $('#reviewBody');
   const variantSelect = $('#reviewVariantSelect');
 
-  const author = nameInput.value.trim();
-  const content = contentInput.value.trim();
+  const author = nameInput ? nameInput.value.trim() : '';
+  const content = contentInput ? contentInput.value.trim() : '';
 
   if (!author || !content) {
     alert('Please provide your name and review message.');
@@ -793,35 +849,29 @@ window.handleReviewSubmit = function(e) {
     photos: uploadedPhotoData ? [uploadedPhotoData] : []
   };
 
-  // Save to localStorage
-  const customReviewsKey = `luxos_product_reviews_${currentProduct.id}`;
-  const existing = JSON.parse(localStorage.getItem(customReviewsKey)) || [];
+  const customKey = `luxos_product_reviews_${currentProduct.id}`;
+  const existing = JSON.parse(localStorage.getItem(customKey)) || [];
   existing.unshift(newReview);
-  localStorage.setItem(customReviewsKey, JSON.stringify(existing));
+  localStorage.setItem(customKey, JSON.stringify(existing));
 
-  // Reset form
   e.target.reset();
   uploadedPhotoData = null;
   const preview = $('#reviewPhotoPreview');
   if (preview) preview.classList.add('hidden');
   toggleReviewForm();
 
-  // Re-render scorecard & reviews
   renderReviewsScorecard();
   renderReviewsList('all');
 
-  // Update top count badges
   const count = getProductReviewsCount(currentProduct.id);
-  $('#pdpReviewCount').textContent = `${count} reviews`;
-  $('#pdpReviewHeaderCount').textContent = `${count} reviews`;
+  const revCountEl = $('#pdpReviewCount');
+  if (revCountEl) revCountEl.textContent = `${count} reviews`;
 
   showToast('Thank you! Your verified review has been published.');
-};
+}
+window.handleReviewSubmit = handleReviewSubmit;
 
-/**
- * Upvote helpful review
- */
-window.upvoteReview = function(btn) {
+function upvoteReview(btn) {
   const textEl = btn.querySelector('span:last-child');
   if (textEl && !btn.dataset.voted) {
     btn.dataset.voted = 'true';
@@ -830,17 +880,15 @@ window.upvoteReview = function(btn) {
     textEl.textContent = `(${count})`;
     btn.classList.add('text-black', 'font-bold');
   }
-};
+}
+window.upvoteReview = upvoteReview;
 
-/**
- * Render Related Products carousel
- */
 function renderRelatedProducts() {
   const container = $('#relatedProductsGrid');
   if (!container) return;
 
-  const allProducts = typeof getStoreProducts === 'function' ? getStoreProducts() : LUXOS_PRODUCTS;
-  const related = allProducts.filter(p => p.id !== currentProduct.id).slice(0, 4);
+  const catalog = typeof LUXOS_PRODUCTS !== 'undefined' ? LUXOS_PRODUCTS : [];
+  const related = catalog.filter(p => p.id !== currentProduct.id).slice(0, 4);
 
   container.innerHTML = related.map(p => `
     <div class="product-card group relative bg-white border border-gray-100 rounded-sm overflow-hidden flex flex-col justify-between hover:shadow-md transition">
@@ -864,9 +912,6 @@ function renderRelatedProducts() {
   `).join('');
 }
 
-/**
- * Minimal toast notification
- */
 function showToast(msg) {
   let toast = $('#luxosToast');
   if (!toast) {
