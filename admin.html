@@ -916,17 +916,66 @@
       <form onsubmit="handleSaveBanner(event)" class="space-y-4 text-xs">
         <input type="hidden" id="editBannerId" />
 
+        <!-- 1. Desktop Banner Upload & URL -->
         <div>
-          <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Desktop Image URL *</label>
-          <input id="bannerDesktopImg" type="url" required placeholder="https://..." onchange="previewBannerImg(this.value)" class="w-full border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:border-black" />
-          <div id="bannerImgPreviewBox" class="mt-2 aspect-[16/7] w-full rounded-lg bg-slate-100 overflow-hidden border border-slate-200 hidden">
+          <div class="flex items-center justify-between mb-1">
+            <label class="block font-semibold text-slate-700 uppercase tracking-wider">Desktop Banner Image *</label>
+            <span class="text-[11px] text-slate-500 font-medium">Recommended: <strong>1920 × 750 px</strong> (Max: <strong>2 MB</strong>)</span>
+          </div>
+
+          <!-- Dual Mode: Upload Photo button OR enter URL -->
+          <div class="flex gap-2 mb-2">
+            <input type="file" id="bannerDesktopFileInput" accept="image/*" class="hidden" onchange="handleBannerFileUpload(event, 'desktop')" />
+            <button type="button" onclick="$('#bannerDesktopFileInput').click()" class="bg-black hover:bg-slate-800 text-white px-3.5 py-2.5 rounded-lg font-semibold flex items-center gap-1.5 shrink-0 transition shadow-xs">
+              <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
+              <span>Add / Upload Photo</span>
+            </button>
+            <input id="bannerDesktopImg" type="text" required placeholder="Or paste image URL (https://...)" onchange="previewBannerImg(this.value)" class="flex-1 border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:border-black bg-white" />
+          </div>
+
+          <!-- Size Guideline Info Box -->
+          <div class="p-2.5 bg-amber-50 border border-amber-200/80 rounded-lg text-[11px] text-amber-900 flex items-start gap-2 mb-2">
+            <svg class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/></svg>
+            <div>
+              <strong>ব্যানার সাইজ ও সাইজ গাইডলাইন:</strong>
+              <div class="flex flex-wrap gap-x-3 gap-y-0.5 mt-0.5 text-[10.5px]">
+                <span>• সাইজ: <strong>1920 × 750 px</strong> (বা 1800 × 700 px)</span>
+                <span>• সর্বোচ্চ ফাইল সাইজ: <strong>2 MB</strong></span>
+                <span>• ফরম্যাট: <strong>WebP, JPG বা PNG</strong></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Preview Box with filename & remove preview -->
+          <div id="bannerImgPreviewBox" class="mt-2 aspect-[16/7] w-full rounded-lg bg-slate-100 overflow-hidden border border-slate-200 relative hidden group">
             <img id="bannerImgPreview" src="" class="w-full h-full object-cover" />
+            <div class="absolute bottom-2 right-2 bg-black/75 text-white text-[10px] px-2.5 py-1 rounded backdrop-blur-sm shadow" id="bannerImgPreviewInfo">Preview</div>
           </div>
         </div>
 
+        <!-- 2. Mobile Banner Upload & URL (Optional) -->
         <div>
-          <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Mobile Image URL (Optional)</label>
-          <input id="bannerMobileImg" type="url" placeholder="https://..." class="w-full border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:border-black" />
+          <div class="flex items-center justify-between mb-1">
+            <label class="block font-semibold text-slate-700 uppercase tracking-wider">Mobile Banner Image (Optional)</label>
+            <span class="text-[11px] text-slate-500 font-medium">Recommended: <strong>800 × 800 px</strong> (Max: <strong>1.5 MB</strong>)</span>
+          </div>
+
+          <div class="flex gap-2 mb-2">
+            <input type="file" id="bannerMobileFileInput" accept="image/*" class="hidden" onchange="handleBannerFileUpload(event, 'mobile')" />
+            <button type="button" onclick="$('#bannerMobileFileInput').click()" class="bg-slate-800 hover:bg-black text-white px-3.5 py-2.5 rounded-lg font-semibold flex items-center gap-1.5 shrink-0 transition shadow-xs">
+              <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
+              <span>Add / Upload Mobile Photo</span>
+            </button>
+            <input id="bannerMobileImg" type="text" placeholder="Or paste mobile image URL (https://...)" onchange="previewMobileBannerImg(this.value)" class="flex-1 border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:border-black bg-white" />
+          </div>
+
+          <div class="p-2 bg-slate-50 border border-slate-200 rounded-lg text-[10.5px] text-slate-600">
+            <span>• মোবাইল ব্যানার সাইজ: <strong>800 × 800 px</strong> (1:1 Square) বা <strong>800 × 1000 px</strong> (Portrait) | সর্বোচ্চ: <strong>1.5 MB</strong></span>
+          </div>
+
+          <div id="bannerMobileImgPreviewBox" class="mt-2 w-36 aspect-[4/5] rounded-lg bg-slate-100 overflow-hidden border border-slate-200 hidden">
+            <img id="bannerMobileImgPreview" src="" class="w-full h-full object-cover" />
+          </div>
         </div>
 
         <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-3">

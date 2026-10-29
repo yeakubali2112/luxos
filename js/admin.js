@@ -1110,6 +1110,8 @@ window.openBannerModal = function () {
   $('#editBannerId').value = '';
   $('#bannerDesktopImg').value = '';
   $('#bannerMobileImg').value = '';
+  if ($('#bannerDesktopFileInput')) $('#bannerDesktopFileInput').value = '';
+  if ($('#bannerMobileFileInput')) $('#bannerMobileFileInput').value = '';
   $('#bannerSubheading').value = '';
   $('#bannerHeading').value = '';
   $('#bannerDescription').value = '';
@@ -1119,6 +1121,8 @@ window.openBannerModal = function () {
   $('#bannerActive').value = 'true';
   toggleBannerTextInputs(true);
   $('#bannerImgPreviewBox').classList.add('hidden');
+  if ($('#bannerMobileImgPreviewBox')) $('#bannerMobileImgPreviewBox').classList.add('hidden');
+  if ($('#bannerImgPreviewInfo')) $('#bannerImgPreviewInfo').textContent = 'Preview';
 
   $('#bannerFormModal').classList.add('active');
 };
@@ -1127,10 +1131,58 @@ window.closeBannerModal = function () {
   $('#bannerFormModal').classList.remove('active');
 };
 
+window.handleBannerFileUpload = function (event, type) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+
+  if (!file.type.startsWith('image/')) {
+    showAdminToast('Please select an image file (JPG, PNG, or WebP).');
+    return;
+  }
+
+  // Size guideline check
+  const maxBytes = 3 * 1024 * 1024; // 3MB limit check
+  const sizeKB = Math.round(file.size / 1024);
+  const sizeStr = sizeKB > 1024 ? (sizeKB / 1024).toFixed(1) + ' MB' : sizeKB + ' KB';
+
+  if (file.size > maxBytes) {
+    showAdminToast(`Warning: File is ${sizeStr}! For fast website loading, under 2 MB is recommended.`);
+  }
+
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    const base64 = e.target.result;
+    if (type === 'desktop') {
+      $('#bannerDesktopImg').value = base64;
+      previewBannerImg(base64);
+      const info = $('#bannerImgPreviewInfo');
+      if (info) info.textContent = `${file.name} (${sizeStr})`;
+      showAdminToast(`Desktop photo loaded (${sizeStr})!`);
+    } else {
+      $('#bannerMobileImg').value = base64;
+      previewMobileBannerImg(base64);
+      showAdminToast(`Mobile photo loaded (${sizeStr})!`);
+    }
+  };
+  reader.readAsDataURL(file);
+};
+
 window.previewBannerImg = function (url) {
   const box = $('#bannerImgPreviewBox');
   const img = $('#bannerImgPreview');
-  if (url && url.startsWith('http')) {
+  if (url && (url.startsWith('http') || url.startsWith('data:') || url.startsWith('/'))) {
+    img.src = url;
+    box.classList.remove('hidden');
+  } else {
+    box.classList.add('hidden');
+  }
+};
+
+window.previewMobileBannerImg = function (url) {
+  const box = $('#bannerMobileImgPreviewBox');
+  const img = $('#bannerMobileImgPreview');
+  if (!box || !img) return;
+  if (url && (url.startsWith('http') || url.startsWith('data:') || url.startsWith('/'))) {
     img.src = url;
     box.classList.remove('hidden');
   } else {
@@ -1151,6 +1203,8 @@ window.editBanner = function (id) {
   $('#editBannerId').value = banner.id;
   $('#bannerDesktopImg').value = banner.desktopImage || '';
   $('#bannerMobileImg').value = banner.mobileImage || '';
+  if ($('#bannerDesktopFileInput')) $('#bannerDesktopFileInput').value = '';
+  if ($('#bannerMobileFileInput')) $('#bannerMobileFileInput').value = '';
   $('#bannerSubheading').value = banner.subheading || '';
   $('#bannerHeading').value = banner.heading || '';
   $('#bannerDescription').value = banner.description || '';
@@ -1160,6 +1214,12 @@ window.editBanner = function (id) {
   $('#bannerActive').value = banner.active !== false ? 'true' : 'false';
 
   previewBannerImg(banner.desktopImage);
+  if (banner.mobileImage) {
+    previewMobileBannerImg(banner.mobileImage);
+  } else if ($('#bannerMobileImgPreviewBox')) {
+    $('#bannerMobileImgPreviewBox').classList.add('hidden');
+  }
+  if ($('#bannerImgPreviewInfo')) $('#bannerImgPreviewInfo').textContent = 'Current Banner Image';
   toggleBannerTextInputs(banner.showText !== false);
 
   $('#bannerFormModal').classList.add('active');
