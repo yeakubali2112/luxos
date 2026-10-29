@@ -348,49 +348,59 @@
     }
     renderProductVideo();
 
-    // Render Bag Dimensions & Features (Requested: Reference Screenshot Style)
+    // Render Bag Dimensions & Features (Only show if added in Admin panel)
+    const keyFeaturesBlock = document.getElementById('pdpKeyFeaturesBlock');
+    const dimLi = document.getElementById('pdpDimensionLi');
+    const featLi = document.getElementById('pdpFeatureLi');
     const dimContainer = document.getElementById('pdpDimensionsItems');
     const featContainer = document.getElementById('pdpFeaturesItems');
-    if (dimContainer || featContainer) {
-      const defaultDims = [
-        'External Height: 18"',
-        'External Length: 12"',
-        'External Depth: 7.5"',
-        'Capacity: 20–35 liters',
-        'Accommodate Laptop Size: 15.6"'
-      ];
-      const defaultFeats = [
-        'Number Lock',
-        'Sunglass Hook',
-        'Water Resistant',
-        'Trolley Support',
-        'Luggage Style Indoor',
-        'Shoulder Strap Pocket',
-        'Multi-Storage Pockets',
-        'Hidden two types USB port',
-        'Unisex Designs Suitable for Daily Life',
-        'cell phone pocket, key chain clip'
-      ];
 
-      let dims = defaultDims;
-      if (Array.isArray(currentProduct.dimensionsList) && currentProduct.dimensionsList.length > 0) {
-        dims = currentProduct.dimensionsList;
-      } else if (typeof currentProduct.dimensionsList === 'string' && currentProduct.dimensionsList.trim()) {
-        dims = currentProduct.dimensionsList.split('\n').map(s => s.trim()).filter(Boolean);
-      }
+    let dims = [];
+    if (Array.isArray(currentProduct.dimensionsList)) {
+      dims = currentProduct.dimensionsList.map(s => String(s).trim()).filter(Boolean);
+    } else if (typeof currentProduct.dimensionsList === 'string' && currentProduct.dimensionsList.trim()) {
+      dims = currentProduct.dimensionsList.split('\n').map(s => s.trim()).filter(Boolean);
+    }
 
-      let feats = defaultFeats;
-      if (Array.isArray(currentProduct.featuresList) && currentProduct.featuresList.length > 0) {
-        feats = currentProduct.featuresList;
-      } else if (typeof currentProduct.featuresList === 'string' && currentProduct.featuresList.trim()) {
-        feats = currentProduct.featuresList.split('\n').map(s => s.trim()).filter(Boolean);
-      }
+    let feats = [];
+    if (Array.isArray(currentProduct.featuresList)) {
+      feats = currentProduct.featuresList.map(s => String(s).trim()).filter(Boolean);
+    } else if (typeof currentProduct.featuresList === 'string' && currentProduct.featuresList.trim()) {
+      feats = currentProduct.featuresList.split('\n').map(s => s.trim()).filter(Boolean);
+    }
 
-      if (dimContainer) {
-        dimContainer.innerHTML = dims.map(d => `<li>${d}</li>`).join('');
-      }
-      if (featContainer) {
-        featContainer.innerHTML = feats.map(f => `<li>${f}</li>`).join('');
+    const hasDims = dims.length > 0;
+    const hasFeats = feats.length > 0;
+
+    if (keyFeaturesBlock) {
+      if (!hasDims && !hasFeats) {
+        keyFeaturesBlock.classList.add('hidden');
+      } else {
+        keyFeaturesBlock.classList.remove('hidden');
+
+        if (dimLi) {
+          if (hasDims) {
+            dimLi.classList.remove('hidden');
+            if (dimContainer) {
+              dimContainer.innerHTML = dims.map(d => `<li>${d}</li>`).join('');
+            }
+          } else {
+            dimLi.classList.add('hidden');
+            if (dimContainer) dimContainer.innerHTML = '';
+          }
+        }
+
+        if (featLi) {
+          if (hasFeats) {
+            featLi.classList.remove('hidden');
+            if (featContainer) {
+              featContainer.innerHTML = feats.map(f => `<li>${f}</li>`).join('');
+            }
+          } else {
+            featLi.classList.add('hidden');
+            if (featContainer) featContainer.innerHTML = '';
+          }
+        }
       }
     }
 
