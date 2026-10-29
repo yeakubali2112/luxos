@@ -68,7 +68,7 @@ function initData() {
     }
   } else {
     AdminState.products = [...LUXOS_PRODUCTS];
-    localStorage.setItem('luxos_products_data', JSON.stringify(AdminState.products));
+    saveProductsSafely(AdminState.products);
   }
 
   // Load Hero Banners
@@ -853,7 +853,104 @@ window.closeProductModal = function () {
   }
 };
 
-window.handleProductFileUpload = function (event, type) {
+// =========================================================================
+// Image Compression & Safe Storage Utilities (Prevents LocalStorage Quota Crashes)
+// =========================================================================
+function compressImageFile(file, maxWidth = 900, maxHeight = 900, quality = 0.82) {
+  return new Promise((resolve) => {
+    if (!file.type || !file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result);
+      reader.readAsDataURL(file);
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      const img = new Image();
+      img.onload = function () {
+        let width = img.width;
+        let height = img.height;
+        if (width > maxWidth || height > maxHeight) {
+          if (width > height) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          } else {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, width, height);
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = () => resolve(e.target.result);
+      img.src = e.target.result;
+    };
+    reader.onerror = () => resolve('');
+    reader.readAsDataURL(file);
+  });
+}
+
+function compressDataUrl(dataUrl, maxWidth = 900, maxHeight = 900, quality = 0.82) {
+  if (!dataUrl || typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image/') || dataUrl.length < 150000) {
+    return Promise.resolve(dataUrl);
+  }
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = function () {
+      let width = img.width;
+      let height = img.height;
+      if (width > maxWidth || height > maxHeight) {
+        if (width > height) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        } else {
+          width = Math.round((width * maxHeight) / height);
+          height = maxHeight;
+        }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, width, height);
+      ctx.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = () => resolve(dataUrl);
+    img.src = dataUrl;
+  });
+}
+
+function saveProductsSafely(products) {
+  try {
+    localStorage.setItem('luxos_products_data', JSON.stringify(products));
+    return true;
+  } catch (err) {
+    console.warn('localStorage quota exceeded while saving products, attempting optimization...', err);
+    // Quota exceeded: optimize oversized images across products to reclaim space
+    for (const p of products) {
+      if (Array.isArray(p.gallery) && p.gallery.length > 5) {
+        p.gallery = p.gallery.slice(0, 5);
+      }
+    }
+    try {
+      localStorage.setItem('luxos_products_data', JSON.stringify(products));
+      return true;
+    } catch (e2) {
+      console.error('Critical storage quota error:', e2);
+      throw new Error('Browser storage is full! Please remove some photos or use image URLs.');
+    }
+  }
+}
+
+window.handleProductFileUpload = async function (event, type) {
   const file = event.target.files && event.target.files[0];
   if (!file) return;
 
@@ -862,44 +959,41 @@ window.handleProductFileUpload = function (event, type) {
     return;
   }
 
-  const sizeKB = Math.round(file.size / 1024);
-  const sizeStr = sizeKB > 1024 ? (sizeKB / 1024).toFixed(1) + ' MB' : sizeKB + ' KB';
-  if (file.size > 2 * 1024 * 1024) {
-    showAdminToast(`Notice: File is ${sizeStr}. Recommended under 1 MB for fast product loading.`);
-  }
+  showAdminToast('Optimizing photo...');
 
-  const reader = new FileReader();
-  reader.onload = function (e) {
-    const base64 = e.target.result;
+  try {
+    const compressedBase64 = await compressImageFile(file, 900, 900, 0.82);
     if (type === 'primary') {
-      $('#prodImage').value = base64;
-      previewProductImg(base64, 'primary');
+      $('#prodImage').value = compressedBase64;
+      previewProductImg(compressedBase64, 'primary');
       const info = $('#prodPrimaryImgInfo');
-      if (info) info.textContent = `${file.name} (${sizeStr})`;
-      showAdminToast(`Primary product photo loaded (${sizeStr})!`);
+      const sizeKB = Math.round(compressedBase64.length * 0.75 / 1024);
+      if (info) info.textContent = file.name + ' (Optimized: ' + sizeKB + ' KB)';
+      showAdminToast('Primary photo optimized & loaded (' + sizeKB + ' KB)!');
     }
-  };
-  reader.readAsDataURL(file);
+  } catch (err) {
+    console.error('Error compressing primary image:', err);
+    showAdminToast('Error processing image. Please try another.');
+  }
 };
 
-window.handleMultipleSecondaryUpload = function (event) {
+window.handleMultipleSecondaryUpload = async function (event) {
   const files = Array.from(event.target.files || []);
   if (files.length === 0) return;
 
-  let loadedCount = 0;
-  files.forEach(file => {
-    if (!file.type.startsWith('image/')) return;
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      currentProductSecondaryPhotos.push(e.target.result);
-      loadedCount++;
-      if (loadedCount === files.length) {
-        renderSecondaryPhotosGrid();
-        showAdminToast(`Added ${loadedCount} photo(s) to gallery!`);
-      }
-    };
-    reader.readAsDataURL(file);
-  });
+  showAdminToast('Optimizing ' + files.length + ' photo(s)...');
+
+  for (const file of files) {
+    if (!file.type.startsWith('image/')) continue;
+    try {
+      const compressedBase64 = await compressImageFile(file, 900, 900, 0.82);
+      currentProductSecondaryPhotos.push(compressedBase64);
+    } catch (err) {
+      console.error('Secondary photo compress error:', err);
+    }
+  }
+  renderSecondaryPhotosGrid();
+  showAdminToast('Added ' + files.length + ' photo(s) to gallery!');
   event.target.value = '';
 };
 
@@ -1035,11 +1129,18 @@ window.editProduct = function (productId) {
   $('#productFormModal').classList.add('active');
 };
 
-window.handleSaveProduct = function (e) {
+window.handleSaveProduct = async function (e) {
   e.preventDefault();
 
   const saveBtn = $('#saveProductBtn');
   const overlay = $('#productSaveSuccessOverlay');
+
+  const resetSaveBtn = () => {
+    if (saveBtn) {
+      saveBtn.disabled = false;
+      saveBtn.innerHTML = '<span>Save Product</span>';
+    }
+  };
 
   // 1. Show button saving state
   if (saveBtn) {
@@ -1053,100 +1154,118 @@ window.handleSaveProduct = function (e) {
     `;
   }
 
-  const id = $('#editProductId').value;
-  const title = $('#prodTitle').value.trim();
-  const category = $('#prodCategory').value;
-  const collection = $('#prodCollection').value;
-  let price = $('#prodPrice').value.trim();
-  let originalPrice = $('#prodOriginalPrice').value.trim();
-  const badge = $('#prodBadge').value.trim();
-  const stock = parseInt($('#prodStock').value || 10, 10);
-  const rating = $('#prodRating').value.trim() || '4.8';
-  const image = $('#prodImage').value.trim();
-  const hoverImage = currentProductSecondaryPhotos.length > 0 ? currentProductSecondaryPhotos[0] : image;
-  const gallery = [...currentProductSecondaryPhotos];
-  const description = $('#prodDescription').value.trim();
+  try {
+    const id = $('#editProductId').value;
+    const title = $('#prodTitle').value.trim();
+    const category = $('#prodCategory').value;
+    const collection = $('#prodCollection').value;
+    let price = $('#prodPrice').value.trim();
+    let originalPrice = $('#prodOriginalPrice').value.trim();
+    const badge = $('#prodBadge').value.trim();
+    const stock = parseInt($('#prodStock').value || 10, 10);
+    const rating = $('#prodRating').value.trim() || '4.8';
+    
+    // Auto-compress primary image if uncompressed base64 string
+    let image = $('#prodImage').value.trim();
+    if (image.startsWith('data:image/') && image.length > 150000) {
+      image = await compressDataUrl(image, 900, 900, 0.82);
+      $('#prodImage').value = image;
+    }
 
-  if (!price.startsWith('৳')) price = '৳ ' + price.replace(/[^\d,]/g, '');
-  if (originalPrice && !originalPrice.startsWith('৳')) originalPrice = '৳ ' + originalPrice.replace(/[^\d,]/g, '');
+    // Auto-compress gallery secondary photos if any are oversized
+    const gallery = [];
+    for (let gImg of currentProductSecondaryPhotos) {
+      if (gImg && gImg.startsWith('data:image/') && gImg.length > 150000) {
+        gImg = await compressDataUrl(gImg, 900, 900, 0.82);
+      }
+      gallery.push(gImg);
+    }
+    const hoverImage = gallery.length > 0 ? gallery[0] : image;
+    const description = $('#prodDescription').value.trim();
 
-  let savedId = id;
-  if (id) {
-    // Update existing
-    const existingIndex = AdminState.products.findIndex(p => p.id == id);
-    if (existingIndex > -1) {
-      AdminState.products[existingIndex] = {
-        ...AdminState.products[existingIndex],
+    if (!price.startsWith('৳')) price = '৳ ' + price.replace(/[^\d,]/g, '');
+    if (originalPrice && !originalPrice.startsWith('৳')) originalPrice = '৳ ' + originalPrice.replace(/[^\d,]/g, '');
+
+    let savedId = id;
+    if (id) {
+      // Update existing
+      const existingIndex = AdminState.products.findIndex(p => p.id == id);
+      if (existingIndex > -1) {
+        AdminState.products[existingIndex] = {
+          ...AdminState.products[existingIndex],
+          title,
+          category,
+          collection,
+          price,
+          originalPrice,
+          badge,
+          stock,
+          rating,
+          image,
+          hoverImage,
+          gallery,
+          description
+        };
+      }
+    } else {
+      // Add new product
+      const newId = Math.max(0, ...AdminState.products.map(p => p.id)) + 1;
+      savedId = newId;
+      const newProduct = {
+        id: newId,
+        slug: title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
         title,
         category,
         collection,
         price,
         originalPrice,
-        badge,
+        badge: badge || 'New',
         stock,
         rating,
+        reviewsCount: 1,
         image,
         hoverImage,
         gallery,
-        description
+        description,
+        colors: [
+          { name: 'Noir Black', hex: '#111111' },
+          { name: 'Mocha Tan', hex: '#8B5A2B' }
+        ]
       };
-    }
-  } else {
-    // Add new product
-    const newId = Math.max(0, ...AdminState.products.map(p => p.id)) + 1;
-    savedId = newId;
-    const newProduct = {
-      id: newId,
-      slug: title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-      title,
-      category,
-      collection,
-      price,
-      originalPrice,
-      badge: badge || 'New',
-      stock,
-      rating,
-      reviewsCount: 1,
-      image,
-      hoverImage,
-      gallery,
-      description,
-      colors: [
-        { name: 'Noir Black', hex: '#111111' },
-        { name: 'Mocha Tan', hex: '#8B5A2B' }
-      ]
-    };
-    AdminState.products.unshift(newProduct);
-  }
-
-  // Persist to localStorage so storefront index.html sees it immediately!
-  localStorage.setItem('luxos_products_data', JSON.stringify(AdminState.products));
-
-  // 2. Trigger Animated Success Pop Overlay
-  if (overlay) {
-    overlay.classList.remove('hidden');
-  }
-
-  // 3. Smooth exit animation & update after 700ms
-  setTimeout(() => {
-    closeProductModal();
-    renderProductsTable();
-    renderDashboard();
-
-    // Highlight the saved product row in the table with brief pulse animation
-    const savedRow = document.querySelector(`tr[data-product-id="${savedId}"]`);
-    if (savedRow) {
-      savedRow.classList.add('animate-row-highlight');
-      savedRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      AdminState.products.unshift(newProduct);
     }
 
-    showAdminToast(id ? `Updated "${title}"` : `Added new product "${title}"`);
-  }, 750);
+    // Persist to localStorage safely with quota protection
+    saveProductsSafely(AdminState.products);
+
+    // 2. Trigger Animated Success Pop Overlay
+    if (overlay) {
+      overlay.classList.remove('hidden');
+    }
+
+    // 3. Smooth exit animation & update after 600ms
+    setTimeout(() => {
+      closeProductModal();
+      renderProductsTable();
+      renderDashboard();
+
+      // Highlight the saved product row in the table with brief pulse animation
+      const savedRow = document.querySelector(`tr[data-product-id="${savedId}"]`);
+      if (savedRow) {
+        savedRow.classList.add('animate-row-highlight');
+        savedRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+
+      showAdminToast(id ? `Updated "${title}"` : `Added new product "${title}"`);
+    }, 600);
+
+  } catch (err) {
+    console.error('Error saving product:', err);
+    resetSaveBtn();
+    showAdminToast('Could not save product: ' + (err.message || 'Please check inputs.'));
+  }
 };
 
-/* ==========================================================================
-   Center Delete & Action Confirmation Modal
-   ========================================================================== */
 window.showConfirmDialog = function ({
   title = 'Delete Item?',
   message = 'Are you sure you want to delete this item? This action cannot be undone.',
