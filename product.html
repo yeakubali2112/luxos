@@ -213,6 +213,13 @@
               src="https://thepatchee.com/cdn/shop/files/654a7e83-c512-4ec1-8ebf-af44c488e776.png?v=1781362688" 
               alt="Executive RFID Card Holder" 
               class="w-full h-full object-contain p-4 transition-transform duration-150 ease-out origin-center pointer-events-none" />
+
+            <!-- Out of Stock Overlay on Photo -->
+            <div id="pdpOutOfStockOverlay" class="hidden absolute inset-0 bg-white/55 backdrop-blur-[2px] z-20 flex items-center justify-center pointer-events-none">
+              <span class="bg-red-600 text-white font-extrabold text-sm sm:text-base uppercase tracking-widest px-5 py-2 rounded-sm shadow-xl border border-white/60">
+                OUT OF STOCK
+              </span>
+            </div>
           </div>
 
         </div>
@@ -226,9 +233,9 @@
         
         <!-- 1. Stock Status -->
         <div class="flex items-center gap-2">
-          <span class="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            In stock
+          <span id="pdpStockBadge" class="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full">
+            <span id="pdpStockDot" class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span id="pdpStockText">In stock</span>
           </span>
         </div>
 
@@ -279,6 +286,7 @@
         <!-- 13. Primary CTA Button (Instant COD Fast Checkout) -->
         <div class="pt-2">
           <button 
+            id="pdpOrderNowBtn"
             onclick="handleOrderNowCOD()" 
             class="w-full bg-black hover:bg-neutral-800 text-white font-semibold text-xs sm:text-sm tracking-wide py-3.5 rounded-full transition-all duration-200 shadow-md flex items-center justify-center gap-2.5 cursor-pointer">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">

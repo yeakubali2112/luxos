@@ -341,6 +341,51 @@
     const revCountEl = document.getElementById('pdpReviewCount');
     if (revCountEl) revCountEl.textContent = `${reviewCount} reviews`;
 
+    // Stock Status & Out of Stock Overlay
+    const stockVal = typeof currentProduct.stock !== 'undefined' ? parseInt(currentProduct.stock, 10) : 10;
+    const isOutOfStock = stockVal <= 0;
+    const oosOverlay = document.getElementById('pdpOutOfStockOverlay');
+    const stockBadge = document.getElementById('pdpStockBadge');
+    const stockDot = document.getElementById('pdpStockDot');
+    const stockText = document.getElementById('pdpStockText');
+    const orderBtn = document.getElementById('pdpOrderNowBtn');
+
+    if (oosOverlay) {
+      if (isOutOfStock) {
+        oosOverlay.classList.remove('hidden');
+      } else {
+        oosOverlay.classList.add('hidden');
+      }
+    }
+
+    if (stockBadge && stockDot && stockText) {
+      if (isOutOfStock) {
+        stockBadge.className = 'inline-flex items-center gap-1.5 text-xs font-bold text-red-600 bg-red-50 px-2.5 py-0.5 rounded-full border border-red-200';
+        stockDot.className = 'w-1.5 h-1.5 rounded-full bg-red-500';
+        stockText.textContent = 'Out of stock';
+      } else {
+        stockBadge.className = 'inline-flex items-center gap-1.5 text-xs font-medium text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full';
+        stockDot.className = 'w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse';
+        stockText.textContent = 'In stock';
+      }
+    }
+
+    if (orderBtn) {
+      if (isOutOfStock) {
+        orderBtn.disabled = true;
+        orderBtn.classList.remove('bg-black', 'hover:bg-neutral-800', 'cursor-pointer');
+        orderBtn.classList.add('bg-gray-400', 'cursor-not-allowed', 'opacity-75');
+        const spanText = orderBtn.querySelector('span');
+        if (spanText) spanText.textContent = 'Out of Stock';
+      } else {
+        orderBtn.disabled = false;
+        orderBtn.classList.remove('bg-gray-400', 'cursor-not-allowed', 'opacity-75');
+        orderBtn.classList.add('bg-black', 'hover:bg-neutral-800', 'cursor-pointer');
+        const spanText = orderBtn.querySelector('span');
+        if (spanText) spanText.textContent = 'Order Now - Cash on Delivery';
+      }
+    }
+
     // Render Description & Highlights (Requested Feature)
     const descEl = document.getElementById('pdpDescriptionText');
     if (descEl) {
@@ -599,6 +644,11 @@
    */
   function handleOrderNowCOD() {
     if (!currentProduct) return;
+    const stockVal = typeof currentProduct.stock !== 'undefined' ? parseInt(currentProduct.stock, 10) : 10;
+    if (stockVal <= 0) {
+      showToast('Sorry, this product is currently out of stock!');
+      return;
+    }
     const qty = parseInt(document.getElementById('pdpQuantity')?.value || 1, 10) || 1;
     const priceNum = parseInt(String(currentProduct.price).replace(/[^\d]/g, ''), 10) || 687;
 
@@ -1205,12 +1255,18 @@
 
     container.innerHTML = related.map(p => {
       const discountBadge = getRelatedDiscountBadge(p);
+      const isOos = typeof p.stock !== 'undefined' && parseInt(p.stock, 10) <= 0;
       return `
         <div class="snap-start shrink-0 w-[calc(50%-8px)] sm:w-[calc(33.333%-16px)] lg:w-[calc(25%-18px)] min-w-[calc(50%-8px)] sm:min-w-[calc(33.333%-16px)] lg:min-w-[calc(25%-18px)] bg-white border border-gray-100 rounded-sm overflow-hidden flex flex-col justify-between hover:shadow-lg transition-all duration-300 group">
           <div class="relative aspect-square overflow-hidden bg-white p-3 flex items-center justify-center">
             <a href="product.html?id=${p.id}" class="block w-full h-full flex items-center justify-center">
               <img src="${p.image}" alt="${p.title}" class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500" loading="lazy" />
             </a>
+            ${isOos ? `
+              <div class="absolute inset-0 bg-white/55 backdrop-blur-[1px] flex items-center justify-center z-20 pointer-events-none">
+                <span class="bg-red-600 text-white font-extrabold text-[10px] sm:text-xs uppercase tracking-wider px-2.5 py-1 rounded shadow">OUT OF STOCK</span>
+              </div>
+            ` : ''}
             <!-- Badges matching reference screenshot -->
             <span class="absolute top-2 left-2 text-[9px] sm:text-[10px] font-extrabold bg-black text-white px-2 py-0.5 tracking-wider uppercase">${discountBadge}</span>
             <span class="absolute top-2 right-2 text-[9px] sm:text-[10px] font-extrabold bg-black text-white px-2 py-0.5 tracking-wider uppercase">TRENDING</span>

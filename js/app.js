@@ -332,12 +332,21 @@ function renderProducts(collection = AppState.activeCollection) {
 
 function createProductCardHtml(p) {
   const isWishlisted = AppState.wishlist.includes(p.id);
+  const isOutOfStock = typeof p.stock !== 'undefined' && parseInt(p.stock, 10) <= 0;
 
   return `
     <div class="product-card group flex flex-col justify-between" data-id="${p.id}">
       <div>
         <!-- Image Container -->
         <div class="product-image-container rounded-sm overflow-hidden mb-3 relative bg-[#f7f7f7]">
+          ${isOutOfStock ? `
+            <div class="absolute inset-0 bg-white/55 backdrop-blur-[1px] z-20 flex items-center justify-center pointer-events-none">
+              <span class="bg-red-600 text-white font-extrabold text-[11px] sm:text-xs uppercase tracking-widest px-3.5 py-1 rounded shadow-lg border border-white/60">
+                OUT OF STOCK
+              </span>
+            </div>
+          ` : ''}
+
           ${p.badge ? `
             <div class="absolute top-2 left-2 z-10">
               <span class="${p.badge.toLowerCase().includes('save') ? 'badge-discount' : 'badge-tag'} uppercase tracking-wider text-[10px] font-semibold px-2 py-0.5 shadow-sm">
@@ -372,14 +381,22 @@ function createProductCardHtml(p) {
 
           <!-- Quick Action Bar On Hover (Desktop) -->
           <div class="quick-action-buttons absolute bottom-2 inset-x-2 z-10 flex gap-2">
-            <button 
-              onclick="quickAddToCart(${p.id}, event)"
-              class="flex-1 bg-black text-white text-xs uppercase tracking-wider font-semibold py-2.5 px-3 rounded-sm hover:bg-neutral-800 transition flex items-center justify-center gap-1.5 shadow-md">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-              </svg>
-              <span>Add to Cart</span>
-            </button>
+            ${isOutOfStock ? `
+              <button 
+                disabled
+                class="flex-1 bg-gray-400 text-white text-xs uppercase tracking-wider font-semibold py-2.5 px-3 rounded-sm cursor-not-allowed opacity-80 flex items-center justify-center gap-1.5 shadow-xs">
+                <span>Out of Stock</span>
+              </button>
+            ` : `
+              <button 
+                onclick="quickAddToCart(${p.id}, event)"
+                class="flex-1 bg-black text-white text-xs uppercase tracking-wider font-semibold py-2.5 px-3 rounded-sm hover:bg-neutral-800 transition flex items-center justify-center gap-1.5 shadow-md">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                <span>Add to Cart</span>
+              </button>
+            `}
             <button 
               onclick="window.location.href='product.html?id=${p.id}'"
               title="View Product Landing Page"
@@ -522,6 +539,11 @@ window.quickAddToCart = function (productId, event) {
   const product = currentProducts.find(p => p.id === productId);
   if (!product) return;
 
+  if (typeof product.stock !== 'undefined' && parseInt(product.stock, 10) <= 0) {
+    showToast('Sorry, this product is currently out of stock!');
+    return;
+  }
+
   const defaultColor = product.colors && product.colors.length > 0 ? product.colors[0].name : 'Default';
   addToCart(product, defaultColor, 1);
 };
@@ -538,6 +560,11 @@ function addToCart(product, colorName, quantity = 1, skipOpenDrawer = false) {
   }
 
   if (!product || !product.id) return;
+
+  if (typeof product.stock !== 'undefined' && parseInt(product.stock, 10) <= 0) {
+    showToast('Sorry, this product is currently out of stock!');
+    return;
+  }
 
   // Purge any corrupted items from cart
   AppState.cart = (AppState.cart || []).filter(item => item && item.id && item.title && item.title !== 'undefined');
@@ -888,15 +915,22 @@ window.performSearch = function (query) {
       ${clean.length > 0 ? `Results (${results.length})` : 'Popular Recommendations'}
     </div>
     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-      ${results.slice(0, 8).map(p => `
-        <div onclick="closeSearchModal(); openQuickView(${p.id});" class="group cursor-pointer">
-          <div class="aspect-square bg-gray-100 rounded-sm overflow-hidden mb-2">
+      ${results.slice(0, 8).map(p => {
+        const isOos = typeof p.stock !== 'undefined' && parseInt(p.stock, 10) <= 0;
+        return `
+        <div onclick="closeSearchModal(); window.location.href='product.html?id=${p.id}';" class="group cursor-pointer">
+          <div class="aspect-square bg-gray-100 rounded-sm overflow-hidden mb-2 relative">
             <img src="${p.image}" alt="${p.title}" class="w-full h-full object-cover group-hover:scale-105 transition" />
+            ${isOos ? `
+              <div class="absolute inset-0 bg-white/50 backdrop-blur-[1px] flex items-center justify-center z-20 pointer-events-none">
+                <span class="bg-red-600 text-white font-extrabold text-[9px] uppercase px-1.5 py-0.5 rounded shadow">OUT OF STOCK</span>
+              </div>
+            ` : ''}
           </div>
           <p class="text-xs font-medium text-gray-900 line-clamp-1 group-hover:text-amber-800">${p.title}</p>
           <p class="text-xs font-bold text-gray-800 mt-0.5">${p.price}</p>
         </div>
-      `).join('')}
+      `;}).join('')}
     </div>
   `;
 };
