@@ -1418,27 +1418,28 @@ window.getUserProfile = function () {
   }
 };
 
-window.openAccountModal = function (tab) {
-  const profile = getUserProfile();
-  const targetTab = tab || (profile ? 'profile' : 'track');
+window.openTrackOrderModal = function (orderId) {
+  if (typeof closeAccountModal === 'function') closeAccountModal();
+  if (typeof closeCartDrawer === 'function') closeCartDrawer();
+  if (typeof closeMobileNav === 'function') closeMobileNav();
 
-  isProfileEditing = false;
-  tempEditPhoto = null;
+  const modal = $('#trackOrderModal');
+  if (modal) {
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
 
-  if (typeof updateHeaderProfileIcon === 'function') updateHeaderProfileIcon();
-  renderAccountTab();
-  switchAccountTab(targetTab);
-
-  $('#accountModal').classList.add('active');
-  document.body.style.overflow = 'hidden';
-
-  if (targetTab === 'track') {
     setTimeout(() => {
       const input = $('#trackSearchInput');
       if (input) {
-        if (!input.value && profile && profile.phone) {
-          input.value = profile.phone;
+        if (orderId) {
+          input.value = orderId;
           searchOrderStatus();
+        } else if (!input.value) {
+          const profile = getUserProfile();
+          if (profile && profile.phone) {
+            input.value = profile.phone;
+            searchOrderStatus();
+          }
         }
         input.focus();
       }
@@ -1446,39 +1447,49 @@ window.openAccountModal = function (tab) {
   }
 };
 
+window.closeTrackOrderModal = function () {
+  const modal = $('#trackOrderModal');
+  if (modal) modal.classList.remove('active');
+  document.body.style.overflow = '';
+};
+
+window.openAccountModal = function (tab) {
+  if (tab === 'track') {
+    openTrackOrderModal();
+    return;
+  }
+  isProfileEditing = false;
+  tempEditPhoto = null;
+
+  if (typeof updateHeaderProfileIcon === 'function') updateHeaderProfileIcon();
+  renderAccountTab();
+
+  const accModal = $('#accountModal');
+  if (accModal) {
+    accModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+};
+
 window.closeAccountModal = function () {
-  $('#accountModal').classList.remove('active');
+  const accModal = $('#accountModal');
+  if (accModal) accModal.classList.remove('active');
   document.body.style.overflow = '';
 };
 
 window.switchAccountTab = function (tab) {
-  const isTrack = tab === 'track';
-  const trackBtn = $('#accountTabTrack');
-  const profileBtn = $('#accountTabProfile');
-  const trackContent = $('#accountTabContentTrack');
-  const profileContent = $('#accountTabContentProfile');
-
-  if (trackBtn) {
-    trackBtn.className = isTrack
-      ? 'flex-1 py-2.5 text-center border-b-2 border-black text-black font-bold transition'
-      : 'flex-1 py-2.5 text-center text-gray-400 hover:text-black border-b-2 border-transparent transition';
+  if (tab === 'track') {
+    closeAccountModal();
+    openTrackOrderModal();
+    return;
   }
-  if (profileBtn) {
-    profileBtn.className = !isTrack
-      ? 'flex-1 py-2.5 text-center border-b-2 border-black text-black font-bold transition'
-      : 'flex-1 py-2.5 text-center text-gray-400 hover:text-black border-b-2 border-transparent transition';
-  }
-
-  if (trackContent) trackContent.classList.toggle('hidden', !isTrack);
-  if (profileContent) {
-    profileContent.classList.toggle('hidden', isTrack);
-    if (!isTrack) renderAccountTab();
-  }
+  renderAccountTab();
 };
 
 window.renderAccountTab = function () {
   const container = $('#accountTabContentProfile');
   if (!container) return;
+  container.classList.remove('hidden');
 
   const profile = getUserProfile();
   const modalHeaderAvatar = $('#accountModalHeaderAvatar');
@@ -1645,7 +1656,7 @@ window.renderAccountTab = function () {
     <div class="mt-4">
       <div class="flex items-center justify-between mb-2">
         <h5 class="font-bold text-xs uppercase tracking-wider text-gray-800">My Orders (${userOrders.length})</h5>
-        ${userOrders.length > 0 ? `<button onclick="switchAccountTab('track')" class="text-[11px] text-luxos-gold font-semibold hover:underline">Track with ID &rarr;</button>` : ''}
+        ${userOrders.length > 0 ? `<button onclick="openTrackOrderModal()" class="text-[11px] text-amber-600 font-semibold hover:underline cursor-pointer">Track with ID &rarr;</button>` : ''}
       </div>
 
       <div class="space-y-2">
