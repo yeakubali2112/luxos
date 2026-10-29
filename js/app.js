@@ -373,28 +373,15 @@ function createProductCardHtml(p) {
 
         <!-- Product Meta -->
         <div class="space-y-1">
-          <div class="flex items-center justify-between text-xs text-gray-500">
-            <span class="uppercase tracking-widest text-[11px] font-medium">${p.category}</span>
-            <div class="flex items-center gap-1 text-amber-500">
-              <span>★</span>
-              <span class="text-gray-700 font-semibold">${p.rating}</span>
-              <span class="text-gray-400">(${p.reviewsCount})</span>
-            </div>
-          </div>
-
           <h3 class="text-sm font-medium text-gray-900 group-hover:text-black transition line-clamp-1">
             <a href="javascript:void(0)" onclick="openQuickView(${p.id})">${p.title}</a>
           </h3>
 
-          <!-- Color options preview -->
-          ${p.colors && p.colors.length > 0 ? `
-            <div class="flex items-center gap-1.5 pt-1">
-              ${p.colors.map((c, i) => `
-                <span class="w-2.5 h-2.5 rounded-full border border-gray-300" style="background-color: ${c.hex};" title="${c.name}"></span>
-              `).join('')}
-              <span class="text-[10px] text-gray-400 pl-1">${p.colors.length} colors</span>
-            </div>
-          ` : ''}
+          <div class="flex items-center gap-1 text-xs text-amber-500">
+            <span>★</span>
+            <span class="text-gray-700 font-semibold">${p.rating}</span>
+            <span class="text-gray-400">(${p.reviewsCount})</span>
+          </div>
         </div>
       </div>
 
