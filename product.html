@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title id="pageTitle">Executive RFID Card Holder | Luxos Official</title>
+  
+  <meta name="description" content="Discover the Executive RFID Card Holder by Luxos. Built with aerospace-grade aluminum, hand-finished vegan leather, and seamless one-click card ejector mechanism." />
+  <link rel="icon" type="image/png" href="images/logo.png" />
+
+  <!-- Google Fonts: Jost & Playfair Display -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Jost', 'sans-serif'],
+            serif: ['Playfair Display', 'serif']
+          },
+          colors: {
+            luxos: {
+              black: '#111111',
+              charcoal: '#1f1f1f',
+              gold: '#c5a880',
+              'gold-dark': '#a88b63',
+              cream: '#fbf9f5',
+              sand: '#f4efe6',
+              border: '#e7e5e0'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    /* Custom Scrollbar for Thumbnails */
+    .scrollbar-thin::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    .scrollbar-thin::-webkit-scrollbar-thumb {
+      background: #d1d5db;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="bg-white text-luxos-black selection:bg-neutral-900 selection:text-white">
+
+  <!-- =======================================================================
+       1. Top Announcement Bar
+       ======================================================================= -->
+  <div class="bg-black text-white text-xs py-2 px-4 border-b border-neutral-800">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-4 text-[11px] text-neutral-300">
+        <span>Cash on Delivery Available Across Bangladesh</span>
+      </div>
+
+      <div class="flex items-center gap-4 text-[11px] text-neutral-300">
+        <button onclick="openAccountModal('track')" class="hover:text-white transition">Track Order</button>
+        <button onclick="openWishlistModal()" class="hover:text-white transition flex items-center gap-1">
+          <span>Wishlist</span>
+          <span class="wishlist-count-badge hidden bg-white/20 text-white px-1.5 py-0.2 rounded-full text-[10px]">0</span>
+        </button>
+        <a href="index.html#footer" class="hover:text-white transition">Support</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- =======================================================================
+       2. Sticky Main Header
+       ======================================================================= -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-luxos-border transition-all duration-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 py-3.5 flex items-center justify-between gap-4">
+      
+      <!-- Mobile Hamburger Button -->
+      <div class="flex items-center lg:hidden">
+        <button onclick="openMobileNav()" aria-label="Open navigation menu" class="p-2 text-black hover:opacity-60 transition">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Brand Logo -->
+      <a href="index.html" class="flex items-center group py-1" aria-label="LUXOS Home">
+        <img src="images/logo.png" alt="LUXOS" class="h-7 sm:h-9 w-auto object-contain transition-transform duration-200 group-hover:scale-105" />
+      </a>
+
+      <!-- Desktop Navigation Menu -->
+      <nav class="hidden lg:flex items-center gap-7 text-xs font-medium uppercase tracking-wide-sm text-gray-800">
+        <a href="index.html#collectionSection" class="hover:text-black hover:border-b-2 hover:border-black py-1 transition-all">All Bags</a>
+        <a href="index.html#collectionSection" class="hover:text-black hover:border-b-2 hover:border-black py-1 transition-all">Tote Bag</a>
+        <a href="index.html#collectionSection" class="hover:text-black hover:border-b-2 hover:border-black py-1 transition-all">Shoulder Bag</a>
+        <a href="index.html#collectionSection" class="hover:text-black hover:border-b-2 hover:border-black py-1 transition-all">Crossbody</a>
+        <a href="index.html#collectionSection" class="hover:text-black hover:border-b-2 hover:border-black py-1 transition-all">Wallets &amp; Cards</a>
+        <a href="index.html#collectionSection" class="hover:text-black hover:border-b-2 hover:border-black py-1 transition-all">Footwear</a>
+        <a href="index.html#collectionSection" class="text-red-600 hover:text-red-700 font-semibold py-1 transition-all">Clearance Sale</a>
+      </nav>
+
+      <!-- Action Buttons (Profile, Search, Bag) -->
+      <div class="flex items-center gap-1 sm:gap-2">
+        <!-- Profile / Account Button -->
+        <button onclick="openAccountModal()" title="My Account &amp; Order Tracking" aria-label="My Account" class="p-2 text-black hover:opacity-60 transition flex items-center justify-center">
+          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="7.8" r="3.8" />
+            <path d="M4.5 20.5a7.5 7.5 0 0 1 15 0" />
+          </svg>
+        </button>
+
+        <!-- Search Button -->
+        <button onclick="openSearchModal()" title="Search Products" aria-label="Search" class="p-2 text-black hover:opacity-60 transition flex items-center justify-center">
+          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="10.5" cy="10.5" r="6.2" />
+            <path d="m15.2 15.2 5.3 5.3" />
+          </svg>
+        </button>
+
+        <!-- Cart Button -->
+        <button onclick="openCartDrawer()" title="View Shopping Bag" aria-label="Cart" class="p-2 text-black hover:opacity-60 transition relative flex items-center justify-center">
+          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <path d="M16 10a4 4 0 0 1-8 0" />
+          </svg>
+          <span class="cart-count-badge absolute top-1 right-1 bg-black text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">0</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- =======================================================================
+       3. Breadcrumb Navigation
+       ======================================================================= -->
+  <div class="bg-gray-50 border-b border-gray-100 py-2.5 px-4 sm:px-6 lg:px-8 text-[11px] text-gray-500">
+    <div class="max-w-7xl mx-auto flex items-center gap-2">
+      <a href="index.html" class="hover:text-black transition">Home</a>
+      <span>/</span>
+      <span id="breadcrumbCategory" class="hover:text-black transition cursor-pointer">Wallets &amp; Cards</span>
+      <span>/</span>
+      <span id="breadcrumbTitle" class="text-gray-900 font-semibold truncate max-w-[200px] sm:max-w-none">Executive RFID Card Holder</span>
+    </div>
+  </div>
+
+  <!-- =======================================================================
+       4. Main Product Landing Showcase (Matches User Screenshot Exactly)
+       ======================================================================= -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-start">
+      
+      <!-- ===================================================================
+           LEFT COLUMN: Vertical Thumbnails + Main Viewport + DETAILS Section
+           =================================================================== -->
+      <div class="lg:col-span-7">
+        
+        <!-- Gallery Container -->
+        <div class="flex flex-col-reverse sm:flex-row gap-4 items-start">
+          
+          <!-- Vertical Thumbnail Column (as in screenshot) -->
+          <div id="thumbnailContainer" class="flex sm:flex-col gap-2.5 overflow-x-auto sm:overflow-y-auto w-full sm:w-20 shrink-0 max-h-[560px] pb-2 sm:pb-0 scrollbar-thin">
+            <!-- Dynamic Thumbnails injected by JS -->
+          </div>
+
+          <!-- Main High-Res Image Viewport -->
+          <div class="flex-1 w-full relative bg-white border border-gray-100 rounded-sm overflow-hidden min-h-[380px] sm:min-h-[480px] lg:min-h-[560px] flex items-center justify-center group shadow-sm">
+            <img 
+              id="mainProductImage" 
+              src="https://thepatchee.com/cdn/shop/files/654a7e83-c512-4ec1-8ebf-af44c488e776.png?v=1781362688" 
+              alt="Executive RFID Card Holder" 
+              class="w-full h-full object-contain p-4 transition-transform duration-500 ease-out group-hover:scale-105 select-none" />
+          </div>
+
+        </div>
+
+        <!-- DETAILS: Macro Images & Specifications (Below Image, Matching Screenshot) -->
+        <div class="mt-12 pt-8 border-t border-gray-200">
+          <div class="flex items-center gap-3 mb-6">
+            <h3 class="text-xs font-bold uppercase tracking-[0.2em] text-neutral-400">DETAILS:</h3>
+            <div class="flex-1 h-px bg-gray-200"></div>
+          </div>
+          
+          <!-- Injected Macro Details (e.g. Carbon Fiber texture close-up) -->
+          <div id="detailsSectionContent" class="space-y-6">
+            <!-- Injected by JavaScript -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ===================================================================
+           RIGHT COLUMN: Sticky Product Purchase & Value Props (Matches Screenshot)
+           =================================================================== -->
+      <div class="lg:col-span-5 lg:sticky lg:top-24 space-y-4">
+        
+        <!-- 1. Stock Status -->
+        <div class="flex items-center gap-2">
+          <span class="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            In stock
+          </span>
+        </div>
+
+        <!-- 2. Product Title -->
+        <h1 id="pdpTitle" class="text-2xl sm:text-3xl font-bold uppercase tracking-[0.06em] text-[#111111] font-sans leading-tight">
+          EXECUTIVE RFID CARD HOLDER
+        </h1>
+
+        <!-- 3. Star Rating & Reviews Link -->
+        <div class="flex items-center gap-2">
+          <div class="flex text-amber-500 text-sm tracking-tight">★★★★★</div>
+          <a href="#reviewsSection" class="text-xs text-gray-500 hover:text-black font-medium transition cursor-pointer">
+            <span id="pdpReviewCount">65 reviews</span>
+          </a>
+        </div>
+
+        <!-- 4. SKU -->
+        <div id="pdpSku" class="text-[11px] text-gray-400 font-mono tracking-wider uppercase">
+          SKU: 190232
+        </div>
+
+        <!-- 5. Discount Tag -->
+        <div>
+          <span id="pdpDiscountBadge" class="inline-block bg-[#E57B24] text-white text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-sm">
+            SAVE 46%
+          </span>
+        </div>
+
+        <!-- 6. Pricing -->
+        <div class="flex items-baseline gap-3 pt-1">
+          <span id="pdpPrice" class="text-2xl sm:text-3xl font-bold text-[#111111]">৳ 687</span>
+          <span id="pdpOriginalPrice" class="text-base text-gray-400 line-through">৳ 1,272</span>
+        </div>
+
+        <!-- 7. YOU SAVE Banner (Peach Highlight) -->
+        <div id="pdpYouSaveContainer">
+          <div id="pdpYouSave" class="bg-[#FDF0E6] text-[#A84A04] text-xs font-bold px-3 py-1.5 rounded-sm inline-block tracking-wide">
+            YOU SAVE ৳ 585
+          </div>
+        </div>
+
+        <!-- 8. Buy Now, Pay Later Banner -->
+        <div class="bg-[#F8F9FA] border border-gray-200 rounded-sm p-3 flex items-center justify-between text-xs text-gray-700">
+          <div class="flex items-center gap-2.5">
+            <span class="text-lg">💳</span>
+            <div>
+              <span class="font-bold text-gray-900">Buy Now, Pay Later!</span>
+              <span class="text-gray-500 block text-[11px]">Exclusive perks for orders of ৳2,000 or more.</span>
+            </div>
+          </div>
+          <span class="text-[10px] font-bold uppercase bg-[#D1A65E]/20 text-[#8C6421] px-2 py-0.5 rounded">Active</span>
+        </div>
+
+        <!-- 9. Estimated Delivery Banner -->
+        <div class="bg-[#EEF7F2] border border-[#CDE5D7] text-[#1E6B43] text-xs font-medium px-3.5 py-2.5 rounded-sm flex items-center gap-2.5">
+          <svg class="w-4 h-4 text-[#1E6B43] shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.25H4.125C3.504 7.5 3 8.004 3 8.625V15" />
+          </svg>
+          <span>Estimated Delivery: <b>3–5 Days</b> — Ships directly from Dhaka</span>
+        </div>
+
+        <!-- 10. Color Variant Selector -->
+        <div class="pt-2">
+          <label class="block text-xs font-semibold text-gray-800 uppercase tracking-wider mb-2">
+            Color: <span id="pdpSelectedColorName" class="font-bold text-gray-900">Noir Black</span>
+          </label>
+          <div id="colorSwatchesContainer" class="flex flex-wrap gap-2">
+            <!-- Dynamic variant swatches injected by JS -->
+          </div>
+        </div>
+
+        <!-- 11. Quantity Selector -->
+        <div class="pt-1">
+          <div class="flex items-center border border-gray-300 w-32 rounded-sm bg-white">
+            <button onclick="updatePdpQty(-1)" class="w-10 h-9 flex items-center justify-center text-gray-600 hover:bg-gray-100 font-bold transition select-none">-</button>
+            <input id="pdpQuantity" type="number" value="1" min="1" max="10" class="w-12 text-center text-sm font-semibold border-none focus:outline-none bg-transparent" readonly />
+            <button onclick="updatePdpQty(1)" class="w-10 h-9 flex items-center justify-center text-gray-600 hover:bg-gray-100 font-bold transition select-none">+</button>
+          </div>
+        </div>
+
+        <!-- 12. Exclusive Discount Countdown Timer Box (As in Screenshot) -->
+        <div class="bg-gray-50 border border-gray-200 rounded-sm p-4 text-center">
+          <div class="text-xs font-bold uppercase tracking-[0.18em] text-[#111111] mb-2.5">
+            EXCLUSIVE DISCOUNT
+          </div>
+          
+          <div class="grid grid-cols-4 gap-2 max-w-xs mx-auto">
+            <!-- Days -->
+            <div class="bg-white border border-gray-300 rounded p-1.5 shadow-sm">
+              <span id="timerDays" class="block font-bold text-base text-gray-900">00</span>
+              <span class="text-[9px] uppercase tracking-wider text-gray-500 font-medium">Days</span>
+            </div>
+            <!-- Hours -->
+            <div class="bg-white border border-gray-300 rounded p-1.5 shadow-sm">
+              <span id="timerHours" class="block font-bold text-base text-gray-900">01</span>
+              <span class="text-[9px] uppercase tracking-wider text-gray-500 font-medium">Hours</span>
+            </div>
+            <!-- Minutes -->
+            <div class="bg-white border border-gray-300 rounded p-1.5 shadow-sm">
+              <span id="timerMinutes" class="block font-bold text-base text-gray-900">29</span>
+              <span class="text-[9px] uppercase tracking-wider text-gray-500 font-medium">Minutes</span>
+            </div>
+            <!-- Seconds -->
+            <div class="bg-white border border-gray-300 rounded p-1.5 shadow-sm">
+              <span id="timerSeconds" class="block font-bold text-base text-gray-900">40</span>
+              <span class="text-[9px] uppercase tracking-wider text-gray-500 font-medium">Seconds</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 13. Primary CTA Buttons -->
+        <div class="space-y-3 pt-2">
+          <!-- Button 1: Gold Luxury ADD TO CART -->
+          <button 
+            onclick="handleAddToCartPDP()" 
+            class="w-full bg-[#C5A880] hover:bg-[#b09268] text-white font-bold uppercase text-xs sm:text-sm tracking-[0.18em] py-3.5 rounded-sm transition-all duration-200 shadow flex items-center justify-center gap-2 cursor-pointer">
+            <span>ADD TO CART</span>
+          </button>
+
+          <!-- Button 2: Black Pill ORDER NOW - CASH ON DELIVERY -->
+          <button 
+            onclick="handleOrderNowCOD()" 
+            class="w-full bg-black hover:bg-neutral-800 text-white font-semibold text-xs sm:text-sm tracking-wide py-3.5 rounded-full transition-all duration-200 shadow-md flex items-center justify-center gap-2.5 cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
+            </svg>
+            <span>Order Now - Cash on Delivery</span>
+          </button>
+        </div>
+
+        <!-- 14. Feature Badges (Interior Pocket, RFID) -->
+        <div class="flex items-center justify-center gap-6 pt-3 text-xs text-gray-600 border-t border-gray-100">
+          <div class="flex items-center gap-1.5">
+            <svg class="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/></svg>
+            <span class="font-medium">Interior Pocket</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <svg class="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/></svg>
+            <span class="font-medium">RFID Protection</span>
+          </div>
+        </div>
+
+        <!-- 15. Trust Badges (2x2 Grid) -->
+        <div class="grid grid-cols-2 gap-3 pt-3">
+          <div class="p-3 border border-gray-200 rounded-sm bg-neutral-50/50">
+            <div class="flex items-center gap-1.5 text-xs font-bold text-gray-900">
+              <span class="text-emerald-600">✓</span> 100% Authentic
+            </div>
+            <p class="text-[10px] text-gray-500 mt-0.5">100% genuine products</p>
+          </div>
+          <div class="p-3 border border-gray-200 rounded-sm bg-neutral-50/50">
+            <div class="flex items-center gap-1.5 text-xs font-bold text-gray-900">
+              <span>🔒</span> Secure Checkout
+            </div>
+            <p class="text-[10px] text-gray-500 mt-0.5">Your data is safe</p>
+          </div>
+          <div class="p-3 border border-gray-200 rounded-sm bg-neutral-50/50">
+            <div class="flex items-center gap-1.5 text-xs font-bold text-gray-900">
+              <span>↩</span> 48h Easy Return
+            </div>
+            <p class="text-[10px] text-gray-500 mt-0.5">Hassle-free guarantee</p>
+          </div>
+          <div class="p-3 border border-gray-200 rounded-sm bg-neutral-50/50">
+            <div class="flex items-center gap-1.5 text-xs font-bold text-gray-900">
+              <span>⚡</span> Guaranteed Delivery
+            </div>
+            <p class="text-[10px] text-gray-500 mt-0.5">Direct to your doorstep</p>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- =======================================================================
+       5. Customer Reviews & Ratings Engine (Requested Feature)
+       "ei page er niche sei product er revire golo dekha jabe ar new review dite parbe user"
+       ======================================================================= -->
+  <section id="reviewsSection" class="bg-gray-50 border-t border-gray-200 py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- Section Title -->
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10 pb-4 border-b border-gray-200">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-[0.2em] text-neutral-400">Verified Feedback</span>
+          <h2 class="text-2xl sm:text-3xl font-bold uppercase tracking-wider text-gray-900 font-sans mt-1">
+            Customer Reviews &amp; Experiences
+          </h2>
+          <p class="text-xs text-gray-500 mt-1">Real ratings and verified reviews from buyers across Bangladesh.</p>
+        </div>
+
+        <div>
+          <button 
+            onclick="toggleReviewForm()" 
+            class="bg-black hover:bg-neutral-800 text-white text-xs font-bold uppercase tracking-wider px-6 py-3 rounded-sm transition shadow flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg>
+            <span>Write a Review</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Rating Scorecard Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-center bg-white border border-gray-200 rounded-sm p-6 sm:p-8 mb-10 shadow-sm">
+        
+        <!-- Score Overview (col 4) -->
+        <div class="md:col-span-4 text-center md:border-r md:border-gray-200 md:pr-8">
+          <div id="scorecardAvgRating" class="text-5xl font-extrabold text-gray-900 font-sans">4.9</div>
+          <div id="scorecardStars" class="flex justify-center text-amber-500 text-lg tracking-tight my-2">★★★★★</div>
+          <p id="scorecardTotalReviews" class="text-xs text-gray-500 font-medium">Based on 65 verified reviews</p>
+          <span class="inline-block mt-3 bg-emerald-50 text-emerald-700 text-[11px] font-semibold px-3 py-1 rounded-full border border-emerald-200">
+            ✓ 98% Buyers Recommend This Product
+          </span>
+        </div>
+
+        <!-- Rating Distribution Progress Bars (col 8) -->
+        <div id="ratingBarsContainer" class="md:col-span-8 space-y-2 sm:pl-4">
+          <!-- Injected by JavaScript -->
+        </div>
+
+      </div>
+
+      <!-- Interactive Review Submission Form (Collapsible) -->
+      <div id="writeReviewFormContainer" class="hidden mb-12 bg-white border-2 border-black rounded-sm p-6 sm:p-8 shadow-xl transition-all duration-300">
+        <div class="flex items-center justify-between pb-4 border-b border-gray-200 mb-6">
+          <div>
+            <h3 class="text-base font-bold uppercase tracking-wider text-gray-900">Share Your Experience</h3>
+            <p class="text-xs text-gray-500">Your review helps other buyers make confident decisions.</p>
+          </div>
+          <button onclick="toggleReviewForm()" class="text-gray-400 hover:text-black p-1">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+        </div>
+
+        <form onsubmit="handleReviewSubmit(event)" class="space-y-4">
+          <!-- Star Rating Picker -->
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-1.5">Overall Rating *</label>
+            <div class="flex items-center gap-2">
+              <div class="flex gap-1 text-2xl cursor-pointer">
+                <button type="button" data-value="1" class="review-star-picker-btn text-amber-500 hover:scale-110 transition">★</button>
+                <button type="button" data-value="2" class="review-star-picker-btn text-amber-500 hover:scale-110 transition">★</button>
+                <button type="button" data-value="3" class="review-star-picker-btn text-amber-500 hover:scale-110 transition">★</button>
+                <button type="button" data-value="4" class="review-star-picker-btn text-amber-500 hover:scale-110 transition">★</button>
+                <button type="button" data-value="5" class="review-star-picker-btn text-amber-500 hover:scale-110 transition">★</button>
+              </div>
+              <span id="starPickerLabel" class="text-xs font-semibold text-gray-600 pl-2">Excellent — Loved it!</span>
+            </div>
+          </div>
+
+          <!-- Customer Name & City Grid -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1">Your Full Name *</label>
+              <input id="reviewAuthorName" type="text" required placeholder="e.g. Tanvir Hasan" class="w-full border border-gray-300 text-xs px-3 py-2.5 rounded-sm focus:outline-none focus:border-black" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1">Location / District</label>
+              <input id="reviewAuthorCity" type="text" placeholder="e.g. Dhanmondi, Dhaka" class="w-full border border-gray-300 text-xs px-3 py-2.5 rounded-sm focus:outline-none focus:border-black" />
+            </div>
+          </div>
+
+          <!-- Color Variant Purchased -->
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1">Purchased Color / Variant</label>
+            <select id="reviewVariantSelect" class="w-full border border-gray-300 text-xs px-3 py-2.5 rounded-sm focus:outline-none focus:border-black bg-white">
+              <option value="Noir Black">Noir Black</option>
+              <option value="Mocha Brown">Mocha Brown</option>
+              <option value="Carbon Black">Carbon Black</option>
+              <option value="Tan Camel">Tan Camel</option>
+              <option value="Navy Blue">Navy Blue</option>
+            </select>
+          </div>
+
+          <!-- Review Headline -->
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1">Review Headline</label>
+            <input id="reviewHeadline" type="text" placeholder="e.g. Premium leather and smooth card popup!" class="w-full border border-gray-300 text-xs px-3 py-2.5 rounded-sm focus:outline-none focus:border-black" />
+          </div>
+
+          <!-- Review Message Body -->
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1">Review Description *</label>
+            <textarea id="reviewBody" required rows="4" placeholder="How is the quality, build, delivery, and everyday experience with this product?" class="w-full border border-gray-300 text-xs p-3 rounded-sm focus:outline-none focus:border-black"></textarea>
+          </div>
+
+          <!-- Photo Attachment -->
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1">Attach Photo (Optional)</label>
+            <input type="file" accept="image/*" onchange="handleReviewPhotoSelect(event)" class="text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-sm file:border-0 file:text-xs file:font-semibold file:bg-neutral-100 file:text-neutral-800 hover:file:bg-neutral-200 cursor-pointer" />
+            <img id="reviewPhotoPreview" class="hidden w-20 h-20 object-cover rounded mt-2 border border-gray-300" alt="Preview" />
+          </div>
+
+          <!-- Submit Buttons -->
+          <div class="pt-3 flex items-center gap-3">
+            <button type="submit" class="bg-black hover:bg-neutral-800 text-white text-xs font-bold uppercase tracking-wider px-8 py-3.5 rounded-sm transition shadow cursor-pointer">
+              Submit Verified Review
+            </button>
+            <button type="button" onclick="toggleReviewForm()" class="border border-gray-300 text-gray-700 text-xs font-semibold uppercase tracking-wider px-6 py-3.5 rounded-sm hover:border-black transition">
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Review Filter Pills -->
+      <div class="flex items-center gap-2 mb-6 overflow-x-auto pb-2 text-xs">
+        <button id="reviewFilterBtn_all" onclick="renderReviewsList('all')" class="review-filter-btn bg-black text-white px-4 py-2 rounded-full font-semibold shrink-0 transition">
+          All Reviews
+        </button>
+        <button id="reviewFilterBtn_5" onclick="renderReviewsList('5')" class="review-filter-btn bg-gray-100 text-gray-700 hover:bg-gray-200 px-4 py-2 rounded-full font-medium shrink-0 transition">
+          5 Stars Only
+        </button>
+        <button id="reviewFilterBtn_photos" onclick="renderReviewsList('photos')" class="review-filter-btn bg-gray-100 text-gray-700 hover:bg-gray-200 px-4 py-2 rounded-full font-medium shrink-0 transition">
+          With Photos Only
+        </button>
+      </div>
+
+      <!-- Customer Reviews List -->
+      <div id="reviewsListContainer" class="space-y-4">
+        <!-- Injected dynamically by JavaScript -->
+      </div>
+
+    </div>
+  </section>
+
+  <!-- =======================================================================
+       6. Recommended / Related Products ("You May Also Like")
+       ======================================================================= -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <div class="text-center mb-10">
+      <span class="text-xs font-bold uppercase tracking-[0.2em] text-neutral-400">Curated For You</span>
+      <h3 class="text-2xl font-bold uppercase tracking-wider text-gray-900 mt-1 font-sans">
+        You May Also Like
+      </h3>
+    </div>
+    
+    <div id="relatedProductsGrid" class="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+      <!-- Injected by JavaScript -->
+    </div>
+  </section>
+
+  <!-- =======================================================================
+       7. Footer
+       ======================================================================= -->
+  <footer id="footer" class="bg-neutral-950 text-white pt-16 pb-12 border-t border-neutral-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-10 pb-12 border-b border-neutral-800">
+        
+        <!-- Brand Info -->
+        <div class="space-y-4">
+          <a href="index.html">
+            <img src="images/logo.png" alt="LUXOS" class="h-8 w-auto brightness-200 invert" />
+          </a>
+          <p class="text-xs text-neutral-400 leading-relaxed">
+            Elevating modern living through architectural silhouettes, ergonomic smart everyday carry, and timeless luxury craftsmanship.
+          </p>
+          <div class="text-xs text-neutral-400 space-y-1">
+            <p>📍 Banani, Dhaka, Bangladesh</p>
+            <p>📞 +880 1712-345678</p>
+            <p>✉️ support@luxosbd.com</p>
+          </div>
+        </div>
+
+        <!-- Collections -->
+        <div class="space-y-3">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-neutral-200">Shop Collections</h4>
+          <ul class="text-xs space-y-2 text-neutral-400">
+            <li><a href="index.html#collectionSection" class="hover:text-white transition">Tote Bags</a></li>
+            <li><a href="index.html#collectionSection" class="hover:text-white transition">Shoulder Bags</a></li>
+            <li><a href="index.html#collectionSection" class="hover:text-white transition">Crossbody Bags</a></li>
+            <li><a href="index.html#collectionSection" class="hover:text-white transition">Smart RFID Wallets</a></li>
+            <li><a href="index.html#collectionSection" class="hover:text-white transition">Prime Footwear</a></li>
+            <li><a href="index.html#collectionSection" class="hover:text-white transition">Clearance Deals</a></li>
+          </ul>
+        </div>
+
+        <!-- Customer Support -->
+        <div class="space-y-3">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-neutral-200">Customer Support</h4>
+          <ul class="text-xs space-y-2 text-neutral-400">
+            <li><a href="javascript:void(0)" onclick="openAccountModal('track')" class="hover:text-white transition">Track My Order</a></li>
+            <li><a href="javascript:void(0)" class="hover:text-white transition">Return &amp; Refund Policy</a></li>
+            <li><a href="javascript:void(0)" class="hover:text-white transition">Shipping &amp; Delivery Information</a></li>
+            <li><a href="javascript:void(0)" class="hover:text-white transition">Privacy Policy</a></li>
+            <li><a href="javascript:void(0)" class="hover:text-white transition">Terms of Service</a></li>
+          </ul>
+        </div>
+
+        <!-- Newsletter -->
+        <div class="space-y-3">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-neutral-200">Join the Luxos Club</h4>
+          <p class="text-xs text-neutral-400">Subscribe for private sale invitations and exclusive discount coupons.</p>
+          <div class="flex gap-2">
+            <input type="email" placeholder="Enter your email" class="w-full bg-neutral-900 border border-neutral-700 text-white text-xs px-3 py-2.5 rounded-sm focus:outline-none focus:border-white" />
+            <button class="bg-white text-black text-xs font-bold uppercase px-4 py-2.5 rounded-sm hover:bg-neutral-200 transition">Go</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Bottom Bar with Payment Icons -->
+      <div class="pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-neutral-500">
+        <p>© 2026 <b>Luxos Bangladesh</b>. All rights reserved. Handcrafted with passion.</p>
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="text-[11px] text-neutral-400 mr-2">Secure Payments:</span>
+          <span class="px-2 py-0.5 bg-neutral-900 border border-neutral-700 rounded text-[10px] text-neutral-300 font-semibold">bKash</span>
+          <span class="px-2 py-0.5 bg-neutral-900 border border-neutral-700 rounded text-[10px] text-neutral-300 font-semibold">Nagad</span>
+          <span class="px-2 py-0.5 bg-neutral-900 border border-neutral-700 rounded text-[10px] text-neutral-300 font-semibold">Cash on Delivery</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- =======================================================================
+       8. Cart Drawer
+       ======================================================================= -->
+  <div id="cartBackdrop" onclick="closeCartDrawer()" class="drawer-backdrop fixed inset-0 bg-black/60 z-50 backdrop-blur-sm"></div>
+  <aside id="cartDrawer" class="drawer-panel fixed top-0 right-0 bottom-0 w-full max-w-md bg-white z-50 flex flex-col shadow-2xl">
+    <div class="p-4 border-b border-gray-200 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <h3 class="font-bold text-base uppercase tracking-wider text-gray-900">Shopping Bag</h3>
+        <span class="cart-count-badge bg-black text-white text-[10px] font-bold px-2 py-0.5 rounded-full">0</span>
+      </div>
+      <button onclick="closeCartDrawer()" aria-label="Close Bag" class="p-1 text-gray-400 hover:text-black">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+      </button>
+    </div>
+
+    <div class="bg-gray-50 p-3 border-b border-gray-200 text-xs">
+      <p id="freeShippingText" class="text-gray-700 text-center font-medium">Add <b>৳ 3,000</b> more for <b>FREE Delivery</b>!</p>
+      <div class="w-full bg-gray-200 h-1.5 rounded-full mt-2 overflow-hidden">
+        <div id="freeShippingProgress" class="bg-black h-full rounded-full transition-all duration-300" style="width: 0%;"></div>
+      </div>
+    </div>
+
+    <div id="cartItemsList" class="flex-1 overflow-y-auto p-4 space-y-2"></div>
+
+    <div class="p-4 border-t border-gray-200 bg-gray-50 space-y-3">
+      <div class="flex justify-between text-sm font-medium text-gray-700">
+        <span>Estimated Subtotal:</span>
+        <span id="cartSubtotal" class="font-bold text-gray-900 text-base">৳ 0</span>
+      </div>
+      <button onclick="openCheckoutModal()" class="w-full bg-black text-white text-xs uppercase tracking-luxury font-bold py-3.5 rounded-sm hover:bg-neutral-800 transition shadow flex items-center justify-center gap-2 cursor-pointer">
+        <span>Proceed to Checkout</span>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg>
+      </button>
+    </div>
+  </aside>
+
+  <!-- =======================================================================
+       9. Cash on Delivery Checkout Modal
+       ======================================================================= -->
+  <div id="checkoutModal" class="modal-overlay fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+    <div id="checkoutModalContent" class="modal-content bg-white w-full max-w-xl rounded-sm shadow-2xl max-h-[90vh] overflow-y-auto relative">
+      <button onclick="closeCheckoutModal()" class="absolute top-4 right-4 text-gray-400 hover:text-black p-1">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+      </button>
+
+      <div class="p-6">
+        <span class="text-xs font-semibold uppercase tracking-widest text-gray-500">Fast Checkout</span>
+        <h2 class="text-xl font-bold text-gray-900 mt-1">Complete Your Order</h2>
+
+        <div id="checkoutItemsPreview" class="my-4 max-h-36 overflow-y-auto"></div>
+
+        <form onsubmit="placeOrder(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Full Name *</label>
+            <input id="custName" type="text" required placeholder="e.g. Farhan Ahmed" class="w-full border border-gray-300 text-xs px-3 py-2.5 rounded-sm focus:outline-none focus:border-black" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Mobile Number (For Delivery Confirmation) *</label>
+            <input id="custPhone" type="tel" required placeholder="017XXXXXXXX" class="w-full border border-gray-300 text-xs px-3 py-2.5 rounded-sm focus:outline-none focus:border-black" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">Delivery Area *</label>
+            <div class="grid grid-cols-2 gap-3">
+              <label class="flex items-center gap-2 p-3 border border-gray-300 rounded-sm cursor-pointer hover:border-black">
+                <input type="radio" name="deliveryZone" value="inside_dhaka" checked onchange="setDeliveryZone('inside_dhaka')" />
+                <div class="text-xs">
+                  <p class="font-bold text-gray-900">Inside Dhaka</p>
+                  <p class="text-gray-500">৳ 70 (2-3 Days)</p>
+                </div>
+              </label>
+              <label class="flex items-center gap-2 p-3 border border-gray-300 rounded-sm cursor-pointer hover:border-black">
+                <input type="radio" name="deliveryZone" value="outside_dhaka" onchange="setDeliveryZone('outside_dhaka')" />
+                <div class="text-xs">
+                  <p class="font-bold text-gray-900">Outside Dhaka</p>
+                  <p class="text-gray-500">৳ 130 (3-5 Days)</p>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Full Delivery Address *</label>
+            <textarea id="custAddress" required rows="2" placeholder="House, Road, Area, District/Thana" class="w-full border border-gray-300 text-xs p-2.5 rounded-sm focus:outline-none focus:border-black"></textarea>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">Discount Coupon</label>
+            <div class="flex gap-2">
+              <input id="couponInput" type="text" placeholder="Try LUXOS10" class="flex-1 border border-gray-300 text-xs px-3 py-2 rounded-sm uppercase focus:outline-none focus:border-black" />
+              <button type="button" onclick="applyCoupon()" class="bg-gray-800 text-white text-xs font-bold px-4 py-2 rounded-sm hover:bg-black transition">
+                Apply
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">Payment Method *</label>
+            <div class="space-y-2 text-xs">
+              <label class="flex items-center gap-2 p-2.5 border border-gray-300 rounded-sm cursor-pointer hover:border-black">
+                <input type="radio" name="paymentMethod" value="Cash on Delivery" checked />
+                <span class="font-bold text-gray-900">Cash on Delivery (Pay when you receive)</span>
+              </label>
+              <label class="flex items-center gap-2 p-2.5 border border-gray-300 rounded-sm cursor-pointer hover:border-black">
+                <input type="radio" name="paymentMethod" value="bKash / Nagad" />
+                <span class="font-bold text-gray-900">bKash / Nagad Online Payment</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="border-t border-gray-200 pt-3 space-y-1.5 text-xs text-gray-600">
+            <div class="flex justify-between">
+              <span>Subtotal:</span>
+              <span id="checkoutSubtotal" class="font-semibold text-gray-900">৳ 0</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Delivery Fee:</span>
+              <span id="checkoutShipping" class="font-semibold text-gray-900">৳ 70</span>
+            </div>
+            <div id="checkoutDiscountRow" class="flex justify-between text-emerald-600 font-semibold hidden">
+              <span>Promo Discount (10%):</span>
+              <span id="checkoutDiscount">- ৳ 0</span>
+            </div>
+            <div class="flex justify-between text-sm font-bold text-gray-900 pt-2 border-t border-gray-200">
+              <span>Total Payable:</span>
+              <span id="checkoutGrandTotal" class="text-base text-gray-900">৳ 0</span>
+            </div>
+          </div>
+
+          <button type="submit" class="w-full bg-black text-white text-xs uppercase tracking-luxury font-bold py-3.5 rounded-sm hover:bg-neutral-800 transition shadow mt-4 cursor-pointer">
+            Confirm &amp; Place Order
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- =======================================================================
+       10. Live Search Modal
+       ======================================================================= -->
+  <div id="searchModal" class="modal-overlay fixed inset-0 bg-black/60 z-50 flex items-start justify-center p-4 pt-16 sm:pt-24 backdrop-blur-sm">
+    <div class="modal-content bg-white w-full max-w-2xl rounded-sm shadow-2xl p-6 relative max-h-[85vh] flex flex-col">
+      <button onclick="closeSearchModal()" class="absolute top-4 right-4 text-gray-400 hover:text-black p-1">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+      </button>
+
+      <div class="flex items-center gap-3 border-b-2 border-black pb-2 mb-6">
+        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
+        <input 
+          id="searchInput" 
+          type="text" 
+          placeholder="Search tote bags, wallets, backpacks, loafers..." 
+          oninput="performSearch(this.value)"
+          class="w-full text-base sm:text-lg focus:outline-none text-gray-900" />
+      </div>
+
+      <div id="searchResults" class="flex-1 overflow-y-auto"></div>
+    </div>
+  </div>
+
+  <!-- =======================================================================
+       11. Wishlist Modal
+       ======================================================================= -->
+  <div id="wishlistModal" class="modal-overlay fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+    <div class="modal-content bg-white w-full max-w-lg rounded-sm shadow-2xl p-6 relative max-h-[85vh] flex flex-col">
+      <div class="flex items-center justify-between border-b border-gray-200 pb-3 mb-4">
+        <h3 class="font-bold text-base uppercase tracking-wider text-gray-900">My Saved Wishlist</h3>
+        <button onclick="closeWishlistModal()" class="text-gray-400 hover:text-black p-1">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+      </div>
+      <div id="wishlistItems" class="flex-1 overflow-y-auto space-y-2"></div>
+    </div>
+  </div>
+
+  <!-- =======================================================================
+       12. Customer Account & Order Tracking Modal
+       ======================================================================= -->
+  <div id="accountModal" class="modal-overlay fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+    <div class="modal-content bg-white w-full max-w-lg rounded-sm shadow-2xl p-6 relative max-h-[90vh] flex flex-col">
+      <div class="flex items-center justify-between border-b border-gray-200 pb-3 mb-4">
+        <div class="flex items-center gap-2.5">
+          <div id="accountModalHeaderAvatar" class="w-9 h-9 rounded-full bg-neutral-100 flex items-center justify-center text-black overflow-hidden border border-gray-200 shrink-0">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="7.8" r="3.8" />
+              <path d="M4.5 20.5a7.5 7.5 0 0 1 15 0" />
+            </svg>
+          </div>
+          <div>
+            <h3 id="accountModalTitle" class="font-bold text-sm sm:text-base uppercase tracking-wider text-gray-900">My Account</h3>
+            <p id="accountModalSubtitle" class="text-[11px] text-gray-500">Track shipment &amp; manage your profile</p>
+          </div>
+        </div>
+        <button onclick="closeAccountModal()" class="text-gray-400 hover:text-black p-1 transition" aria-label="Close">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+      </div>
+
+      <div class="flex border-b border-gray-200 mb-4 text-xs font-semibold uppercase tracking-wider">
+        <button id="accountTabTrack" onclick="switchAccountTab('track')" class="flex-1 py-2.5 text-center border-b-2 border-black text-black font-bold transition">Track Order</button>
+        <button id="accountTabProfile" onclick="switchAccountTab('profile')" class="flex-1 py-2.5 text-center text-gray-400 hover:text-black border-b-2 border-transparent transition">My Account</button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto pr-1">
+        <div id="accountTabContentTrack" class="space-y-4">
+          <div class="bg-neutral-50 p-4 rounded-sm border border-neutral-200">
+            <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">Enter Order ID or Mobile Number</label>
+            <div class="flex gap-2">
+              <input id="trackSearchInput" type="text" placeholder="e.g. LX-102948 or 017XXXXXXXX" onkeydown="if(event.key==='Enter') searchOrderStatus()" class="flex-1 border border-gray-300 text-xs px-3 py-2.5 rounded-sm focus:outline-none focus:border-black uppercase bg-white" />
+              <button onclick="searchOrderStatus()" class="bg-black text-white text-xs font-bold px-4 py-2.5 rounded-sm hover:bg-neutral-800 transition">Track</button>
+            </div>
+            <p class="text-[10px] text-gray-500 mt-1.5">Instant delivery status update for orders placed in Bangladesh.</p>
+          </div>
+          <div id="trackResultContainer" class="space-y-3"></div>
+        </div>
+        <div id="accountTabContentProfile" class="hidden space-y-4"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =======================================================================
+       13. Mobile Navigation Drawer
+       ======================================================================= -->
+  <div id="mobileNavBackdrop" onclick="closeMobileNav()" class="drawer-backdrop fixed inset-0 bg-black/60 z-50 backdrop-blur-sm"></div>
+  <aside id="mobileNavDrawer" class="drawer-panel-left fixed top-0 left-0 bottom-0 w-72 bg-white z-50 flex flex-col shadow-2xl">
+    <div class="p-4 border-b border-gray-200 flex items-center justify-between">
+      <a href="index.html" onclick="closeMobileNav()">
+        <img src="images/logo.png" alt="LUXOS" class="h-6 w-auto object-contain" />
+      </a>
+      <button onclick="closeMobileNav()" class="text-gray-400 hover:text-black p-1">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+      </button>
+    </div>
+    <div class="flex-1 overflow-y-auto p-4 space-y-4 text-xs font-semibold uppercase tracking-wider">
+      <a href="index.html#collectionSection" onclick="closeMobileNav()" class="block py-2 border-b border-gray-100">All Collections</a>
+      <a href="index.html#collectionSection" onclick="closeMobileNav()" class="block py-2 border-b border-gray-100">Tote Bags</a>
+      <a href="index.html#collectionSection" onclick="closeMobileNav()" class="block py-2 border-b border-gray-100">Shoulder Bags</a>
+      <a href="index.html#collectionSection" onclick="closeMobileNav()" class="block py-2 border-b border-gray-100">Crossbody Bags</a>
+      <a href="index.html#collectionSection" onclick="closeMobileNav()" class="block py-2 border-b border-gray-100">Wallets &amp; Card Holders</a>
+      <a href="index.html#collectionSection" onclick="closeMobileNav()" class="block py-2 border-b border-gray-100">Prime Footwear</a>
+      <a href="index.html#collectionSection" onclick="closeMobileNav()" class="block py-2 border-b border-gray-100 text-red-600 font-bold">Clearance Deals</a>
+    </div>
+  </aside>
+
+  <!-- =======================================================================
+       14. Floating WhatsApp Order Button
+       ======================================================================= -->
+  <a href="https://wa.me/8801712345678?text=Hello%20Luxos!%20I%20want%20to%20order%20the%20Executive%20RFID%20Card%20Holder." 
+     target="_blank" 
+     rel="noopener noreferrer" 
+     aria-label="Chat on WhatsApp"
+     class="whatsapp-float-btn fixed bottom-4 right-4 z-40 bg-[#25D366] hover:bg-[#20ba5a] text-white p-3 rounded-full shadow-2xl flex items-center justify-center transition-transform hover:scale-110">
+    <svg class="w-7 h-7 fill-white" viewBox="0 0 24 24">
+      <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.698c.969.586 1.838.895 2.796.895 3.181 0 5.767-2.587 5.767-5.766.001-3.187-2.575-5.87-5.767-5.872zm3.392 8.235c-.143.402-.83.743-1.144.789-.306.046-.689.066-2.115-.523-1.821-.75-2.983-2.607-3.074-2.727-.09-.12-1.045-1.393-1.045-2.656 0-1.264.664-1.888.899-2.148.236-.261.517-.326.69-.326.172 0 .344.002.495.009.157.007.369-.06.577.44.215.516.732 1.785.796 1.915.064.13.107.283.021.455-.086.172-.13.28-.258.43-.129.15-.271.335-.387.45-.129.129-.264.269-.114.526.151.257.669 1.101 1.435 1.784.985.877 1.815 1.15 2.072 1.279.258.129.408.108.558-.065.15-.172.644-.752.816-1.01.172-.258.344-.215.578-.129.236.086 1.488.702 1.745.831.258.129.43.193.495.301.064.108.064.624-.079 1.026z"/>
+    </svg>
+  </a>
+
+  <!-- Core Scripts -->
+  <script src="js/products.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/product-page.js"></script>
+</body>
+</html>

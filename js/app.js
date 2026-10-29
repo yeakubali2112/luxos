@@ -346,7 +346,7 @@ function createProductCardHtml(p) {
           </button>
 
           <!-- Product Images with Hover Flip -->
-          <a href="javascript:void(0)" onclick="openQuickView(${p.id})" class="block w-full h-full">
+          <a href="product.html?id=${p.id}" class="block w-full h-full">
             <img 
               src="${p.image}" 
               alt="${p.title}" 
@@ -370,8 +370,8 @@ function createProductCardHtml(p) {
               <span>Add to Cart</span>
             </button>
             <button 
-              onclick="openQuickView(${p.id})"
-              title="Quick View"
+              onclick="window.location.href='product.html?id=${p.id}'"
+              title="View Product Landing Page"
               class="bg-white text-black p-2.5 rounded-sm hover:bg-gray-100 transition shadow-md flex items-center justify-center">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
@@ -390,7 +390,7 @@ function createProductCardHtml(p) {
 
           <!-- Title -->
           <h3 class="text-[13.5px] font-normal leading-snug line-clamp-1">
-            <a href="javascript:void(0)" onclick="openQuickView(${p.id})" class="text-[#1a56db] hover:underline">
+            <a href="product.html?id=${p.id}" class="text-[#1a56db] hover:underline">
               ${p.title}
             </a>
           </h3>
@@ -757,120 +757,16 @@ function renderWishlistModal() {
 }
 
 /* ==========================================================================
-   Quick View Modal
+   Product Navigation / Landing Page
    ========================================================================== */
 window.openQuickView = function (productId) {
-  const currentProducts = getStoreProducts();
-  const product = currentProducts.find(p => p.id === productId);
-  if (!product) return;
+  window.location.href = `product.html?id=${productId}`;
+};
 
+window.closeQuickView = function () {
   const modal = $('#quickViewModal');
-  const content = $('#quickViewContent');
-  if (!modal || !content) return;
-
-  let selectedColor = product.colors && product.colors.length > 0 ? product.colors[0].name : 'Default';
-
-  const allGalleryImages = [product.image];
-  if (Array.isArray(product.gallery) && product.gallery.length > 0) {
-    product.gallery.forEach(img => {
-      if (img && !allGalleryImages.includes(img)) allGalleryImages.push(img);
-    });
-  } else if (product.hoverImage && product.hoverImage !== product.image) {
-    allGalleryImages.push(product.hoverImage);
-  }
-
-  content.innerHTML = `
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
-      <!-- Image Gallery -->
-      <div class="space-y-3">
-        <div class="aspect-square bg-gray-50 rounded-sm overflow-hidden border border-gray-200">
-          <img id="quickViewMainImage" src="${product.image}" alt="${product.title}" class="w-full h-full object-cover" />
-        </div>
-        <div class="flex gap-2 flex-wrap max-h-24 overflow-y-auto">
-          ${allGalleryImages.map(imgSrc => `
-            <button onclick="$('#quickViewMainImage').src = '${imgSrc}'" class="w-14 h-14 rounded border border-gray-300 overflow-hidden hover:border-black focus:border-black focus:ring-1 focus:ring-black shrink-0 transition">
-              <img src="${imgSrc}" class="w-full h-full object-cover" />
-            </button>
-          `).join('')}
-        </div>
-      </div>
-
-      <!-- Details -->
-      <div class="flex flex-col justify-between">
-        <div>
-          <div class="flex items-center justify-between">
-            <span class="text-xs uppercase tracking-widest text-gray-500 font-semibold">${product.category}</span>
-            <span class="badge-tag text-[10px]">${product.badge}</span>
-          </div>
-
-          <h2 class="text-xl font-bold text-gray-900 mt-1">${product.title}</h2>
-
-          <div class="flex items-center gap-2 mt-2">
-            <div class="flex text-amber-500 text-sm">★★★★★</div>
-            <span class="text-xs text-gray-600 font-medium">${product.rating} (${product.reviewsCount} verified reviews)</span>
-          </div>
-
-          <!-- Price -->
-          <div class="flex items-baseline gap-3 mt-4">
-            <span class="text-2xl font-bold text-gray-900">${product.price}</span>
-            ${product.originalPrice ? `<span class="text-sm text-gray-400 line-through">${product.originalPrice}</span>` : ''}
-            <span class="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">In Stock</span>
-          </div>
-
-          <!-- Description -->
-          <p class="text-xs text-gray-600 mt-4 leading-relaxed">${product.description}</p>
-
-          <!-- Color Selector -->
-          ${product.colors && product.colors.length > 0 ? `
-            <div class="mt-5">
-              <label class="block text-xs font-semibold text-gray-800 uppercase tracking-wider mb-2">
-                Color: <span id="quickViewSelectedColor" class="font-normal text-gray-600">${selectedColor}</span>
-              </label>
-              <div class="flex items-center gap-2">
-                ${product.colors.map((c, idx) => `
-                  <button 
-                    onclick="selectModalColor('${c.name}', this)"
-                    class="color-swatch ${idx === 0 ? 'active' : ''}" 
-                    style="background-color: ${c.hex};" 
-                    title="${c.name}"></button>
-                `).join('')}
-              </div>
-            </div>
-          ` : ''}
-
-          <!-- Quantity Selector -->
-          <div class="mt-5">
-            <label class="block text-xs font-semibold text-gray-800 uppercase tracking-wider mb-2">Quantity</label>
-            <div class="flex items-center border border-gray-300 w-28 rounded-sm">
-              <button onclick="decrementModalQty()" class="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-gray-100 font-bold">-</button>
-              <input id="modalQuantity" type="number" value="1" min="1" max="10" class="w-12 text-center text-sm font-semibold border-none focus:outline-none" readonly />
-              <button onclick="incrementModalQty()" class="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-gray-100 font-bold">+</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Add to cart and CTA -->
-        <div class="mt-6 pt-4 border-t border-gray-100 space-y-2">
-          <button 
-            onclick="addModalToCart(${product.id})"
-            class="w-full bg-black text-white text-xs uppercase tracking-wider font-semibold py-3.5 px-4 rounded-sm hover:bg-neutral-800 transition flex items-center justify-center gap-2 shadow">
-            <span>Add to Bag</span>
-            <span>•</span>
-            <span id="modalBtnPrice">${product.price}</span>
-          </button>
-          
-          <div class="flex items-center justify-center gap-4 text-[11px] text-gray-500 pt-2">
-            <span>✓ 100% Authentic Quality</span>
-            <span>✓ Cash on Delivery</span>
-            <span>✓ 7 Days Return</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
-
-  modal.classList.add('active');
-  document.body.style.overflow = 'hidden';
+  if (modal) modal.classList.remove('active');
+  document.body.style.overflow = '';
 };
 
 window.selectModalColor = function (colorName, element) {

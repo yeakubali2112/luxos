@@ -4,8 +4,9 @@
 const LUXOS_PRODUCTS = [
   {
     "id": 1,
-    "slug": "mens-rfid-smart-pop-up-wallet",
-    "title": "Men'S Rfid Smart Pop Up Wallet",
+    "slug": "executive-rfid-card-holder",
+    "title": "Executive RFID Card Holder",
+    "sku": "190232",
     "category": "Wallets & Cards",
     "collection": "Best Sellers",
     "price": "৳ 687",
@@ -13,24 +14,52 @@ const LUXOS_PRODUCTS = [
     "badge": "Save 46%",
     "image": "https://thepatchee.com/cdn/shop/files/654a7e83-c512-4ec1-8ebf-af44c488e776.png?v=1781362688",
     "hoverImage": "https://thepatchee.com/cdn/shop/files/dc64c41d-ae95-4a7f-912f-1c2a664d35f1.jpg?v=1781362693",
-    "rating": "4.7",
-    "reviewsCount": 15,
-    "stock": 3,
+    "rating": "4.9",
+    "reviewsCount": 65,
+    "stock": 14,
     "colors": [
       {
         "name": "Noir Black",
-        "hex": "#111111"
+        "hex": "#111111",
+        "image": "https://thepatchee.com/cdn/shop/files/654a7e83-c512-4ec1-8ebf-af44c488e776.png?v=1781362688"
       },
       {
-        "name": "Mocha Tan",
-        "hex": "#8B5A2B"
+        "name": "Mocha Brown",
+        "hex": "#5A3825",
+        "image": "https://thepatchee.com/cdn/shop/files/572c906d-1d96-48a7-9724-f99155bba413.jpg?v=1781362696"
       },
       {
-        "name": "Cream Ivory",
-        "hex": "#F5F2EB"
+        "name": "Carbon Black",
+        "hex": "#252525",
+        "image": "https://thepatchee.com/cdn/shop/files/1_Sr7vuQ.jpg?v=1781362706"
+      },
+      {
+        "name": "Tan Camel",
+        "hex": "#B57B43",
+        "image": "https://thepatchee.com/cdn/shop/files/17_9tpHkH.jpg?v=1781362710"
+      },
+      {
+        "name": "Navy Blue",
+        "hex": "#1F2E4A",
+        "image": "https://thepatchee.com/cdn/shop/files/16_oF8xw5.jpg?v=1781362703"
       }
     ],
-    "description": "Crafted for modern sophistication, the Men'S Rfid Smart Pop Up Wallet by Luxos seamlessly pairs contemporary aesthetics with premium structural durability. Featuring high-grade water-resistant vegan leather, custom luxury gold-plated hardware, and a spacious multi-compartment interior designed for urban versatility."
+    "gallery": [
+      "https://thepatchee.com/cdn/shop/files/654a7e83-c512-4ec1-8ebf-af44c488e776.png?v=1781362688",
+      "https://thepatchee.com/cdn/shop/files/dc64c41d-ae95-4a7f-912f-1c2a664d35f1.jpg?v=1781362693",
+      "https://thepatchee.com/cdn/shop/files/572c906d-1d96-48a7-9724-f99155bba413.jpg?v=1781362696",
+      "https://thepatchee.com/cdn/shop/files/7_JDF6Lx.jpg?v=1781362700",
+      "https://thepatchee.com/cdn/shop/files/16_oF8xw5.jpg?v=1781362703",
+      "https://thepatchee.com/cdn/shop/files/1_Sr7vuQ.jpg?v=1781362706",
+      "https://thepatchee.com/cdn/shop/files/17_9tpHkH.jpg?v=1781362710",
+      "https://thepatchee.com/cdn/shop/files/18_2rgYCr.jpg?v=1781362713"
+    ],
+    "detailsImages": [
+      "https://thepatchee.com/cdn/shop/files/1_Sr7vuQ.jpg?v=1781362706",
+      "https://thepatchee.com/cdn/shop/files/15_1Knw4N.jpg?v=1781362716",
+      "https://thepatchee.com/cdn/shop/files/dc64c41d-ae95-4a7f-912f-1c2a664d35f1.jpg?v=1781362693"
+    ],
+    "description": "Crafted for modern executives, the Executive RFID Card Holder by Luxos merges minimalist architectural design with smart functionality. Features an ergonomic one-click card ejector mechanism, aerospace-grade aluminum casing with 13.56 MHz RFID signal blocking, and premium hand-finished leather casing."
   },
   {
     "id": 2,
