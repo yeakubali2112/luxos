@@ -11,6 +11,8 @@ const AdminState = {
   heroSlides: [],
   bannerSettings: { autoplayDuration: 5, enableZoom: true },
   tickerSettings: getDefaultTickerSettings(),
+  collections: [],
+  collectionsHeader: { eyebrow: 'Curated Categories', heading: 'Shop by Collection', enabled: true },
   coupons: [],
   settings: {},
   orderFilter: 'all',
@@ -48,6 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderCustomersTable();
   loadSettingsForm();
   if (typeof renderTickerSettings === 'function') renderTickerSettings();
+  if (typeof renderCollectionsManager === 'function') renderCollectionsManager();
 });
 
 /* ==========================================================================
@@ -109,6 +112,32 @@ function initData() {
   } else {
     AdminState.orders = getSeedOrders();
     localStorage.setItem('luxos_orders', JSON.stringify(AdminState.orders));
+  }
+
+  // Load Curated Collections (Shop by Collection)
+  const storedCollections = localStorage.getItem('luxos_curated_collections');
+  if (storedCollections) {
+    try {
+      AdminState.collections = JSON.parse(storedCollections);
+    } catch (e) {
+      AdminState.collections = getDefaultCollections();
+    }
+  } else {
+    AdminState.collections = getDefaultCollections();
+    localStorage.setItem('luxos_curated_collections', JSON.stringify(AdminState.collections));
+  }
+
+  // Load Collections Header Settings
+  const storedCollectionsHeader = localStorage.getItem('luxos_collections_header');
+  if (storedCollectionsHeader) {
+    try {
+      AdminState.collectionsHeader = JSON.parse(storedCollectionsHeader);
+    } catch (e) {
+      AdminState.collectionsHeader = { eyebrow: 'Curated Categories', heading: 'Shop by Collection', enabled: true };
+    }
+  } else {
+    AdminState.collectionsHeader = { eyebrow: 'Curated Categories', heading: 'Shop by Collection', enabled: true };
+    localStorage.setItem('luxos_collections_header', JSON.stringify(AdminState.collectionsHeader));
   }
 
   // Load coupons
@@ -355,6 +384,7 @@ window.switchTab = function (tabName) {
     orders: 'Customer Orders Management',
     products: 'Product Catalog Management',
     banners: 'Hero Banners & Slideshow',
+    collections: 'Shop by Collection (Curated Story Circles)',
     ticker: 'Scrolling Marquee Ticker Management',
     coupons: 'Promo Codes & Offers',
     customers: 'Customer Directory',
@@ -367,6 +397,7 @@ window.switchTab = function (tabName) {
   if (tabName === 'orders') renderOrdersTable();
   if (tabName === 'products') renderProductsTable();
   if (tabName === 'banners') renderBannersTable();
+  if (tabName === 'collections') renderCollectionsManager();
   if (tabName === 'ticker') renderTickerSettings();
   if (tabName === 'coupons') renderCouponsTable();
   if (tabName === 'customers') renderCustomersTable();
@@ -1870,4 +1901,313 @@ window.saveTickerSettings = function () {
   localStorage.setItem('luxos_ticker_settings', JSON.stringify(AdminState.tickerSettings));
   updateTickerStatusBadge();
   showAdminToast('Scrolling Ticker settings saved & published to storefront! 🎉');
+};
+
+/* ==========================================================================
+   Shop by Collection (Curated Story Circles) Management
+   ========================================================================== */
+function getDefaultCollections() {
+  return [
+    { id: 1, title: 'Tote Bags', image: 'https://thepatchee.com/cdn/shop/files/d0783770-4668-4b3e-a3b5-2bbc89c2869f.jpg?v=1776151580&width=400', filter: 'Tote Bags', active: true },
+    { id: 2, title: 'Shoulder Bags', image: 'https://thepatchee.com/cdn/shop/files/Main_Menu_2_22945876-366c-4cc9-9b68-83a3c7eceabf.jpg?v=1736164087&width=400', filter: 'Shoulder Bags', active: true },
+    { id: 3, title: 'Crossbody', image: 'https://thepatchee.com/cdn/shop/files/c2ee0999-fc06-4942-aa71-6cd41e71d473.png?v=1782728863&width=400', filter: 'Crossbody Bags', active: true },
+    { id: 4, title: 'Wallets & RFID', image: 'https://thepatchee.com/cdn/shop/files/654a7e83-c512-4ec1-8ebf-af44c488e776.png?v=1781362688&width=400', filter: 'Wallets & Cards', active: true },
+    { id: 5, title: 'Backpacks', image: 'https://thepatchee.com/cdn/shop/files/6d8a6d9b-495a-4d68-ba90-1f87aa300435.jpg?v=1755610521&width=400', filter: 'Backpack', active: true },
+    { id: 6, title: 'Duffle Bags', image: 'https://thepatchee.com/cdn/shop/files/625df22d-ff10-4b67-a4fc-3c43388fcd51.png?v=1776663753&width=400', filter: 'Duffle Bags', active: true },
+    { id: 7, title: 'Prime Shoes', image: 'https://thepatchee.com/cdn/shop/files/BD.jpg?v=1749128949&width=400', filter: 'Prime Shoes', active: true },
+    { id: 8, title: 'Clearance Sale', image: 'https://thepatchee.com/cdn/shop/files/DESKTOP_SIZE.webp?v=1791810459&width=400', filter: 'The Prime Drop', active: true }
+  ];
+}
+
+window.renderCollectionsManager = function () {
+  const collections = AdminState.collections || [];
+  const header = AdminState.collectionsHeader || { eyebrow: 'Curated Categories', heading: 'Shop by Collection', enabled: true };
+
+  // Update sidebar count
+  if ($('#sidebarCollectionsCount')) $('#sidebarCollectionsCount').textContent = collections.length;
+  if ($('#collectionsItemsCount')) $('#collectionsItemsCount').textContent = collections.length;
+
+  // Header settings inputs
+  if ($('#collectionsEnableToggle')) $('#collectionsEnableToggle').checked = header.enabled !== false;
+  if ($('#collectionsStatusBadge')) {
+    const isEnabled = header.enabled !== false;
+    $('#collectionsStatusBadge').textContent = isEnabled ? 'Active' : 'Disabled';
+    $('#collectionsStatusBadge').className = isEnabled 
+      ? 'bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200'
+      : 'bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded-full border border-slate-200';
+  }
+  if ($('#collectionsEyebrowInput')) $('#collectionsEyebrowInput').value = header.eyebrow || 'Curated Categories';
+  if ($('#collectionsHeadingInput')) $('#collectionsHeadingInput').value = header.heading || 'Shop by Collection';
+
+  // Live preview header
+  if ($('#previewCollectionsEyebrow')) $('#previewCollectionsEyebrow').textContent = header.eyebrow || 'Curated Categories';
+  if ($('#previewCollectionsHeading')) $('#previewCollectionsHeading').textContent = header.heading || 'Shop by Collection';
+
+  // Live preview strip
+  const previewTrack = $('#adminCollectionsPreviewTrack');
+  if (previewTrack) {
+    const activeItems = collections.filter(c => c.active !== false);
+    if (activeItems.length === 0) {
+      previewTrack.innerHTML = '<div class="py-6 text-center text-xs text-slate-400">No active collection items to display.</div>';
+    } else {
+      previewTrack.innerHTML = activeItems.map(c => `
+        <div class="flex flex-col items-center flex-shrink-0 group cursor-pointer" onclick="openCollectionModal(${c.id})">
+          <div class="w-16 h-16 rounded-full overflow-hidden border-2 border-slate-300 p-0.5 bg-white shadow-xs group-hover:border-black transition">
+            <img src="${c.image}" alt="${c.title}" class="w-full h-full object-cover rounded-full group-hover:scale-105 transition" />
+          </div>
+          <span class="mt-1.5 text-[11px] font-semibold text-slate-800 tracking-wide uppercase">${c.title}</span>
+        </div>
+      `).join('');
+    }
+  }
+
+  // Table rendering
+  const tbody = $('#adminCollectionsTbody');
+  if (!tbody) return;
+
+  if (collections.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-10 text-slate-400 text-xs">No collection bubbles created yet. Click "+ Add Collection Item" to create one.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = collections.map((c, index) => `
+    <tr class="hover:bg-slate-50 transition ${c.active === false ? 'opacity-60 bg-slate-50/50' : ''}">
+      <td class="py-3 px-4 text-center font-mono text-slate-400 font-bold">${index + 1}</td>
+      <td class="py-3 px-4">
+        <div class="w-12 h-12 rounded-full overflow-hidden border-2 border-slate-200 bg-slate-100 flex-shrink-0 shadow-2xs">
+          <img src="${c.image}" alt="${c.title}" class="w-full h-full object-cover rounded-full" />
+        </div>
+      </td>
+      <td class="py-3 px-4 font-semibold text-slate-900">${c.title}</td>
+      <td class="py-3 px-4">
+        <span class="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-md text-[11px] font-medium border border-slate-200">${c.filter}</span>
+      </td>
+      <td class="py-3 px-4">
+        <button onclick="toggleCollectionStatus(${c.id})" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10.5px] font-bold cursor-pointer transition ${c.active !== false ? 'bg-emerald-100 text-emerald-800 border border-emerald-200 hover:bg-emerald-200' : 'bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200'}">
+          <span class="w-1.5 h-1.5 rounded-full ${c.active !== false ? 'bg-emerald-600' : 'bg-slate-400'}"></span>
+          <span>${c.active !== false ? 'Visible' : 'Hidden'}</span>
+        </button>
+      </td>
+      <td class="py-3 px-4 text-center">
+        <div class="inline-flex items-center gap-1">
+          <button onclick="moveCollectionItem(${index}, -1)" ${index === 0 ? 'disabled class="opacity-30 p-1 text-slate-400 cursor-not-allowed"' : 'class="p-1 hover:bg-slate-200 rounded text-slate-700 cursor-pointer"'} title="Move Left / Up">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/></svg>
+          </button>
+          <button onclick="moveCollectionItem(${index}, 1)" ${index === collections.length - 1 ? 'disabled class="opacity-30 p-1 text-slate-400 cursor-not-allowed"' : 'class="p-1 hover:bg-slate-200 rounded text-slate-700 cursor-pointer"'} title="Move Right / Down">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
+          </button>
+        </div>
+      </td>
+      <td class="py-3 px-4 text-right">
+        <div class="flex items-center justify-end gap-1.5">
+          <button onclick="openCollectionModal(${c.id})" class="p-1.5 text-slate-600 hover:text-black rounded hover:bg-slate-100 cursor-pointer" title="Edit">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/></svg>
+          </button>
+          <button onclick="deleteCollectionItem(${c.id})" class="p-1.5 text-slate-400 hover:text-red-600 rounded hover:bg-red-50 cursor-pointer" title="Delete">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+          </button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+};
+
+window.openCollectionModal = function (id) {
+  const modal = $('#collectionItemModal');
+  if (!modal) return;
+
+  const titleInput = $('#collectionTitleInput');
+  const imgInput = $('#collectionImageUrlInput');
+  const fileInput = $('#collectionFileInput');
+  const filterSelect = $('#collectionFilterSelect');
+  const statusSelect = $('#collectionStatusSelect');
+  const editIdInput = $('#editCollectionId');
+  const modalTitle = $('#collectionModalTitle');
+
+  if (fileInput) fileInput.value = '';
+
+  if (id) {
+    const item = AdminState.collections.find(c => c.id === id);
+    if (!item) return;
+
+    modalTitle.textContent = 'Edit Collection Item';
+    editIdInput.value = item.id;
+    titleInput.value = item.title;
+    imgInput.value = item.image;
+    filterSelect.value = item.filter || 'all';
+    statusSelect.value = item.active !== false ? 'true' : 'false';
+    previewCollectionImg(item.image);
+  } else {
+    modalTitle.textContent = 'Add New Collection Bubble';
+    editIdInput.value = '';
+    titleInput.value = '';
+    imgInput.value = '';
+    filterSelect.value = 'all';
+    statusSelect.value = 'true';
+    previewCollectionImg('');
+  }
+
+  modal.classList.add('active');
+};
+
+window.closeCollectionModal = function () {
+  const modal = $('#collectionItemModal');
+  if (modal) modal.classList.remove('active');
+};
+
+window.previewCollectionImg = function (url) {
+  const preview = $('#collectionImgPreview');
+  const info = $('#collectionImgInfo');
+  if (!preview) return;
+
+  if (url) {
+    preview.src = url;
+    if (info) info.textContent = 'Image loaded';
+  } else {
+    preview.src = 'https://thepatchee.com/cdn/shop/files/d0783770-4668-4b3e-a3b5-2bbc89c2869f.jpg?v=1776151580&width=400';
+    if (info) info.textContent = 'Default Preview';
+  }
+};
+
+window.handleCollectionFileUpload = function (event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+
+  if (!file.type.startsWith('image/')) {
+    showAdminToast('Please select a valid image file (JPG, PNG, WebP).');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    const base64 = e.target.result;
+    $('#collectionImageUrlInput').value = base64;
+    previewCollectionImg(base64);
+    showAdminToast('Collection image uploaded successfully!');
+  };
+  reader.readAsDataURL(file);
+};
+
+window.handleSaveCollectionItem = function (e) {
+  e.preventDefault();
+
+  const id = $('#editCollectionId').value;
+  const title = $('#collectionTitleInput').value.trim();
+  const image = $('#collectionImageUrlInput').value.trim();
+  const filter = $('#collectionFilterSelect').value;
+  const active = $('#collectionStatusSelect').value === 'true';
+
+  if (!title || !image) {
+    showAdminToast('Please provide both Title and Photo.');
+    return;
+  }
+
+  const saveBtn = $('#saveCollectionBtn');
+  if (saveBtn) {
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = `
+      <svg class="animate-spin w-4 h-4 text-amber-400 shrink-0 inline mr-1" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+      </svg>
+      <span>Saving...</span>
+    `;
+  }
+
+  if (id) {
+    const existingIndex = AdminState.collections.findIndex(c => c.id == id);
+    if (existingIndex > -1) {
+      AdminState.collections[existingIndex] = {
+        ...AdminState.collections[existingIndex],
+        title,
+        image,
+        filter,
+        active
+      };
+    }
+  } else {
+    const newId = Math.max(0, ...AdminState.collections.map(c => c.id || 0)) + 1;
+    AdminState.collections.push({
+      id: newId,
+      title,
+      image,
+      filter,
+      active
+    });
+  }
+
+  localStorage.setItem('luxos_curated_collections', JSON.stringify(AdminState.collections));
+
+  setTimeout(() => {
+    closeCollectionModal();
+    if (saveBtn) {
+      saveBtn.disabled = false;
+      saveBtn.innerHTML = '<span>Save Item</span>';
+    }
+    renderCollectionsManager();
+    showAdminToast(id ? `Updated "${title}"!` : `Added new collection "${title}"!`);
+  }, 400);
+};
+
+window.moveCollectionItem = function (index, direction) {
+  const newIndex = index + direction;
+  if (newIndex < 0 || newIndex >= AdminState.collections.length) return;
+
+  const temp = AdminState.collections[index];
+  AdminState.collections[index] = AdminState.collections[newIndex];
+  AdminState.collections[newIndex] = temp;
+
+  localStorage.setItem('luxos_curated_collections', JSON.stringify(AdminState.collections));
+  renderCollectionsManager();
+  showAdminToast('Collection order updated.');
+};
+
+window.toggleCollectionStatus = function (id) {
+  const item = AdminState.collections.find(c => c.id === id);
+  if (!item) return;
+
+  item.active = item.active === false ? true : false;
+  localStorage.setItem('luxos_curated_collections', JSON.stringify(AdminState.collections));
+  renderCollectionsManager();
+  showAdminToast(`Collection "${item.title}" is now ${item.active ? 'Visible' : 'Hidden'}.`);
+};
+
+window.deleteCollectionItem = function (id) {
+  const item = AdminState.collections.find(c => c.id === id);
+  if (!item) return;
+
+  showConfirmDialog({
+    title: 'Delete Collection Item?',
+    message: `Are you sure you want to delete "${item.title}" from Shop by Collection?`,
+    confirmText: 'Delete Item',
+    onConfirm: () => {
+      AdminState.collections = AdminState.collections.filter(c => c.id !== id);
+      localStorage.setItem('luxos_curated_collections', JSON.stringify(AdminState.collections));
+      renderCollectionsManager();
+      showAdminToast(`Collection "${item.title}" deleted.`);
+    }
+  });
+};
+
+window.toggleCollectionsEnabled = function () {
+  const isEnabled = $('#collectionsEnableToggle') ? $('#collectionsEnableToggle').checked : true;
+  if (!AdminState.collectionsHeader) AdminState.collectionsHeader = {};
+  AdminState.collectionsHeader.enabled = isEnabled;
+
+  localStorage.setItem('luxos_collections_header', JSON.stringify(AdminState.collectionsHeader));
+  renderCollectionsManager();
+  showAdminToast(isEnabled ? 'Shop by Collection is now visible on storefront.' : 'Shop by Collection is now hidden on storefront.');
+};
+
+window.saveCollectionsHeaderSettings = function () {
+  const eyebrow = $('#collectionsEyebrowInput') ? $('#collectionsEyebrowInput').value.trim() : 'Curated Categories';
+  const heading = $('#collectionsHeadingInput') ? $('#collectionsHeadingInput').value.trim() : 'Shop by Collection';
+
+  if (!AdminState.collectionsHeader) AdminState.collectionsHeader = {};
+  AdminState.collectionsHeader.eyebrow = eyebrow;
+  AdminState.collectionsHeader.heading = heading;
+
+  localStorage.setItem('luxos_collections_header', JSON.stringify(AdminState.collectionsHeader));
+  renderCollectionsManager();
+  showAdminToast('Section header text updated!');
 };

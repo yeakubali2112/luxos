@@ -117,6 +117,9 @@ window.addEventListener('storage', (e) => {
   if (e.key === 'luxos_ticker_settings') {
     renderStorefrontTicker();
   }
+  if (e.key === 'luxos_curated_collections' || e.key === 'luxos_collections_header') {
+    renderFeaturedCategories();
+  }
 });
 
 /* ==========================================================================
@@ -413,24 +416,61 @@ function createProductCardHtml(p) {
 }
 
 /* ==========================================================================
-   Featured Category Bubbles
+   Featured Category Bubbles (Dynamic from Admin or Default)
    ========================================================================== */
+function getDefaultCategories() {
+  return [
+    { id: 1, title: 'Tote Bags', image: 'https://thepatchee.com/cdn/shop/files/d0783770-4668-4b3e-a3b5-2bbc89c2869f.jpg?v=1776151580&width=400', filter: 'Tote Bags', active: true },
+    { id: 2, title: 'Shoulder Bags', image: 'https://thepatchee.com/cdn/shop/files/Main_Menu_2_22945876-366c-4cc9-9b68-83a3c7eceabf.jpg?v=1736164087&width=400', filter: 'Shoulder Bags', active: true },
+    { id: 3, title: 'Crossbody', image: 'https://thepatchee.com/cdn/shop/files/c2ee0999-fc06-4942-aa71-6cd41e71d473.png?v=1782728863&width=400', filter: 'Crossbody Bags', active: true },
+    { id: 4, title: 'Wallets & RFID', image: 'https://thepatchee.com/cdn/shop/files/654a7e83-c512-4ec1-8ebf-af44c488e776.png?v=1781362688&width=400', filter: 'Wallets & Cards', active: true },
+    { id: 5, title: 'Backpacks', image: 'https://thepatchee.com/cdn/shop/files/6d8a6d9b-495a-4d68-ba90-1f87aa300435.jpg?v=1755610521&width=400', filter: 'Backpack', active: true },
+    { id: 6, title: 'Duffle Bags', image: 'https://thepatchee.com/cdn/shop/files/625df22d-ff10-4b67-a4fc-3c43388fcd51.png?v=1776663753&width=400', filter: 'Duffle Bags', active: true },
+    { id: 7, title: 'Prime Shoes', image: 'https://thepatchee.com/cdn/shop/files/BD.jpg?v=1749128949&width=400', filter: 'Prime Shoes', active: true },
+    { id: 8, title: 'Clearance Sale', image: 'https://thepatchee.com/cdn/shop/files/DESKTOP_SIZE.webp?v=1791810459&width=400', filter: 'The Prime Drop', active: true }
+  ];
+}
+
+function getStoreCollections() {
+  const stored = localStorage.getItem('luxos_curated_collections');
+  if (stored) {
+    try {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    } catch (e) {
+      console.error('Error parsing stored collections', e);
+    }
+  }
+  return getDefaultCategories();
+}
+
 function renderFeaturedCategories() {
   const container = $('#featuredCategories');
+  const section = $('#shopByCollectionSection');
   if (!container) return;
 
-  const categories = [
-    { title: 'Tote Bags', image: 'https://thepatchee.com/cdn/shop/files/d0783770-4668-4b3e-a3b5-2bbc89c2869f.jpg?v=1776151580&width=400', filter: 'Tote Bags' },
-    { title: 'Shoulder Bags', image: 'https://thepatchee.com/cdn/shop/files/Main_Menu_2_22945876-366c-4cc9-9b68-83a3c7eceabf.jpg?v=1736164087&width=400', filter: 'Shoulder Bags' },
-    { title: 'Crossbody', image: 'https://thepatchee.com/cdn/shop/files/c2ee0999-fc06-4942-aa71-6cd41e71d473.png?v=1782728863&width=400', filter: 'Crossbody Bags' },
-    { title: 'Wallets & RFID', image: 'https://thepatchee.com/cdn/shop/files/654a7e83-c512-4ec1-8ebf-af44c488e776.png?v=1781362688&width=400', filter: 'Wallets & Cards' },
-    { title: 'Backpacks', image: 'https://thepatchee.com/cdn/shop/files/6d8a6d9b-495a-4d68-ba90-1f87aa300435.jpg?v=1755610521&width=400', filter: 'Backpacks' },
-    { title: 'Duffle Bags', image: 'https://thepatchee.com/cdn/shop/files/625df22d-ff10-4b67-a4fc-3c43388fcd51.png?v=1776663753&width=400', filter: 'Duffle Bags' },
-    { title: 'Prime Shoes', image: 'https://thepatchee.com/cdn/shop/files/BD.jpg?v=1749128949&width=400', filter: 'Prime Shoes' },
-    { title: 'Clearance Sale', image: 'https://thepatchee.com/cdn/shop/files/DESKTOP_SIZE.webp?v=1791810459&width=400', filter: 'The Prime Drop' }
-  ];
+  const headerSettings = JSON.parse(localStorage.getItem('luxos_collections_header') || '{}');
+  if (headerSettings.enabled === false) {
+    if (section) section.classList.add('hidden');
+    return;
+  }
+  if (section) section.classList.remove('hidden');
 
-  container.innerHTML = categories.map(c => `
+  if (headerSettings.eyebrow && $('#curatedEyebrowText')) {
+    $('#curatedEyebrowText').textContent = headerSettings.eyebrow;
+  }
+  if (headerSettings.heading && $('#curatedHeadingText')) {
+    $('#curatedHeadingText').textContent = headerSettings.heading;
+  }
+
+  const collections = getStoreCollections().filter(c => c.active !== false);
+
+  if (collections.length === 0) {
+    if (section) section.classList.add('hidden');
+    return;
+  }
+
+  container.innerHTML = collections.map(c => `
     <div onclick="filterByTab('${c.filter}')" class="category-bubble cursor-pointer flex flex-col items-center flex-shrink-0 group">
       <div class="bubble-img w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden border-2 border-transparent group-hover:border-black p-1 transition-all bg-neutral-100 shadow-sm">
         <img src="${c.image}" alt="${c.title}" class="w-full h-full object-cover rounded-full group-hover:scale-105 transition-transform" />
