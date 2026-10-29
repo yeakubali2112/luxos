@@ -340,6 +340,45 @@
       descEl.textContent = currentProduct.description || 'Crafted for modern executives, the Executive RFID Card Holder merges minimalist architectural design with smart functionality. Features an ergonomic one-click card ejector mechanism, aerospace-grade aluminum casing with 13.56 MHz RFID signal blocking, and premium hand-finished leather casing.';
     }
 
+    // Render Bag Dimensions & Features (Requested: Reference Screenshot Style)
+    const dimContainer = document.getElementById('pdpDimensionsItems');
+    const featContainer = document.getElementById('pdpFeaturesItems');
+    if (dimContainer || featContainer) {
+      const defaultDims = [
+        'External Height: 18"',
+        'External Length: 12"',
+        'External Depth: 7.5"',
+        'Capacity: 20–35 liters',
+        'Accommodate Laptop Size: 15.6"'
+      ];
+      const defaultFeats = [
+        'Number Lock',
+        'Sunglass Hook',
+        'Water Resistant',
+        'Trolley Support',
+        'Luggage Style Indoor',
+        'Shoulder Strap Pocket',
+        'Multi-Storage Pockets',
+        'Hidden two types USB port',
+        'Unisex Designs Suitable for Daily Life',
+        'cell phone pocket, key chain clip'
+      ];
+
+      const dims = (currentProduct.dimensionsList && currentProduct.dimensionsList.length > 0)
+        ? currentProduct.dimensionsList
+        : defaultDims;
+      const feats = (currentProduct.featuresList && currentProduct.featuresList.length > 0)
+        ? currentProduct.featuresList
+        : defaultFeats;
+
+      if (dimContainer) {
+        dimContainer.innerHTML = dims.map(d => `<li>${d}</li>`).join('');
+      }
+      if (featContainer) {
+        featContainer.innerHTML = feats.map(f => `<li>${f}</li>`).join('');
+      }
+    }
+
     if (currentProduct.specs) {
       if (currentProduct.specs.material && document.getElementById('pdpSpecMaterial')) {
         document.getElementById('pdpSpecMaterial').textContent = currentProduct.specs.material;

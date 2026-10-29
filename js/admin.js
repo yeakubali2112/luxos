@@ -2255,6 +2255,36 @@ window.loadLandingPageProductData = function (productId) {
   const defaultDesc = 'Crafted for modern executives, the Executive RFID Card Holder merges minimalist architectural design with smart functionality. Features an ergonomic one-click card ejector mechanism, aerospace-grade aluminum casing with 13.56 MHz RFID signal blocking, and premium hand-finished leather casing.';
   if ($('#pdpAdminDescription')) $('#pdpAdminDescription').value = prod.description || defaultDesc;
 
+  // Bag Dimensions & Features (Reference Style Bullets)
+  const defaultDimensions = [
+    'External Height: 18"',
+    'External Length: 12"',
+    'External Depth: 7.5"',
+    'Capacity: 20–35 liters',
+    'Accommodate Laptop Size: 15.6"'
+  ];
+  const defaultFeatures = [
+    'Number Lock',
+    'Sunglass Hook',
+    'Water Resistant',
+    'Trolley Support',
+    'Luggage Style Indoor',
+    'Shoulder Strap Pocket',
+    'Multi-Storage Pockets',
+    'Hidden two types USB port',
+    'Unisex Designs Suitable for Daily Life',
+    'cell phone pocket, key chain clip'
+  ];
+
+  if ($('#pdpAdminDimensions')) {
+    const dims = (prod.dimensionsList && prod.dimensionsList.length > 0) ? prod.dimensionsList : defaultDimensions;
+    $('#pdpAdminDimensions').value = Array.isArray(dims) ? dims.join('\n') : dims;
+  }
+  if ($('#pdpAdminFeatures')) {
+    const feats = (prod.featuresList && prod.featuresList.length > 0) ? prod.featuresList : defaultFeatures;
+    $('#pdpAdminFeatures').value = Array.isArray(feats) ? feats.join('\n') : feats;
+  }
+
   // Features
   const f1 = (prod.features && prod.features[0]) || { title: 'Quick-Access Slider', desc: 'Ergonomic one-click ejection mechanism fans cards out smoothly in a cascading sequence for instant access.' };
   const f2 = (prod.features && prod.features[1]) || { title: '100% RFID Protection', desc: 'Integrated electromagnetic shielding prevents digital wireless RFID/NFC theft & unauthorized skimming.' };
@@ -2424,6 +2454,36 @@ window.saveLandingPageSettings = function () {
     dimensions: $('#pdpAdminSpecDimensions') ? $('#pdpAdminSpecDimensions').value.trim() : '',
     weight: $('#pdpAdminSpecWeight') ? $('#pdpAdminSpecWeight').value.trim() : ''
   };
+
+  // Bag Dimensions & Features (Reference Style Bullets)
+  const defaultDimensions = [
+    'External Height: 18"',
+    'External Length: 12"',
+    'External Depth: 7.5"',
+    'Capacity: 20–35 liters',
+    'Accommodate Laptop Size: 15.6"'
+  ];
+  const defaultFeatures = [
+    'Number Lock',
+    'Sunglass Hook',
+    'Water Resistant',
+    'Trolley Support',
+    'Luggage Style Indoor',
+    'Shoulder Strap Pocket',
+    'Multi-Storage Pockets',
+    'Hidden two types USB port',
+    'Unisex Designs Suitable for Daily Life',
+    'cell phone pocket, key chain clip'
+  ];
+
+  if ($('#pdpAdminDimensions')) {
+    const dimsText = $('#pdpAdminDimensions').value.trim();
+    currentPdpProduct.dimensionsList = dimsText ? dimsText.split('\n').map(s => s.trim()).filter(Boolean) : defaultDimensions;
+  }
+  if ($('#pdpAdminFeatures')) {
+    const featsText = $('#pdpAdminFeatures').value.trim();
+    currentPdpProduct.featuresList = featsText ? featsText.split('\n').map(s => s.trim()).filter(Boolean) : defaultFeatures;
+  }
 
   // Update in memory product
   currentPdpProduct.title = title;
