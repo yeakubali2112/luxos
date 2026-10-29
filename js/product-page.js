@@ -42,6 +42,13 @@
     initProductPage();
     initImageZoomEngine();
     initCountdownTimer();
+
+    // Live cross-tab sync when product data is updated in Admin panel
+    window.addEventListener('storage', function (e) {
+      if (e.key === 'luxos_products_data' || (e.key && e.key.startsWith('luxos_pdp_extra_'))) {
+        initProductPage();
+      }
+    });
   }
 
   /**
@@ -68,10 +75,10 @@
     const catalog = typeof LUXOS_PRODUCTS !== 'undefined' ? LUXOS_PRODUCTS : [];
     
     // Find product from catalog or custom storage
-    let baseProduct = catalog.find(p => p.id === targetId) || catalog[0] || {};
+    let baseProduct = catalog.find(p => p.id == targetId) || catalog[0] || {};
     if (typeof getStoreProducts === 'function') {
       const customList = getStoreProducts();
-      const foundCustom = customList.find(p => p.id === targetId);
+      const foundCustom = customList.find(p => p.id == targetId);
       if (foundCustom) {
         baseProduct = { ...baseProduct, ...foundCustom };
       }
@@ -365,12 +372,19 @@
         'cell phone pocket, key chain clip'
       ];
 
-      const dims = (currentProduct.dimensionsList && currentProduct.dimensionsList.length > 0)
-        ? currentProduct.dimensionsList
-        : defaultDims;
-      const feats = (currentProduct.featuresList && currentProduct.featuresList.length > 0)
-        ? currentProduct.featuresList
-        : defaultFeats;
+      let dims = defaultDims;
+      if (Array.isArray(currentProduct.dimensionsList) && currentProduct.dimensionsList.length > 0) {
+        dims = currentProduct.dimensionsList;
+      } else if (typeof currentProduct.dimensionsList === 'string' && currentProduct.dimensionsList.trim()) {
+        dims = currentProduct.dimensionsList.split('\n').map(s => s.trim()).filter(Boolean);
+      }
+
+      let feats = defaultFeats;
+      if (Array.isArray(currentProduct.featuresList) && currentProduct.featuresList.length > 0) {
+        feats = currentProduct.featuresList;
+      } else if (typeof currentProduct.featuresList === 'string' && currentProduct.featuresList.trim()) {
+        feats = currentProduct.featuresList.split('\n').map(s => s.trim()).filter(Boolean);
+      }
 
       if (dimContainer) {
         dimContainer.innerHTML = dims.map(d => `<li>${d}</li>`).join('');

@@ -914,6 +914,13 @@ window.openProductModal = function () {
   $('#prodImage').value = '';
   $('#prodDescription').value = '';
 
+  if ($('#prodDimensions')) $('#prodDimensions').value = '';
+  if ($('#prodFeatures')) $('#prodFeatures').value = '';
+  if ($('#prodVideoUrl')) $('#prodVideoUrl').value = '';
+  if ($('#prodVideoFileInput')) $('#prodVideoFileInput').value = '';
+  currentEditProductVideo = { url: '', fileName: '', isLocal: false, file: null };
+  renderEditModalVideoPreview('');
+
   if ($('#prodPrimaryFileInput')) $('#prodPrimaryFileInput').value = '';
   if ($('#prodHoverFileInput')) $('#prodHoverFileInput').value = '';
   if ($('#prodHoverImageInput')) $('#prodHoverImageInput').value = '';
@@ -1165,8 +1172,8 @@ window.previewProductImg = function (url, type) {
   }
 };
 
-window.editProduct = function (productId) {
-  const product = AdminState.products.find(p => p.id === productId);
+window.editProduct = async function (productId) {
+  const product = AdminState.products.find(p => p.id == productId);
   if (!product) return;
 
   $('#productModalTitle').textContent = 'Edit Product';
@@ -1201,6 +1208,47 @@ window.editProduct = function (productId) {
   $('#prodRating').value = product.rating || '4.8';
   $('#prodImage').value = product.image;
   $('#prodDescription').value = product.description || '';
+
+  // Load Dimensions & Bag Features bullets
+  if ($('#prodDimensions')) {
+    $('#prodDimensions').value = Array.isArray(product.dimensionsList)
+      ? product.dimensionsList.join('\n')
+      : (product.dimensionsList || '');
+  }
+  if ($('#prodFeatures')) {
+    $('#prodFeatures').value = Array.isArray(product.featuresList)
+      ? product.featuresList.join('\n')
+      : (product.featuresList || '');
+  }
+
+  // Load Showcase Video (IndexedDB or URL)
+  if ($('#prodVideoFileInput')) $('#prodVideoFileInput').value = '';
+  currentEditProductVideo = {
+    url: product.videoUrl || '',
+    fileName: product.videoFileName || '',
+    isLocal: product.videoUrl ? product.videoUrl.startsWith('idb:') : false,
+    file: null
+  };
+  if (product.videoUrl && product.videoUrl.startsWith('idb:')) {
+    if ($('#prodVideoUrl')) $('#prodVideoUrl').value = '';
+    try {
+      const stored = await getVideoFromDB(product.id);
+      if (stored && stored.blob) {
+        const blobUrl = URL.createObjectURL(stored.blob);
+        renderEditModalVideoPreview(blobUrl, true, product.videoFileName || 'Uploaded Video');
+      } else {
+        renderEditModalVideoPreview('');
+      }
+    } catch (e) {
+      renderEditModalVideoPreview('');
+    }
+  } else if (product.videoUrl) {
+    if ($('#prodVideoUrl')) $('#prodVideoUrl').value = product.videoUrl;
+    renderEditModalVideoPreview(product.videoUrl, false);
+  } else {
+    if ($('#prodVideoUrl')) $('#prodVideoUrl').value = '';
+    renderEditModalVideoPreview('');
+  }
 
   if ($('#prodPrimaryFileInput')) $('#prodPrimaryFileInput').value = '';
   if ($('#prodHoverFileInput')) $('#prodHoverFileInput').value = '';
@@ -1289,10 +1337,7 @@ window.handleSaveProduct = async function (e) {
     const featsRaw = $('#prodFeatures') ? $('#prodFeatures').value.trim() : '';
     const finalFeats = featsRaw ? featsRaw.split('\n').map(s => s.trim()).filter(Boolean) : [];
 
-    let savedId = id;
-    if (!savedId) {
-      savedId = Math.max(0, ...AdminState.products.map(p => p.id)) + 1;
-    }
+    let savedId = id ? parseInt(id, 10) : (Math.max(0, ...AdminState.products.map(p => parseInt(p.id, 10) || 0)) + 1);
 
     if (currentEditProductVideo.isLocal && currentEditProductVideo.file) {
       try {
@@ -1306,13 +1351,13 @@ window.handleSaveProduct = async function (e) {
       finalVideoUrl = $('#prodVideoUrl').value.trim();
     }
 
-    let savedIdAssigned = true;
     if (id) {
       // Update existing
       const existingIndex = AdminState.products.findIndex(p => p.id == id);
       if (existingIndex > -1) {
         AdminState.products[existingIndex] = {
           ...AdminState.products[existingIndex],
+          id: savedId,
           title,
           category,
           collection,
@@ -1324,12 +1369,22 @@ window.handleSaveProduct = async function (e) {
           image,
           hoverImage,
           gallery,
-          description
+          description,
+          dimensionsList: finalDims,
+          featuresList: finalFeats,
+          videoUrl: finalVideoUrl,
+          videoFileName: finalVideoFileName
         };
+      }
+      if (typeof currentPdpProduct !== 'undefined' && currentPdpProduct && currentPdpProduct.id == id) {
+        currentPdpProduct.dimensionsList = finalDims;
+        currentPdpProduct.featuresList = finalFeats;
+        currentPdpProduct.videoUrl = finalVideoUrl;
+        currentPdpProduct.videoFileName = finalVideoFileName;
       }
     } else {
       // Add new product
-      const newId = Math.max(0, ...AdminState.products.map(p => p.id)) + 1;
+      const newId = Math.max(0, ...AdminState.products.map(p => parseInt(p.id, 10) || 0)) + 1;
       savedId = newId;
       const newProduct = {
         id: newId,
@@ -1347,6 +1402,10 @@ window.handleSaveProduct = async function (e) {
         hoverImage,
         gallery,
         description,
+        dimensionsList: finalDims,
+        featuresList: finalFeats,
+        videoUrl: finalVideoUrl,
+        videoFileName: finalVideoFileName,
         colors: [
           { name: 'Noir Black', hex: '#111111' },
           { name: 'Mocha Tan', hex: '#8B5A2B' }
