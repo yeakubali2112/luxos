@@ -773,6 +773,8 @@ window.filterAdminProducts = function () {
   renderProductsTable();
 };
 
+let currentProductSecondaryPhotos = [];
+
 window.openProductModal = function () {
   $('#productModalTitle').textContent = 'Add New Product';
   $('#editProductId').value = '';
@@ -785,15 +787,16 @@ window.openProductModal = function () {
   $('#prodStock').value = '15';
   $('#prodRating').value = '4.8';
   $('#prodImage').value = '';
-  $('#prodHoverImage').value = '';
   $('#prodDescription').value = '';
 
   if ($('#prodPrimaryFileInput')) $('#prodPrimaryFileInput').value = '';
   if ($('#prodHoverFileInput')) $('#prodHoverFileInput').value = '';
+  if ($('#prodHoverImageInput')) $('#prodHoverImageInput').value = '';
   if ($('#prodPrimaryImgPreviewBox')) $('#prodPrimaryImgPreviewBox').classList.add('hidden');
-  if ($('#prodHoverImgPreviewBox')) $('#prodHoverImgPreviewBox').classList.add('hidden');
   if ($('#prodPrimaryImgInfo')) $('#prodPrimaryImgInfo').textContent = 'Preview';
-  if ($('#prodHoverImgInfo')) $('#prodHoverImgInfo').textContent = 'Hover Preview';
+
+  currentProductSecondaryPhotos = [];
+  renderSecondaryPhotosGrid();
 
   $('#productFormModal').classList.add('active');
 };
@@ -826,31 +829,98 @@ window.handleProductFileUpload = function (event, type) {
       const info = $('#prodPrimaryImgInfo');
       if (info) info.textContent = `${file.name} (${sizeStr})`;
       showAdminToast(`Primary product photo loaded (${sizeStr})!`);
-    } else {
-      $('#prodHoverImage').value = base64;
-      previewProductImg(base64, 'hover');
-      const info = $('#prodHoverImgInfo');
-      if (info) info.textContent = `${file.name} (${sizeStr})`;
-      showAdminToast(`Hover photo loaded (${sizeStr})!`);
     }
   };
   reader.readAsDataURL(file);
 };
 
+window.handleMultipleSecondaryUpload = function (event) {
+  const files = Array.from(event.target.files || []);
+  if (files.length === 0) return;
+
+  let loadedCount = 0;
+  files.forEach(file => {
+    if (!file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      currentProductSecondaryPhotos.push(e.target.result);
+      loadedCount++;
+      if (loadedCount === files.length) {
+        renderSecondaryPhotosGrid();
+        showAdminToast(`Added ${loadedCount} photo(s) to gallery!`);
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+  event.target.value = '';
+};
+
+window.handleAddSecondaryUrl = function () {
+  const input = $('#prodHoverImageInput');
+  const url = (input ? input.value : '').trim();
+  if (!url) {
+    showAdminToast('Please paste a photo URL first.');
+    return;
+  }
+  currentProductSecondaryPhotos.push(url);
+  input.value = '';
+  renderSecondaryPhotosGrid();
+  showAdminToast('Photo URL added to gallery!');
+};
+
+window.removeSecondaryPhoto = function (index) {
+  if (index >= 0 && index < currentProductSecondaryPhotos.length) {
+    currentProductSecondaryPhotos.splice(index, 1);
+    renderSecondaryPhotosGrid();
+    showAdminToast('Photo removed.');
+  }
+};
+
+window.moveSecondaryPhoto = function (index, direction) {
+  const newIndex = index + direction;
+  if (newIndex < 0 || newIndex >= currentProductSecondaryPhotos.length) return;
+  const temp = currentProductSecondaryPhotos[index];
+  currentProductSecondaryPhotos[index] = currentProductSecondaryPhotos[newIndex];
+  currentProductSecondaryPhotos[newIndex] = temp;
+  renderSecondaryPhotosGrid();
+};
+
+function renderSecondaryPhotosGrid() {
+  const grid = $('#secondaryPhotosGrid');
+  const badge = $('#secondaryPhotosCountBadge');
+  if (badge) badge.textContent = `${currentProductSecondaryPhotos.length} Photo${currentProductSecondaryPhotos.length === 1 ? '' : 's'}`;
+  if (!grid) return;
+
+  if (currentProductSecondaryPhotos.length === 0) {
+    grid.innerHTML = `
+      <div class="col-span-full p-4 text-center text-xs text-slate-400 bg-white rounded-lg border border-dashed border-slate-200">
+        No secondary photos added yet. Click "+ Add / Upload Photos" to add 1 or more photos.
+      </div>
+    `;
+    return;
+  }
+
+  grid.innerHTML = currentProductSecondaryPhotos.map((imgSrc, index) => `
+    <div class="relative group aspect-square rounded-lg bg-white border border-slate-200 overflow-hidden shadow-2xs">
+      <img src="${imgSrc}" class="w-full h-full object-cover" />
+      ${index === 0 
+        ? `<span class="absolute top-1 left-1 bg-black/85 text-amber-300 text-[9px] font-bold px-1.5 py-0.5 rounded backdrop-blur-xs shadow-xs">★ Hover</span>`
+        : `<span class="absolute top-1 left-1 bg-black/70 text-white text-[9px] font-bold px-1.5 py-0.5 rounded backdrop-blur-xs shadow-xs">#${index + 1}</span>`}
+      <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-1.5">
+        ${index > 0 ? `<button type="button" onclick="moveSecondaryPhoto(${index}, -1)" class="w-6 h-6 bg-white/90 hover:bg-white text-black rounded flex items-center justify-center shadow" title="Move Left"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/></svg></button>` : ''}
+        ${index < currentProductSecondaryPhotos.length - 1 ? `<button type="button" onclick="moveSecondaryPhoto(${index}, 1)" class="w-6 h-6 bg-white/90 hover:bg-white text-black rounded flex items-center justify-center shadow" title="Move Right"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg></button>` : ''}
+        <button type="button" onclick="removeSecondaryPhoto(${index})" class="w-6 h-6 bg-red-600 hover:bg-red-700 text-white rounded flex items-center justify-center shadow" title="Delete Photo">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
 window.previewProductImg = function (url, type) {
   if (type === 'primary') {
     const box = $('#prodPrimaryImgPreviewBox');
     const img = $('#prodPrimaryImgPreview');
-    if (!box || !img) return;
-    if (url && (url.startsWith('http') || url.startsWith('data:') || url.startsWith('/'))) {
-      img.src = url;
-      box.classList.remove('hidden');
-    } else {
-      box.classList.add('hidden');
-    }
-  } else {
-    const box = $('#prodHoverImgPreviewBox');
-    const img = $('#prodHoverImgPreview');
     if (!box || !img) return;
     if (url && (url.startsWith('http') || url.startsWith('data:') || url.startsWith('/'))) {
       img.src = url;
@@ -876,20 +946,23 @@ window.editProduct = function (productId) {
   $('#prodStock').value = product.stock || 10;
   $('#prodRating').value = product.rating || '4.8';
   $('#prodImage').value = product.image;
-  $('#prodHoverImage').value = product.hoverImage || product.image;
   $('#prodDescription').value = product.description || '';
 
   if ($('#prodPrimaryFileInput')) $('#prodPrimaryFileInput').value = '';
   if ($('#prodHoverFileInput')) $('#prodHoverFileInput').value = '';
+  if ($('#prodHoverImageInput')) $('#prodHoverImageInput').value = '';
   if ($('#prodPrimaryImgInfo')) $('#prodPrimaryImgInfo').textContent = 'Current Image';
-  if ($('#prodHoverImgInfo')) $('#prodHoverImgInfo').textContent = 'Current Hover Image';
 
   previewProductImg(product.image, 'primary');
-  if (product.hoverImage) {
-    previewProductImg(product.hoverImage, 'hover');
-  } else if ($('#prodHoverImgPreviewBox')) {
-    $('#prodHoverImgPreviewBox').classList.add('hidden');
+
+  // Load multiple secondary gallery photos
+  currentProductSecondaryPhotos = [];
+  if (Array.isArray(product.gallery) && product.gallery.length > 0) {
+    currentProductSecondaryPhotos = [...product.gallery];
+  } else if (product.hoverImage && product.hoverImage !== product.image) {
+    currentProductSecondaryPhotos = [product.hoverImage];
   }
+  renderSecondaryPhotosGrid();
 
   $('#productFormModal').classList.add('active');
 };
@@ -907,7 +980,8 @@ window.handleSaveProduct = function (e) {
   const stock = parseInt($('#prodStock').value || 10, 10);
   const rating = $('#prodRating').value.trim() || '4.8';
   const image = $('#prodImage').value.trim();
-  const hoverImage = $('#prodHoverImage').value.trim() || image;
+  const hoverImage = currentProductSecondaryPhotos.length > 0 ? currentProductSecondaryPhotos[0] : image;
+  const gallery = [...currentProductSecondaryPhotos];
   const description = $('#prodDescription').value.trim();
 
   if (!price.startsWith('৳')) price = '৳ ' + price.replace(/[^\d,]/g, '');
@@ -929,6 +1003,7 @@ window.handleSaveProduct = function (e) {
         rating,
         image,
         hoverImage,
+        gallery,
         description
       };
       showAdminToast(`Updated "${title}"`);
@@ -950,6 +1025,7 @@ window.handleSaveProduct = function (e) {
       reviewsCount: 1,
       image,
       hoverImage,
+      gallery,
       description,
       colors: [
         { name: 'Noir Black', hex: '#111111' },

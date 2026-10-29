@@ -718,6 +718,15 @@ window.openQuickView = function (productId) {
 
   let selectedColor = product.colors && product.colors.length > 0 ? product.colors[0].name : 'Default';
 
+  const allGalleryImages = [product.image];
+  if (Array.isArray(product.gallery) && product.gallery.length > 0) {
+    product.gallery.forEach(img => {
+      if (img && !allGalleryImages.includes(img)) allGalleryImages.push(img);
+    });
+  } else if (product.hoverImage && product.hoverImage !== product.image) {
+    allGalleryImages.push(product.hoverImage);
+  }
+
   content.innerHTML = `
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
       <!-- Image Gallery -->
@@ -725,13 +734,12 @@ window.openQuickView = function (productId) {
         <div class="aspect-square bg-gray-50 rounded-sm overflow-hidden border border-gray-200">
           <img id="quickViewMainImage" src="${product.image}" alt="${product.title}" class="w-full h-full object-cover" />
         </div>
-        <div class="flex gap-2">
-          <button onclick="$('#quickViewMainImage').src = '${product.image}'" class="w-16 h-16 rounded border border-gray-300 overflow-hidden hover:border-black">
-            <img src="${product.image}" class="w-full h-full object-cover" />
-          </button>
-          <button onclick="$('#quickViewMainImage').src = '${product.hoverImage || product.image}'" class="w-16 h-16 rounded border border-gray-300 overflow-hidden hover:border-black">
-            <img src="${product.hoverImage || product.image}" class="w-full h-full object-cover" />
-          </button>
+        <div class="flex gap-2 flex-wrap max-h-24 overflow-y-auto">
+          ${allGalleryImages.map(imgSrc => `
+            <button onclick="$('#quickViewMainImage').src = '${imgSrc}'" class="w-14 h-14 rounded border border-gray-300 overflow-hidden hover:border-black focus:border-black focus:ring-1 focus:ring-black shrink-0 transition">
+              <img src="${imgSrc}" class="w-full h-full object-cover" />
+            </button>
+          `).join('')}
         </div>
       </div>
 
