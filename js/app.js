@@ -47,6 +47,13 @@ function formatPrice(num) {
   return '৳ ' + Math.round(num).toLocaleString('en-US');
 }
 
+// Helper: format card price like "2,350.00৳" matching reference style
+function formatCardPrice(val) {
+  if (!val) return '';
+  const num = typeof val === 'number' ? val : (parseFloat(val.toString().replace(/[^\d.]/g, '')) || 0);
+  return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '৳';
+}
+
 // Initialize Application on DOM Ready
 document.addEventListener('DOMContentLoaded', () => {
   // Load custom settings if modified from admin
@@ -371,33 +378,35 @@ function createProductCardHtml(p) {
           </div>
         </div>
 
-        <!-- Product Meta -->
-        <div class="space-y-1">
-          <h3 class="text-sm font-medium text-gray-900 group-hover:text-black transition line-clamp-1">
-            <a href="javascript:void(0)" onclick="openQuickView(${p.id})">${p.title}</a>
+        <!-- Product Meta (Matching Reference: Category -> Blue Title -> Strike Original + Bold Sale) -->
+        <div class="space-y-0.5 pt-1">
+          <!-- Category -->
+          <div class="text-[11px] uppercase tracking-wider text-neutral-400 font-medium">
+            ${p.category || ''}
+          </div>
+
+          <!-- Title -->
+          <h3 class="text-[13.5px] font-normal leading-snug line-clamp-1">
+            <a href="javascript:void(0)" onclick="openQuickView(${p.id})" class="text-[#1a56db] hover:underline">
+              ${p.title}
+            </a>
           </h3>
 
-          <div class="flex items-center gap-1 text-xs text-amber-500">
-            <span>★</span>
-            <span class="text-gray-700 font-semibold">${p.rating}</span>
-            <span class="text-gray-400">(${p.reviewsCount})</span>
+          <!-- Price & Mobile Quick Add -->
+          <div class="flex items-center justify-between pt-0.5">
+            <div class="flex items-baseline gap-2 text-[13.5px]">
+              ${p.originalPrice ? `<span class="line-through text-neutral-400 font-normal">${formatCardPrice(p.originalPrice)}</span>` : ''}
+              <span class="font-bold text-neutral-900">${formatCardPrice(p.price)}</span>
+            </div>
+            
+            <!-- Mobile Quick Add -->
+            <button 
+              onclick="quickAddToCart(${p.id}, event)"
+              class="md:hidden text-xs bg-black text-white px-2.5 py-1 rounded-sm font-medium">
+              Add
+            </button>
           </div>
         </div>
-      </div>
-
-      <!-- Price & Mobile Quick Add -->
-      <div class="mt-2.5 pt-2 border-t border-gray-100 flex items-center justify-between">
-        <div class="flex items-baseline gap-2">
-          <span class="text-base font-bold text-gray-900">${p.price}</span>
-          ${p.originalPrice ? `<span class="text-xs text-gray-400 line-through">${p.originalPrice}</span>` : ''}
-        </div>
-        
-        <!-- Mobile Add to Cart Button -->
-        <button 
-          onclick="quickAddToCart(${p.id}, event)"
-          class="md:hidden text-xs bg-black text-white px-3 py-1.5 rounded-sm font-medium">
-          Add
-        </button>
       </div>
     </div>
   `;
