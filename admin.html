@@ -1055,27 +1055,24 @@
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
             <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Sale Price (৳) *</label>
-            <input id="prodPrice" type="text" required placeholder="৳ 1,650" class="w-full border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:border-black font-semibold" />
+            <input id="prodPrice" type="text" required placeholder="৳ 1,650" class="w-full border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:border-black font-semibold text-slate-900" />
           </div>
           <div>
             <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Original Price (৳)</label>
-            <input id="prodOriginalPrice" type="text" placeholder="৳ 2,400" class="w-full border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:border-black" />
+            <input id="prodOriginalPrice" type="text" placeholder="৳ 2,500" oninput="calculateSalePriceFromDiscount()" class="w-full border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:border-black" />
           </div>
           <div>
-            <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Discount Badge</label>
-            <input id="prodBadge" type="text" placeholder="Save 35% or New" class="w-full border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:border-black" />
+            <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1 flex items-center justify-between">
+              <span>Discount Badge</span>
+              <span class="text-[10px] text-amber-600 font-semibold">% off</span>
+            </label>
+            <input id="prodBadge" type="text" placeholder="e.g. 35% or Save 35%" oninput="calculateSalePriceFromDiscount()" onblur="formatDiscountBadge(this)" class="w-full border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:border-black" />
           </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Stock Quantity</label>
-            <input id="prodStock" type="number" value="10" min="0" class="w-full border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:border-black" />
-          </div>
-          <div>
-            <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Rating (e.g. 4.8)</label>
-            <input id="prodRating" type="text" value="4.8" class="w-full border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:border-black" />
-          </div>
+        <div>
+          <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Stock Quantity</label>
+          <input id="prodStock" type="number" value="10" min="0" class="w-full border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:border-black" />
         </div>
 
         <!-- 1. Primary Product Image -->
@@ -1217,11 +1214,6 @@
             <span class="text-[10px] text-slate-400 font-normal">Shown under price on product page</span>
           </label>
           <input id="prodDeliveryNotice" type="text" placeholder="Estimated Delivery: 3–5 Days — Ships directly from Dhaka" class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:outline-none focus:border-black font-medium text-slate-800" />
-        </div>
-
-        <div>
-          <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Product Description</label>
-          <textarea id="prodDescription" rows="3" placeholder="Crafted with luxury materials..." class="w-full border border-slate-300 rounded-lg p-2.5 focus:outline-none focus:border-black"></textarea>
         </div>
 
         <div class="pt-2 flex justify-end gap-3">

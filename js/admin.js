@@ -900,6 +900,42 @@ window.clearEditProductVideo = async function () {
   showAdminToast('Video removed.');
 };
 
+window.calculateSalePriceFromDiscount = function () {
+  const origEl = $('#prodOriginalPrice');
+  const badgeEl = $('#prodBadge');
+  const saleEl = $('#prodPrice');
+  if (!origEl || !badgeEl || !saleEl) return;
+
+  const origRaw = origEl.value.trim();
+  const badgeRaw = badgeEl.value.trim();
+
+  const origNum = parseFloat(origRaw.replace(/[^\d.]/g, ''));
+  if (isNaN(origNum) || origNum <= 0) return;
+
+  const pctMatch = badgeRaw.match(/(\d+(?:\.\d+)?)/);
+  if (!pctMatch) return;
+
+  const pct = parseFloat(pctMatch[1]);
+  if (pct > 0 && pct < 100) {
+    const discountedSale = Math.round(origNum * (1 - pct / 100));
+    saleEl.value = '৳ ' + discountedSale;
+  }
+};
+
+window.formatDiscountBadge = function (input) {
+  if (!input) return;
+  const val = input.value.trim();
+  if (!val) return;
+  if (/^\d+$/.test(val)) {
+    input.value = `Save ${val}%`;
+  } else if (/^\d+%\s*off$/i.test(val)) {
+    input.value = `Save ${val.replace(/off/i, '').trim()}`;
+  } else if (/^\d+%$/.test(val)) {
+    input.value = `Save ${val}`;
+  }
+  calculateSalePriceFromDiscount();
+};
+
 window.openProductModal = function () {
   $('#productModalTitle').textContent = 'Add New Product';
   $('#editProductId').value = '';
@@ -910,9 +946,9 @@ window.openProductModal = function () {
   $('#prodOriginalPrice').value = '';
   $('#prodBadge').value = 'Exclusive';
   $('#prodStock').value = '15';
-  $('#prodRating').value = '4.8';
+  if ($('#prodRating')) $('#prodRating').value = '4.8';
   $('#prodImage').value = '';
-  $('#prodDescription').value = '';
+  if ($('#prodDescription')) $('#prodDescription').value = '';
 
   if ($('#prodDimensions')) $('#prodDimensions').value = '';
   if ($('#prodFeatures')) $('#prodFeatures').value = '';
@@ -1206,9 +1242,9 @@ window.editProduct = async function (productId) {
   $('#prodOriginalPrice').value = product.originalPrice || '';
   $('#prodBadge').value = product.badge || '';
   $('#prodStock').value = product.stock || 10;
-  $('#prodRating').value = product.rating || '4.8';
+  if ($('#prodRating')) $('#prodRating').value = product.rating || '4.8';
   $('#prodImage').value = product.image;
-  $('#prodDescription').value = product.description || '';
+  if ($('#prodDescription')) $('#prodDescription').value = product.description || '';
 
   // Load Dimensions & Bag Features bullets
   if ($('#prodDimensions')) {
@@ -1316,7 +1352,7 @@ window.handleSaveProduct = async function (e) {
     let originalPrice = $('#prodOriginalPrice').value.trim();
     const badge = $('#prodBadge').value.trim();
     const stock = parseInt($('#prodStock').value || 10, 10);
-    const rating = $('#prodRating').value.trim() || '4.8';
+    const rating = ($('#prodRating') && $('#prodRating').value.trim()) || (id ? (AdminState.products.find(p => p.id == id)?.rating || '4.8') : '4.8');
     
     // Auto-compress primary image if uncompressed base64 string
     let image = $('#prodImage').value.trim();
@@ -1334,7 +1370,7 @@ window.handleSaveProduct = async function (e) {
       gallery.push(gImg);
     }
     const hoverImage = gallery.length > 0 ? gallery[0] : image;
-    const description = $('#prodDescription').value.trim();
+    const description = ($('#prodDescription') && $('#prodDescription').value.trim()) || (id ? (AdminState.products.find(p => p.id == id)?.description || '') : '');
 
     if (!price.startsWith('৳')) price = '৳ ' + price.replace(/[^\d,]/g, '');
     if (originalPrice && !originalPrice.startsWith('৳')) originalPrice = '৳ ' + originalPrice.replace(/[^\d,]/g, '');
