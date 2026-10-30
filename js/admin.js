@@ -271,11 +271,12 @@ function initData() {
   loadTickerSettings();
   // Load products (from custom admin data or default catalog)
   const storedProducts = localStorage.getItem('luxos_products_data');
-  if (storedProducts) {
+  if (storedProducts !== null) {
     try {
-      AdminState.products = JSON.parse(storedProducts);
+      const parsed = JSON.parse(storedProducts);
+      AdminState.products = Array.isArray(parsed) ? parsed : [];
     } catch (e) {
-      AdminState.products = [...LUXOS_PRODUCTS];
+      AdminState.products = [];
     }
   } else {
     AdminState.products = [...LUXOS_PRODUCTS];
@@ -2083,7 +2084,7 @@ window.deleteProduct = function (productId) {
     confirmText: 'Yes, Delete',
     onConfirm: () => {
       AdminState.products = AdminState.products.filter(p => p.id !== productId);
-      localStorage.setItem('luxos_products_data', JSON.stringify(AdminState.products));
+      saveProductsSafely(AdminState.products);
       renderProductsTable();
       renderDashboard();
       showAdminToast(`Product "${product.title}" deleted.`);

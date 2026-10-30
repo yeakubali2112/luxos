@@ -6,15 +6,15 @@
 // Helper: Get active products (from Admin localStorage if modified, otherwise default)
 function getStoreProducts() {
   const stored = localStorage.getItem('luxos_products_data');
-  if (stored) {
+  if (stored !== null) {
     try {
       const parsed = JSON.parse(stored);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed)) return parsed;
     } catch (e) {
       console.error('Error parsing stored products', e);
     }
   }
-  return LUXOS_PRODUCTS;
+  return typeof LUXOS_PRODUCTS !== 'undefined' ? LUXOS_PRODUCTS : [];
 }
 
 // Application State
@@ -189,6 +189,10 @@ async function getItemIndexedDB(key) {
 }
 
 window.addEventListener('storage', (e) => {
+  if (e.key === 'luxos_products_data') {
+    renderProducts();
+    if (typeof renderLookbookSection === 'function') renderLookbookSection();
+  }
   if (e.key === 'luxos_ticker_settings') {
     renderStorefrontTicker();
   }

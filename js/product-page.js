@@ -83,20 +83,25 @@
    */
   function initProductPage() {
     const targetId = getProductIdFromUrl();
-    const catalog = typeof LUXOS_PRODUCTS !== 'undefined' ? LUXOS_PRODUCTS : [];
+    const catalog = typeof getStoreProducts === 'function' ? getStoreProducts() : (typeof LUXOS_PRODUCTS !== 'undefined' ? LUXOS_PRODUCTS : []);
     
-    // Find product from catalog or custom storage
-    let baseProduct = catalog.find(p => p.id == targetId) || catalog[0] || {};
-    if (typeof getStoreProducts === 'function') {
-      const customList = getStoreProducts();
-      const foundCustom = customList.find(p => p.id == targetId);
-      if (foundCustom) {
-        baseProduct = { ...baseProduct, ...foundCustom };
-      }
-    }
+    // Find product from catalog
+    let baseProduct = catalog.find(p => p.id == targetId) || null;
 
     currentProduct = baseProduct;
-    if (!currentProduct || !currentProduct.id) return;
+    if (!currentProduct || !currentProduct.id) {
+      const container = $('#productDetailContainer');
+      if (container) {
+        container.innerHTML = `
+          <div class="col-span-full py-24 text-center">
+            <h2 class="text-xl font-bold text-gray-900 mb-2">Product Not Found</h2>
+            <p class="text-sm text-gray-500 mb-6">The product you are looking for is currently unavailable or has been removed.</p>
+            <a href="/" class="inline-block bg-black text-white text-xs uppercase tracking-luxury font-bold px-8 py-3 rounded-sm hover:bg-neutral-800 transition">Return to Shop</a>
+          </div>
+        `;
+      }
+      return;
+    }
 
     // Set page title & breadcrumbs
     document.title = `${currentProduct.title || 'Product'} | Luxos Official`;
