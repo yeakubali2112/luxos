@@ -145,6 +145,14 @@
         <span id="sidebarCollectionsCount" class="text-purple-300 text-xs font-bold">8</span>
       </button>
 
+      <button onclick="switchTab('lookbook')" id="nav-lookbook" class="nav-item w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition">
+        <div class="flex items-center gap-3">
+          <svg class="w-4 h-4 text-pink-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" /><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" /></svg>
+          <span>Street Style Lookbook</span>
+        </div>
+        <span id="sidebarLookbookBadge" class="bg-pink-500/20 text-pink-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-pink-500/30">Active</span>
+      </button>
+
       <button onclick="switchTab('ticker')" id="nav-ticker" class="nav-item w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition">
         <div class="flex items-center gap-3">
           <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.34 15.84c-.688-.06-1.386-.09-2.09-.09H7.5a4.5 4.5 0 110-9h.75c.704 0 1.402-.03 2.09-.09m0 9.18c.253.962.584 1.892.985 2.783.247.55.06 1.21-.463 1.511l-.657.38c-.551.318-1.26.117-1.527-.455a20.89 20.89 0 01-1.637-4.22m3.292-9.18a20.89 20.89 0 00-3.292-9.18c.267-.572.976-.773 1.527-.455l.657.38c.523.301.71.961.463 1.511a19.014 19.014 0 01-.985 2.783m1.02 4.18H18.75a3 3 0 013 3v0a3 3 0 01-3 3H11.36" /></svg>
@@ -638,6 +646,188 @@
               Save Header Text
             </button>
           </div>
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           TAB: STREET STYLE LOOKBOOK ("BAG THE VIBE") MANAGEMENT
+           ===================================================================== -->
+      <section id="tab-lookbook" class="space-y-6 hidden">
+        <!-- Top Toolbar & Settings -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h3 class="text-sm font-bold text-slate-800 font-heading flex items-center gap-2">
+              <span>Street Style Lookbook ("Bag The Vibe")</span>
+              <span id="lookbookStatusBadge" class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200">Active</span>
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5">Customize the interactive lookbook photo, pulse pin product tag, texts, and campaign story</p>
+          </div>
+
+          <div class="flex items-center gap-3 w-full sm:w-auto flex-wrap">
+            <label class="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer bg-slate-50 px-3.5 py-2 rounded-lg border border-slate-200 hover:bg-slate-100 transition">
+              <input id="lookbookEnableToggle" type="checkbox" checked onchange="toggleLookbookEnabled()" class="rounded text-black focus:ring-black h-4 w-4" />
+              <span>Show on Website</span>
+            </label>
+
+            <a href="/#lookbookSection" target="_blank" class="px-3 py-2 text-xs font-semibold text-slate-600 hover:text-black border border-slate-200 rounded-lg bg-white hover:bg-slate-50 transition flex items-center gap-1.5 shadow-2xs">
+              <svg class="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
+              <span>View Live</span>
+            </a>
+
+            <button onclick="handleSaveLookbook(event)" id="saveLookbookBtn" class="bg-black hover:bg-slate-800 text-white text-xs font-semibold px-5 py-2 rounded-lg transition shadow-sm flex items-center gap-1.5 min-w-[130px] justify-center">
+              <span>Save Lookbook</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 2-Column Studio: Left = Interactive Visual Hotspot Studio, Right = Controls & Product Selection -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          
+          <!-- Left: Interactive Visual Studio (Hotspot Pin Positioner) -->
+          <div class="lg:col-span-7 bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                  <span>Interactive Hotspot Studio</span>
+                  <span class="text-[10px] text-amber-600 font-semibold bg-amber-50 px-2 py-0.5 rounded border border-amber-200/60">Click image to position pin</span>
+                </h4>
+                <p class="text-[11px] text-slate-500 mt-0.5">Click directly on the photo where the bag is located to position the interactive '+' pin.</p>
+              </div>
+              <span id="lookbookCoordsBadge" class="text-[11px] font-mono font-bold bg-slate-900 text-amber-300 px-2.5 py-1 rounded">X: 46% | Y: 52%</span>
+            </div>
+
+            <!-- Clickable Interactive Canvas / Container -->
+            <div id="adminLookbookCanvas" onclick="handleLookbookImageClick(event)" class="relative rounded-lg overflow-hidden bg-black border-2 border-slate-300 cursor-crosshair select-none shadow-inner aspect-[4/3] sm:aspect-[16/11]">
+              <img id="adminLookbookImg" src="https://thepatchee.com/cdn/shop/files/IMG_6745.JPG-ezgif.com-jpg-to-webp-converter.webp?v=1783519021&width=1600" class="w-full h-full object-cover pointer-events-none" />
+
+              <!-- Interactive Pulsing Pin on Admin Canvas -->
+              <div id="adminLookbookPin" class="absolute w-7 h-7 bg-white text-black rounded-full flex items-center justify-center font-bold text-xs shadow-xl ring-4 ring-black/40 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none transition-all duration-150" style="top: 52%; left: 46%;">
+                +
+              </div>
+
+              <!-- Popup Card Preview on Admin Canvas -->
+              <div id="adminLookbookCardPreview" class="absolute z-30 bg-white text-black p-3 rounded-lg shadow-2xl w-60 border border-slate-200 pointer-events-none transition-all duration-150" style="top: 58%; left: 35%;">
+                <div class="flex gap-2.5 items-center">
+                  <img id="adminLookbookCardImg" src="https://thepatchee.com/cdn/shop/files/c2ee0999-fc06-4942-aa71-6cd41e71d473.png?v=1782728863&width=300" class="w-12 h-12 object-cover rounded bg-slate-100 flex-shrink-0" />
+                  <div class="flex-1 min-w-0">
+                    <span id="adminLookbookCardBadge" class="text-[9.5px] uppercase font-bold text-red-600 block">Save 59%</span>
+                    <h5 id="adminLookbookCardTitle" class="text-xs font-bold text-slate-900 truncate">Croissant Chic Crossbody</h5>
+                    <p id="adminLookbookCardPrice" class="text-xs font-bold text-slate-900 mt-0.5">৳ 685</p>
+                  </div>
+                </div>
+                <div class="mt-2 w-full bg-black text-white text-[10px] font-bold py-1.5 uppercase tracking-wider rounded text-center">
+                  Add to Bag
+                </div>
+              </div>
+            </div>
+
+            <!-- Fine-Tuning Position Sliders -->
+            <div class="grid grid-cols-2 gap-4 pt-1 bg-slate-50 p-3 rounded-lg border border-slate-200">
+              <div>
+                <div class="flex justify-between text-[11px] font-semibold text-slate-700 mb-1">
+                  <span>Horizontal Position (Left %)</span>
+                  <span id="pinLeftVal" class="font-mono text-black">46%</span>
+                </div>
+                <input id="lookbookPinLeftRange" type="range" min="5" max="95" value="46" oninput="updatePinFromSliders()" class="w-full accent-black cursor-pointer" />
+              </div>
+              <div>
+                <div class="flex justify-between text-[11px] font-semibold text-slate-700 mb-1">
+                  <span>Vertical Position (Top %)</span>
+                  <span id="pinTopVal" class="font-mono text-black">52%</span>
+                </div>
+                <input id="lookbookPinTopRange" type="range" min="5" max="95" value="52" oninput="updatePinFromSliders()" class="w-full accent-black cursor-pointer" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Photo Upload, Product Selector, and Narrative Content -->
+          <div class="lg:col-span-5 space-y-5">
+            
+            <!-- 1. Lookbook Main Photo -->
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-3">
+              <label class="block font-semibold text-slate-700 uppercase tracking-wider text-xs">Lookbook Model Photo *</label>
+              
+              <div class="flex gap-2">
+                <input type="file" id="lookbookFileInput" accept="image/*" class="hidden" onchange="handleLookbookFileUpload(event)" />
+                <button type="button" onclick="$('#lookbookFileInput').click()" class="bg-black hover:bg-slate-800 text-white px-3.5 py-2.5 rounded-lg font-semibold flex items-center gap-1.5 shrink-0 transition text-xs shadow-xs">
+                  <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
+                  <span>Add / Upload Photo</span>
+                </button>
+                <input id="lookbookImageUrlInput" type="text" placeholder="Or paste image URL (https://...)" onchange="updateLookbookImgFromUrl(this.value)" class="flex-1 border border-slate-300 rounded-lg p-2.5 text-xs focus:outline-none focus:border-black bg-white" />
+              </div>
+              <p class="text-[11px] text-slate-400">High-resolution model lifestyle portrait or street photography photo.</p>
+            </div>
+
+            <!-- 2. Tagged Product on Pin -->
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-3">
+              <div class="flex items-center justify-between">
+                <label class="block font-semibold text-slate-700 uppercase tracking-wider text-xs">Tagged Product (On Hotspot Pin) *</label>
+                <span class="text-[10.5px] text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">With "Add to Bag"</span>
+              </div>
+              <p class="text-[11px] text-slate-500">When visitors click the '+' pin on the lookbook, this product will be shown with a direct 1-click <b>Add to Bag</b> action.</p>
+              
+              <select id="lookbookProductSelect" onchange="handleLookbookProductSelect(this.value)" class="w-full border border-slate-300 rounded-lg p-2.5 text-xs bg-white focus:outline-none focus:border-black font-semibold text-slate-800">
+                <!-- Dynamically populated from AdminState.products -->
+              </select>
+            </div>
+
+            <!-- 3. Section Header Text (Storefront Top Bar) -->
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-3">
+              <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Lookbook Header Texts</h4>
+              
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block font-semibold text-slate-600 text-[11px] uppercase mb-1">Eyebrow Tag</label>
+                  <input id="lookbookTagInput" type="text" value="Street Style Lookbook" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:outline-none focus:border-black" />
+                </div>
+                <div>
+                  <label class="block font-semibold text-slate-600 text-[11px] uppercase mb-1">Main Heading</label>
+                  <input id="lookbookTitleInput" type="text" value="Bag The Vibe" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:outline-none focus:border-black font-bold" />
+                </div>
+              </div>
+
+              <div>
+                <label class="block font-semibold text-slate-600 text-[11px] uppercase mb-1">Subtitle / Instruction</label>
+                <textarea id="lookbookSubtitleInput" rows="2" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:outline-none focus:border-black">Click the interactive pulse pins on our lookbook to reveal and shop the featured pieces directly.</textarea>
+              </div>
+            </div>
+
+            <!-- 4. Campaign Story (Right Column on Storefront) -->
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-3">
+              <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Campaign Story Content</h4>
+
+              <div>
+                <label class="block font-semibold text-slate-600 text-[11px] uppercase mb-1">Campaign Tag</label>
+                <input id="lookbookCampaignTagInput" type="text" value="Autumn Campaign" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:outline-none focus:border-black" />
+              </div>
+
+              <div>
+                <label class="block font-semibold text-slate-600 text-[11px] uppercase mb-1">Campaign Headline</label>
+                <input id="lookbookCampaignTitleInput" type="text" value="Designed for Those Who Dare to Lead" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:outline-none focus:border-black font-bold" />
+              </div>
+
+              <div>
+                <label class="block font-semibold text-slate-600 text-[11px] uppercase mb-1">Campaign Description</label>
+                <textarea id="lookbookCampaignDescInput" rows="3" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:outline-none focus:border-black">Every Luxos bag represents the intersection of urban functionality and high-fashion luxury. Engineered with reinforced stitching, water-repellent textures, and ergonomic hardware made for your dynamic lifestyle.</textarea>
+              </div>
+
+              <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-[11px] text-slate-500">
+                <strong>Notice:</strong> The generic "Explore Crossbody Line" button has been removed from the storefront. Shoppers interact directly with the photo's <b>Add to Bag</b> pin.
+              </div>
+            </div>
+
+            <!-- Bottom Save Action Button -->
+            <div class="flex justify-end gap-3 pt-2">
+              <button onclick="resetLookbookToDefault()" type="button" class="px-4 py-2.5 border border-slate-300 text-slate-600 hover:text-black hover:bg-slate-50 rounded-lg text-xs font-semibold transition">
+                Reset to Default
+              </button>
+              <button onclick="handleSaveLookbook(event)" type="button" class="px-6 py-2.5 bg-black hover:bg-slate-800 text-white rounded-lg text-xs font-semibold shadow transition flex items-center gap-2">
+                <span>Save Lookbook</span>
+              </button>
+            </div>
+
+          </div>
+
         </div>
       </section>
 

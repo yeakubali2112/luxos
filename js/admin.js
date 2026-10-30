@@ -51,6 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadSettingsForm();
   if (typeof renderTickerSettings === 'function') renderTickerSettings();
   if (typeof renderCollectionsManager === 'function') renderCollectionsManager();
+  if (typeof renderLookbookManager === 'function') renderLookbookManager();
   if (typeof syncAdminPersistentData === 'function') syncAdminPersistentData();
 });
 
@@ -83,6 +84,21 @@ async function syncAdminPersistentData() {
     }
   } catch (err) {
     console.warn('Collections sync error from IndexedDB:', err);
+  }
+
+  try {
+    const idbLookbook = await getItemIndexedDB('luxos_lookbook_data');
+    if (idbLookbook && typeof idbLookbook === 'object') {
+      AdminState.lookbook = idbLookbook;
+      if (typeof renderLookbookManager === 'function') renderLookbookManager();
+      try {
+        localStorage.setItem('luxos_lookbook_data', JSON.stringify(idbLookbook));
+      } catch (e) {}
+    } else if (AdminState.lookbook) {
+      await setItemIndexedDB('luxos_lookbook_data', AdminState.lookbook);
+    }
+  } catch (err) {
+    console.warn('Lookbook sync error from IndexedDB:', err);
   }
 }
 
@@ -197,6 +213,19 @@ function initData() {
   } else {
     AdminState.settings = getDefaultSettings();
     localStorage.setItem('luxos_settings', JSON.stringify(AdminState.settings));
+  }
+
+  // Load Street Style Lookbook
+  const storedLookbook = localStorage.getItem('luxos_lookbook_data');
+  if (storedLookbook) {
+    try {
+      AdminState.lookbook = JSON.parse(storedLookbook);
+    } catch (e) {
+      AdminState.lookbook = getDefaultLookbook();
+    }
+  } else {
+    AdminState.lookbook = getDefaultLookbook();
+    localStorage.setItem('luxos_lookbook_data', JSON.stringify(AdminState.lookbook));
   }
 }
 
@@ -418,6 +447,7 @@ window.switchTab = function (tabName) {
     products: 'Product Catalog Management',
     banners: 'Hero Banners & Slideshow',
     collections: 'Shop by Collection (Curated Story Circles)',
+    lookbook: 'Street Style Lookbook ("Bag The Vibe")',
     ticker: 'Scrolling Marquee Ticker Management',
     coupons: 'Promo Codes & Offers',
     customers: 'Customer Directory',
@@ -431,6 +461,7 @@ window.switchTab = function (tabName) {
   if (tabName === 'products') renderProductsTable();
   if (tabName === 'banners') renderBannersTable();
   if (tabName === 'collections') renderCollectionsManager();
+  if (tabName === 'lookbook') renderLookbookManager();
   if (tabName === 'ticker') renderTickerSettings();
   if (tabName === 'coupons') renderCouponsTable();
   if (tabName === 'customers') renderCustomersTable();
@@ -2845,6 +2876,317 @@ window.saveCollectionsHeaderSettings = function () {
   localStorage.setItem('luxos_collections_header', JSON.stringify(AdminState.collectionsHeader));
   renderCollectionsManager();
   showAdminToast('Section header text updated!');
+};
+
+/* ==========================================================================
+   Street Style Lookbook ("Bag The Vibe") Manager
+   ========================================================================== */
+function getDefaultLookbook() {
+  return {
+    enabled: true,
+    tag: 'Street Style Lookbook',
+    title: 'Bag The Vibe',
+    subtitle: 'Click the interactive pulse pins on our lookbook to reveal and shop the featured pieces directly.',
+    image: 'https://thepatchee.com/cdn/shop/files/IMG_6745.JPG-ezgif.com-jpg-to-webp-converter.webp?v=1783519021&width=1600',
+    campaignTag: 'Autumn Campaign',
+    campaignTitle: 'Designed for Those Who Dare to Lead',
+    campaignDesc: 'Every Luxos bag represents the intersection of urban functionality and high-fashion luxury. Engineered with reinforced stitching, water-repellent textures, and ergonomic hardware made for your dynamic lifestyle.',
+    pinTop: 52,
+    pinLeft: 46,
+    productId: 3
+  };
+}
+
+async function saveLookbookSafely(lookbook) {
+  try {
+    await setItemIndexedDB('luxos_lookbook_data', lookbook);
+  } catch (e) {}
+
+  try {
+    localStorage.setItem('luxos_lookbook_data', JSON.stringify(lookbook));
+    return true;
+  } catch (err) {
+    console.warn('localStorage quota exceeded while saving lookbook, optimizing...', err);
+    if (lookbook.image && lookbook.image.startsWith('data:image/') && lookbook.image.length > 40000) {
+      try {
+        lookbook.image = await compressDataUrl(lookbook.image, 1200, 800, 0.78);
+      } catch (e) {}
+    }
+    try {
+      localStorage.setItem('luxos_lookbook_data', JSON.stringify(lookbook));
+      await setItemIndexedDB('luxos_lookbook_data', lookbook);
+      return true;
+    } catch (e2) {
+      console.warn('localStorage full, but lookbook is stored in IndexedDB:', e2);
+      return true;
+    }
+  }
+}
+
+window.renderLookbookManager = function () {
+  const lookbook = AdminState.lookbook || getDefaultLookbook();
+  AdminState.lookbook = lookbook;
+
+  // Toggle & Status
+  if ($('#lookbookEnableToggle')) $('#lookbookEnableToggle').checked = lookbook.enabled !== false;
+  if ($('#lookbookStatusBadge')) {
+    const isEn = lookbook.enabled !== false;
+    $('#lookbookStatusBadge').textContent = isEn ? 'Active' : 'Hidden';
+    $('#lookbookStatusBadge').className = isEn
+      ? 'bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200'
+      : 'bg-slate-200 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-slate-300';
+  }
+  if ($('#sidebarLookbookBadge')) {
+    const isEn = lookbook.enabled !== false;
+    $('#sidebarLookbookBadge').textContent = isEn ? 'Active' : 'Hidden';
+    $('#sidebarLookbookBadge').className = isEn
+      ? 'bg-pink-500/20 text-pink-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-pink-500/30'
+      : 'bg-slate-700 text-slate-400 text-[10px] font-bold px-2 py-0.5 rounded-full';
+  }
+
+  // Populate Inputs
+  if ($('#lookbookTagInput')) $('#lookbookTagInput').value = lookbook.tag || 'Street Style Lookbook';
+  if ($('#lookbookTitleInput')) $('#lookbookTitleInput').value = lookbook.title || 'Bag The Vibe';
+  if ($('#lookbookSubtitleInput')) $('#lookbookSubtitleInput').value = lookbook.subtitle || '';
+  if ($('#lookbookImageUrlInput')) $('#lookbookImageUrlInput').value = lookbook.image || '';
+
+  if ($('#lookbookCampaignTagInput')) $('#lookbookCampaignTagInput').value = lookbook.campaignTag || '';
+  if ($('#lookbookCampaignTitleInput')) $('#lookbookCampaignTitleInput').value = lookbook.campaignTitle || '';
+  if ($('#lookbookCampaignDescInput')) $('#lookbookCampaignDescInput').value = lookbook.campaignDesc || '';
+
+  // Sliders & Positions
+  const top = typeof lookbook.pinTop === 'number' ? lookbook.pinTop : 52;
+  const left = typeof lookbook.pinLeft === 'number' ? lookbook.pinLeft : 46;
+
+  if ($('#lookbookPinLeftRange')) $('#lookbookPinLeftRange').value = left;
+  if ($('#lookbookPinTopRange')) $('#lookbookPinTopRange').value = top;
+  if ($('#pinLeftVal')) $('#pinLeftVal').textContent = left + '%';
+  if ($('#pinTopVal')) $('#pinTopVal').textContent = top + '%';
+  if ($('#lookbookCoordsBadge')) $('#lookbookCoordsBadge').textContent = `X: ${left}% | Y: ${top}%`;
+
+  // Image & Pin on visual studio
+  if ($('#adminLookbookImg') && lookbook.image) $('#adminLookbookImg').src = lookbook.image;
+  if ($('#adminLookbookPin')) {
+    $('#adminLookbookPin').style.top = top + '%';
+    $('#adminLookbookPin').style.left = left + '%';
+  }
+  if ($('#adminLookbookCardPreview')) {
+    $('#adminLookbookCardPreview').style.top = Math.min(top + 6, 75) + '%';
+    $('#adminLookbookCardPreview').style.left = Math.max(Math.min(left - 10, 65), 5) + '%';
+  }
+
+  // Populate Product Select Dropdown
+  const select = $('#lookbookProductSelect');
+  if (select) {
+    const products = AdminState.products || [];
+    select.innerHTML = products.map(p => `
+      <option value="${p.id}" ${p.id == lookbook.productId ? 'selected' : ''}>
+        ID ${p.id}: ${p.name} — ৳ ${p.price.toLocaleString()} (${p.stock !== undefined ? p.stock : 10} in stock)
+      </option>
+    `).join('');
+  }
+
+  // Update Snapshot Card Preview
+  updateLookbookCardPreview(lookbook.productId);
+};
+
+function updateLookbookCardPreview(productId) {
+  const products = AdminState.products || [];
+  const prod = products.find(p => p.id == productId) || products.find(p => p.id == 3) || products[0];
+  if (!prod) return;
+
+  if ($('#adminLookbookCardImg')) $('#adminLookbookCardImg').src = prod.image;
+  if ($('#adminLookbookCardTitle')) $('#adminLookbookCardTitle').textContent = prod.name;
+  if ($('#adminLookbookCardPrice')) $('#adminLookbookCardPrice').textContent = `৳ ${prod.price.toLocaleString()}`;
+  const badge = prod.badge || (prod.originalPrice ? `Save ${Math.round((prod.originalPrice - prod.price) / prod.originalPrice * 100)}%` : '');
+  if ($('#adminLookbookCardBadge')) {
+    $('#adminLookbookCardBadge').textContent = badge;
+    $('#adminLookbookCardBadge').style.display = badge ? 'block' : 'none';
+  }
+}
+
+window.handleLookbookProductSelect = function (prodId) {
+  if (!AdminState.lookbook) AdminState.lookbook = getDefaultLookbook();
+  AdminState.lookbook.productId = parseInt(prodId, 10);
+  updateLookbookCardPreview(prodId);
+};
+
+window.handleLookbookImageClick = function (event) {
+  const canvas = $('#adminLookbookCanvas');
+  if (!canvas) return;
+
+  const rect = canvas.getBoundingClientRect();
+  const clickX = event.clientX - rect.left;
+  const clickY = event.clientY - rect.top;
+
+  let leftPct = Math.round((clickX / rect.width) * 100);
+  let topPct = Math.round((clickY / rect.height) * 100);
+
+  leftPct = Math.max(5, Math.min(95, leftPct));
+  topPct = Math.max(5, Math.min(95, topPct));
+
+  if (!AdminState.lookbook) AdminState.lookbook = getDefaultLookbook();
+  AdminState.lookbook.pinLeft = leftPct;
+  AdminState.lookbook.pinTop = topPct;
+
+  if ($('#lookbookPinLeftRange')) $('#lookbookPinLeftRange').value = leftPct;
+  if ($('#lookbookPinTopRange')) $('#lookbookPinTopRange').value = topPct;
+  if ($('#pinLeftVal')) $('#pinLeftVal').textContent = leftPct + '%';
+  if ($('#pinTopVal')) $('#pinTopVal').textContent = topPct + '%';
+  if ($('#lookbookCoordsBadge')) $('#lookbookCoordsBadge').textContent = `X: ${leftPct}% | Y: ${topPct}%`;
+
+  if ($('#adminLookbookPin')) {
+    $('#adminLookbookPin').style.top = topPct + '%';
+    $('#adminLookbookPin').style.left = leftPct + '%';
+  }
+  if ($('#adminLookbookCardPreview')) {
+    $('#adminLookbookCardPreview').style.top = Math.min(topPct + 6, 75) + '%';
+    $('#adminLookbookCardPreview').style.left = Math.max(Math.min(leftPct - 10, 65), 5) + '%';
+  }
+};
+
+window.updatePinFromSliders = function () {
+  const leftPct = parseInt($('#lookbookPinLeftRange').value, 10);
+  const topPct = parseInt($('#lookbookPinTopRange').value, 10);
+
+  if (!AdminState.lookbook) AdminState.lookbook = getDefaultLookbook();
+  AdminState.lookbook.pinLeft = leftPct;
+  AdminState.lookbook.pinTop = topPct;
+
+  if ($('#pinLeftVal')) $('#pinLeftVal').textContent = leftPct + '%';
+  if ($('#pinTopVal')) $('#pinTopVal').textContent = topPct + '%';
+  if ($('#lookbookCoordsBadge')) $('#lookbookCoordsBadge').textContent = `X: ${leftPct}% | Y: ${topPct}%`;
+
+  if ($('#adminLookbookPin')) {
+    $('#adminLookbookPin').style.top = topPct + '%';
+    $('#adminLookbookPin').style.left = leftPct + '%';
+  }
+  if ($('#adminLookbookCardPreview')) {
+    $('#adminLookbookCardPreview').style.top = Math.min(topPct + 6, 75) + '%';
+    $('#adminLookbookCardPreview').style.left = Math.max(Math.min(leftPct - 10, 65), 5) + '%';
+  }
+};
+
+window.handleLookbookFileUpload = async function (event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+
+  if (!file.type.startsWith('image/')) {
+    showAdminToast('Please select a valid image file (JPG, PNG, or WebP).');
+    return;
+  }
+
+  showAdminToast('Optimizing lookbook model photo...');
+
+  try {
+    const compressedBase64 = await compressImageFile(file, 1400, 900, 0.82);
+    if ($('#lookbookImageUrlInput')) $('#lookbookImageUrlInput').value = compressedBase64;
+    if ($('#adminLookbookImg')) $('#adminLookbookImg').src = compressedBase64;
+    if (!AdminState.lookbook) AdminState.lookbook = getDefaultLookbook();
+    AdminState.lookbook.image = compressedBase64;
+    const sizeKB = Math.round(compressedBase64.length * 0.75 / 1024);
+    showAdminToast(`Lookbook photo optimized & loaded (${sizeKB} KB)!`);
+  } catch (err) {
+    console.error('Lookbook photo compression error:', err);
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      const base64 = e.target.result;
+      if ($('#lookbookImageUrlInput')) $('#lookbookImageUrlInput').value = base64;
+      if ($('#adminLookbookImg')) $('#adminLookbookImg').src = base64;
+      if (!AdminState.lookbook) AdminState.lookbook = getDefaultLookbook();
+      AdminState.lookbook.image = base64;
+      showAdminToast('Lookbook photo loaded!');
+    };
+    reader.readAsDataURL(file);
+  }
+};
+
+window.updateLookbookImgFromUrl = function (url) {
+  const val = url.trim();
+  if (val && $('#adminLookbookImg')) {
+    $('#adminLookbookImg').src = val;
+    if (!AdminState.lookbook) AdminState.lookbook = getDefaultLookbook();
+    AdminState.lookbook.image = val;
+  }
+};
+
+window.toggleLookbookEnabled = async function () {
+  const isEn = $('#lookbookEnableToggle') ? $('#lookbookEnableToggle').checked : true;
+  if (!AdminState.lookbook) AdminState.lookbook = getDefaultLookbook();
+  AdminState.lookbook.enabled = isEn;
+  await saveLookbookSafely(AdminState.lookbook);
+  renderLookbookManager();
+  showAdminToast(isEn ? 'Street Style Lookbook is now visible on storefront.' : 'Street Style Lookbook is now hidden on storefront.');
+};
+
+window.handleSaveLookbook = async function (e) {
+  if (e && e.preventDefault) e.preventDefault();
+
+  const saveBtn = $('#saveLookbookBtn');
+  const resetBtn = () => {
+    if (saveBtn) {
+      saveBtn.disabled = false;
+      saveBtn.innerHTML = '<span>Save Lookbook</span>';
+    }
+  };
+
+  if (saveBtn) {
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = `
+      <svg class="animate-spin w-4 h-4 text-amber-400 shrink-0 inline mr-1" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+      </svg>
+      <span>Saving...</span>
+    `;
+  }
+
+  try {
+    let image = ($('#lookbookImageUrlInput') ? $('#lookbookImageUrlInput').value.trim() : '') || (AdminState.lookbook && AdminState.lookbook.image) || '';
+    if (image.startsWith('data:image/') && image.length > 50000) {
+      try {
+        image = await compressDataUrl(image, 1400, 900, 0.80);
+      } catch (cErr) {}
+    }
+
+    const data = {
+      enabled: $('#lookbookEnableToggle') ? $('#lookbookEnableToggle').checked : true,
+      tag: $('#lookbookTagInput') ? $('#lookbookTagInput').value.trim() : 'Street Style Lookbook',
+      title: $('#lookbookTitleInput') ? $('#lookbookTitleInput').value.trim() : 'Bag The Vibe',
+      subtitle: $('#lookbookSubtitleInput') ? $('#lookbookSubtitleInput').value.trim() : '',
+      image,
+      campaignTag: $('#lookbookCampaignTagInput') ? $('#lookbookCampaignTagInput').value.trim() : '',
+      campaignTitle: $('#lookbookCampaignTitleInput') ? $('#lookbookCampaignTitleInput').value.trim() : '',
+      campaignDesc: $('#lookbookCampaignDescInput') ? $('#lookbookCampaignDescInput').value.trim() : '',
+      pinLeft: $('#lookbookPinLeftRange') ? parseInt($('#lookbookPinLeftRange').value, 10) : 46,
+      pinTop: $('#lookbookPinTopRange') ? parseInt($('#lookbookPinTopRange').value, 10) : 52,
+      productId: $('#lookbookProductSelect') ? parseInt($('#lookbookProductSelect').value, 10) : 3
+    };
+
+    AdminState.lookbook = data;
+    await saveLookbookSafely(data);
+    renderLookbookManager();
+    resetBtn();
+    showAdminToast('Street Style Lookbook updated successfully!');
+  } catch (err) {
+    console.error('Error saving lookbook:', err);
+    resetBtn();
+    showAdminToast(err.message || 'Error saving lookbook. Please try again.');
+  }
+};
+
+window.resetLookbookToDefault = function () {
+  showConfirmDialog({
+    title: 'Reset Street Style Lookbook?',
+    message: 'Are you sure you want to restore the default photo, hot-pin position, and text?',
+    confirmText: 'Reset to Default',
+    onConfirm: async () => {
+      AdminState.lookbook = getDefaultLookbook();
+      await saveLookbookSafely(AdminState.lookbook);
+      renderLookbookManager();
+      showAdminToast('Lookbook reset to default.');
+    }
+  });
 };
 
 /* ==========================================================================

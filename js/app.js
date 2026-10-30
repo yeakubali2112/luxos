@@ -77,6 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updateCartBadge();
   updateWishlistBadge();
   initHotspots();
+  renderLookbookSection();
   if (typeof updateHeaderProfileIcon === 'function') updateHeaderProfileIcon();
 });
 
@@ -172,6 +173,9 @@ window.addEventListener('storage', (e) => {
   if (e.key === 'luxos_hero_slides') {
     currentHeroSlidesCache = null;
     initHeroSlideshow();
+  }
+  if (e.key === 'luxos_lookbook_data') {
+    renderLookbookSection();
   }
 });
 
@@ -1378,8 +1382,98 @@ window.finishCheckout = function () {
 };
 
 /* ==========================================================================
-   Interactive "Shop the Look" Hotspots
+   Interactive "Shop the Look" Hotspots & Street Style Lookbook
    ========================================================================== */
+function getLookbookData() {
+  const custom = localStorage.getItem('luxos_lookbook_data');
+  if (custom) {
+    try {
+      const parsed = JSON.parse(custom);
+      if (parsed && typeof parsed === 'object') return parsed;
+    } catch (e) {}
+  }
+  return {
+    enabled: true,
+    tag: 'Street Style Lookbook',
+    title: 'Bag The Vibe',
+    subtitle: 'Click the interactive pulse pins on our lookbook to reveal and shop the featured pieces directly.',
+    image: 'https://thepatchee.com/cdn/shop/files/IMG_6745.JPG-ezgif.com-jpg-to-webp-converter.webp?v=1783519021&width=1600',
+    campaignTag: 'Autumn Campaign',
+    campaignTitle: 'Designed for Those Who Dare to Lead',
+    campaignDesc: 'Every Luxos bag represents the intersection of urban functionality and high-fashion luxury. Engineered with reinforced stitching, water-repellent textures, and ergonomic hardware made for your dynamic lifestyle.',
+    pinTop: 52,
+    pinLeft: 46,
+    productId: 3
+  };
+}
+
+function renderLookbookSection() {
+  const section = $('#lookbookSection');
+  if (!section) return;
+
+  const data = getLookbookData();
+  if (data.enabled === false) {
+    section.style.display = 'none';
+    return;
+  }
+  section.style.display = 'block';
+
+  if ($('#lookbookTag')) $('#lookbookTag').textContent = data.tag || 'Street Style Lookbook';
+  if ($('#lookbookTitle')) $('#lookbookTitle').textContent = data.title || 'Bag The Vibe';
+  if ($('#lookbookSubtitle')) $('#lookbookSubtitle').textContent = data.subtitle || '';
+  if ($('#lookbookImage') && data.image) $('#lookbookImage').src = data.image;
+
+  if ($('#lookbookCampaignTag')) $('#lookbookCampaignTag').textContent = data.campaignTag || '';
+  if ($('#lookbookCampaignTitle')) $('#lookbookCampaignTitle').textContent = data.campaignTitle || '';
+  if ($('#lookbookCampaignDesc')) $('#lookbookCampaignDesc').textContent = data.campaignDesc || '';
+
+  const pin = $('#hotspotPin1');
+  const card = $('#hotspotCard1');
+  const top = typeof data.pinTop === 'number' ? data.pinTop : 52;
+  const left = typeof data.pinLeft === 'number' ? data.pinLeft : 46;
+
+  if (pin) {
+    pin.style.top = top + '%';
+    pin.style.left = left + '%';
+  }
+  if (card) {
+    card.style.top = Math.min(top + 6, 75) + '%';
+    card.style.left = Math.max(Math.min(left - 10, 65), 5) + '%';
+  }
+
+  // Tagged Product
+  const products = typeof getStoreProducts === 'function' ? getStoreProducts() : LUXOS_PRODUCTS;
+  const prod = products.find(p => p.id == data.productId) || products.find(p => p.id == 3) || products[0];
+  if (prod) {
+    if ($('#hotspotCardImg')) $('#hotspotCardImg').src = prod.image;
+    if ($('#hotspotCardTitle')) $('#hotspotCardTitle').textContent = prod.name;
+    const badge = prod.badge || (prod.originalPrice ? `Save ${Math.round((prod.originalPrice - prod.price) / prod.originalPrice * 100)}%` : '');
+    if ($('#hotspotCardBadge')) {
+      $('#hotspotCardBadge').textContent = badge;
+      $('#hotspotCardBadge').style.display = badge ? 'inline' : 'none';
+    }
+    if ($('#hotspotCardPrice')) {
+      $('#hotspotCardPrice').innerHTML = `৳ ${prod.price.toLocaleString()} ${prod.originalPrice ? `<span class="text-[10px] text-gray-400 line-through">৳ ${prod.originalPrice.toLocaleString()}</span>` : ''}`;
+    }
+    if ($('#hotspotCardBtn')) {
+      $('#hotspotCardBtn').onclick = () => quickAddToCart(prod.id);
+    }
+  }
+
+  // Background IndexedDB sync
+  if (!renderLookbookSection.idbSynced) {
+    renderLookbookSection.idbSynced = true;
+    try {
+      getItemIndexedDB('luxos_lookbook_data').then(idbData => {
+        if (idbData && typeof idbData === 'object') {
+          try { localStorage.setItem('luxos_lookbook_data', JSON.stringify(idbData)); } catch(e){}
+          renderLookbookSection();
+        }
+      }).catch(() => {});
+    } catch (e) {}
+  }
+}
+
 function initHotspots() {
   const pin1 = $('#hotspotPin1');
   const card1 = $('#hotspotCard1');

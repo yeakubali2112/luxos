@@ -276,35 +276,35 @@
   <!-- =======================================================================
        7. Interactive "Shop The Look" / Bag The Vibe Section
        ======================================================================= -->
-  <section class="bg-neutral-900 text-white py-16 sm:py-24 my-12">
+  <section id="lookbookSection" class="bg-neutral-900 text-white py-16 sm:py-24 my-12">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-10 space-y-2">
-        <span class="text-xs uppercase tracking-luxury text-amber-400 font-semibold">Street Style Lookbook</span>
-        <h2 class="font-serif text-3xl sm:text-4xl font-bold">Bag The Vibe</h2>
-        <p class="text-xs sm:text-sm text-neutral-400 max-w-lg mx-auto">Click the interactive pulse pins on our lookbook to reveal and shop the featured pieces directly.</p>
+        <span id="lookbookTag" class="text-xs uppercase tracking-luxury text-amber-400 font-semibold">Street Style Lookbook</span>
+        <h2 id="lookbookTitle" class="font-serif text-3xl sm:text-4xl font-bold">Bag The Vibe</h2>
+        <p id="lookbookSubtitle" class="text-xs sm:text-sm text-neutral-400 max-w-lg mx-auto">Click the interactive pulse pins on our lookbook to reveal and shop the featured pieces directly.</p>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
         <!-- Interactive Image with Hotspot Pin -->
-        <div class="lg:col-span-8 relative rounded-sm overflow-hidden shadow-2xl bg-black">
-          <img src="https://thepatchee.com/cdn/shop/files/IMG_6745.JPG-ezgif.com-jpg-to-webp-converter.webp?v=1783519021&width=1600" alt="Luxos Lookbook" class="w-full h-auto object-cover max-h-[580px]" />
+        <div id="lookbookImgContainer" class="lg:col-span-8 relative rounded-sm overflow-hidden shadow-2xl bg-black">
+          <img id="lookbookImage" src="https://thepatchee.com/cdn/shop/files/IMG_6745.JPG-ezgif.com-jpg-to-webp-converter.webp?v=1783519021&width=1600" alt="Luxos Lookbook" class="w-full h-auto object-cover max-h-[580px]" />
           
           <!-- Pulsing Pin 1 -->
-          <button id="hotspotPin1" aria-label="Explore Product" class="hotspot-pin absolute top-[52%] left-[46%] w-7 h-7 bg-white text-black rounded-full flex items-center justify-center font-bold text-xs shadow-lg hover:scale-125 transition-transform z-20">
+          <button id="hotspotPin1" aria-label="Explore Product" class="hotspot-pin absolute w-7 h-7 bg-white text-black rounded-full flex items-center justify-center font-bold text-xs shadow-lg hover:scale-125 transition-transform z-20" style="top: 52%; left: 46%;">
             +
           </button>
 
           <!-- Hotspot Product Card Popup -->
-          <div id="hotspotCard1" class="hidden absolute top-[58%] left-[28%] sm:left-[42%] z-30 bg-white text-black p-3.5 rounded-sm shadow-2xl w-64 border border-gray-200">
+          <div id="hotspotCard1" class="hidden absolute z-30 bg-white text-black p-3.5 rounded-sm shadow-2xl w-64 border border-gray-200" style="top: 58%; left: 42%;">
             <div class="flex gap-3">
-              <img src="https://thepatchee.com/cdn/shop/files/c2ee0999-fc06-4942-aa71-6cd41e71d473.png?v=1782728863&width=300" class="w-14 h-14 object-cover rounded bg-gray-50 flex-shrink-0" />
+              <img id="hotspotCardImg" src="https://thepatchee.com/cdn/shop/files/c2ee0999-fc06-4942-aa71-6cd41e71d473.png?v=1782728863&width=300" class="w-14 h-14 object-cover rounded bg-gray-50 flex-shrink-0" />
               <div class="flex-1">
-                <span class="text-[10px] uppercase font-bold text-red-600">Save 59%</span>
-                <h4 class="text-xs font-bold text-gray-900 leading-tight">Croissant Chic Crossbody</h4>
-                <p class="text-xs font-bold text-gray-900 mt-0.5">৳ 685 <span class="text-[10px] text-gray-400 line-through">৳ 1,669</span></p>
+                <span id="hotspotCardBadge" class="text-[10px] uppercase font-bold text-red-600">Save 59%</span>
+                <h4 id="hotspotCardTitle" class="text-xs font-bold text-gray-900 leading-tight">Croissant Chic Crossbody</h4>
+                <p id="hotspotCardPrice" class="text-xs font-bold text-gray-900 mt-0.5">৳ 685 <span class="text-[10px] text-gray-400 line-through">৳ 1,669</span></p>
               </div>
             </div>
-            <button onclick="quickAddToCart(3)" class="mt-2.5 w-full bg-black text-white text-[11px] font-semibold py-1.5 uppercase tracking-wider rounded-sm hover:bg-neutral-800 transition">
+            <button id="hotspotCardBtn" onclick="quickAddToCart(3)" class="mt-2.5 w-full bg-black text-white text-[11px] font-semibold py-1.5 uppercase tracking-wider rounded-sm hover:bg-neutral-800 transition">
               Add to Bag
             </button>
           </div>
@@ -312,14 +312,9 @@
 
         <!-- Right Side Banner Text -->
         <div class="lg:col-span-4 space-y-6 text-left">
-          <span class="text-xs uppercase tracking-luxury text-neutral-400">Autumn Campaign</span>
-          <h3 class="font-serif text-2xl sm:text-3xl font-bold leading-snug">Designed for Those Who Dare to Lead</h3>
-          <p class="text-xs sm:text-sm text-neutral-300 leading-relaxed">Every Luxos bag represents the intersection of urban functionality and high-fashion luxury. Engineered with reinforced stitching, water-repellent textures, and ergonomic hardware made for your dynamic lifestyle.</p>
-          <div class="pt-2">
-            <button onclick="filterByTab('Crossbody Bags')" class="bg-amber-400 text-black text-xs uppercase tracking-luxury font-bold px-6 py-3 rounded-sm hover:bg-amber-300 transition shadow">
-              Explore Crossbody Line
-            </button>
-          </div>
+          <span id="lookbookCampaignTag" class="text-xs uppercase tracking-luxury text-neutral-400">Autumn Campaign</span>
+          <h3 id="lookbookCampaignTitle" class="font-serif text-2xl sm:text-3xl font-bold leading-snug">Designed for Those Who Dare to Lead</h3>
+          <p id="lookbookCampaignDesc" class="text-xs sm:text-sm text-neutral-300 leading-relaxed">Every Luxos bag represents the intersection of urban functionality and high-fashion luxury. Engineered with reinforced stitching, water-repellent textures, and ergonomic hardware made for your dynamic lifestyle.</p>
         </div>
       </div>
     </div>
