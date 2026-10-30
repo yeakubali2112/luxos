@@ -675,8 +675,8 @@ function renderDashboard() {
   $('#statCompletedOrders').textContent = completedCount;
   $('#statProducts').textContent = products.length;
   $('#statPending').textContent = pendingCount;
-  $('#sidebarPendingCount').textContent = pendingCount;
-  $('#sidebarProductsCount').textContent = products.length;
+  if ($('#sidebarPendingCount')) $('#sidebarPendingCount').textContent = pendingCount;
+  if ($('#sidebarProductsCount')) $('#sidebarProductsCount').textContent = products.length;
 
   // Render Recent Orders (Top 5)
   const recentTbody = $('#recentOrdersTbody');
