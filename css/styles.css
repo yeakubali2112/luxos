@@ -286,16 +286,179 @@ header.scrolled {
   box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.06);
 }
 
-/* Category Story Bubble */
-.category-bubble {
-  transition: transform 0.25s ease;
+/* ==========================================================================
+   Luxury "Shop by Collection" Animations & Styling
+   ========================================================================== */
+
+@keyframes categoryBubbleEntrance {
+  0% {
+    opacity: 0;
+    transform: translateY(18px) scale(0.92);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
+
+@keyframes luxuryRingShimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.category-bubble {
+  position: relative;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: categoryBubbleEntrance 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
 .category-bubble:hover {
-  transform: translateY(-4px);
+  transform: translateY(-8px);
+}
+
+.bubble-wrapper {
+  position: relative;
+  border-radius: 9999px;
+  padding: 3px;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Ambient Ring / Dual Border */
+.bubble-ring-glow {
+  position: absolute;
+  inset: -2px;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.28), rgba(17, 17, 17, 0.08), rgba(212, 175, 55, 0.35));
+  background-size: 200% 200%;
+  opacity: 0.65;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  z-index: 0;
+}
+
+.category-bubble:hover .bubble-ring-glow {
+  opacity: 1;
+  transform: scale(1.07);
+  animation: luxuryRingShimmer 3s ease infinite;
+  background: linear-gradient(135deg, #d4af37, #111111, #c5a880, #111111);
+  background-size: 300% 300%;
+}
+
+/* Bubble image container */
+.category-bubble .bubble-img {
+  position: relative;
+  border-radius: 9999px;
+  overflow: hidden;
+  background: #ffffff;
+  border: 2px solid #ffffff;
+  box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.08), 0 2px 5px -1px rgba(0, 0, 0, 0.04);
+  transition: all 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 1;
 }
 
 .category-bubble:hover .bubble-img {
-  border-color: var(--luxos-black);
+  border-color: #111111;
+  box-shadow: 0 16px 30px -6px rgba(0, 0, 0, 0.20), 0 8px 14px -4px rgba(0, 0, 0, 0.12);
+}
+
+/* Image inside circle */
+.category-bubble .bubble-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 9999px;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), filter 0.4s ease;
+  will-change: transform;
+}
+
+.category-bubble:hover .bubble-img img {
+  transform: scale(1.15) rotate(0.8deg);
+  filter: brightness(1.04) contrast(1.02);
+}
+
+/* Glass shine light reflection sweep effect on hover */
+.bubble-shine {
+  position: absolute;
+  top: 0;
+  left: -120%;
+  width: 80%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.70) 50%, transparent 100%);
+  transform: skewX(-25deg);
+  pointer-events: none;
+  z-index: 2;
+  transition: none;
+}
+
+.category-bubble:hover .bubble-shine {
+  left: 150%;
+  transition: left 0.85s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Title & Accent Underline Indicator */
+.collection-title {
+  display: block;
+  font-size: 0.6875rem; /* 11px */
+  letter-spacing: 0.12em;
+  font-weight: 700;
+  color: #4b5563;
+  transition: color 0.3s ease, transform 0.3s ease, letter-spacing 0.3s ease;
+}
+
+.category-bubble:hover .collection-title {
+  color: #000000;
+  transform: translateY(-2px);
+  letter-spacing: 0.16em;
+}
+
+.collection-indicator-line {
+  display: block;
+  width: 0;
+  height: 2px;
+  background: #111111;
+  margin-top: 3px;
+  border-radius: 2px;
+  transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.3s ease;
+}
+
+.category-bubble:hover .collection-indicator-line {
+  width: 26px;
+  background: #111111;
+}
+
+/* Active State (When collection is selected) */
+.category-bubble.active .bubble-ring-glow {
+  opacity: 1;
+  background: #111111;
+  transform: scale(1.08);
+}
+
+.category-bubble.active .bubble-img {
+  border-color: #111111;
+  box-shadow: 0 12px 24px -4px rgba(0, 0, 0, 0.25);
+}
+
+.category-bubble.active .collection-title {
+  color: #000000;
+  font-weight: 800;
+}
+
+.category-bubble.active .collection-indicator-line {
+  width: 30px;
+  background: #111111;
+}
+
+#featuredCategories {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Gold Button Hover */

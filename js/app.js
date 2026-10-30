@@ -619,14 +619,30 @@ function renderFeaturedCategories() {
     $('#curatedHeadingText').textContent = headerSettings.heading;
   }
 
-  container.innerHTML = collections.map(c => `
-    <div onclick="filterByTab('${c.filter}')" class="category-bubble cursor-pointer flex flex-col items-center flex-shrink-0 group">
-      <div class="bubble-img w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden border-2 border-transparent group-hover:border-black p-1 transition-all bg-neutral-100 shadow-sm">
-        <img src="${c.image}" alt="${c.title}" class="w-full h-full object-cover rounded-full group-hover:scale-105 transition-transform" />
+  container.innerHTML = collections.map((c, idx) => {
+    const isActive = AppState.activeCollection === c.filter;
+    return `
+      <div onclick="filterByTab('${c.filter}')" data-filter="${c.filter}" class="category-bubble cursor-pointer flex flex-col items-center flex-shrink-0 group ${isActive ? 'active' : ''}" style="animation-delay: ${idx * 0.06}s;">
+        <div class="bubble-wrapper relative">
+          <!-- Ambient glowing ring effect -->
+          <div class="bubble-ring-glow"></div>
+          
+          <div class="bubble-img relative w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden p-1 transition-all bg-neutral-100">
+            <img src="${c.image}" alt="${c.title}" class="w-full h-full object-cover rounded-full" />
+            <!-- Luxury glass shine sweep overlay -->
+            <div class="bubble-shine"></div>
+          </div>
+        </div>
+
+        <div class="collection-title-wrap flex flex-col items-center mt-2.5">
+          <span class="collection-title text-center uppercase">
+            ${c.title}
+          </span>
+          <span class="collection-indicator-line"></span>
+        </div>
       </div>
-      <span class="mt-2 text-xs font-medium text-gray-800 tracking-wide text-center uppercase group-hover:text-black">${c.title}</span>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
 /* ==========================================================================
@@ -640,6 +656,11 @@ window.filterByTab = function (tabName) {
     btn.classList.toggle('text-white', isCurrent);
     btn.classList.toggle('bg-gray-100', !isCurrent);
     btn.classList.toggle('text-gray-700', !isCurrent);
+  });
+
+  $$('.category-bubble').forEach(bubble => {
+    const isCurrent = bubble.dataset.filter === tabName;
+    bubble.classList.toggle('active', isCurrent);
   });
 
   renderProducts(tabName);
