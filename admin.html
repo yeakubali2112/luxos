@@ -161,6 +161,14 @@
         <span id="sidebarBrandStoryBadge" class="bg-amber-500/20 text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-amber-500/30">Active</span>
       </button>
 
+      <button onclick="switchTab('timeless')" id="nav-timeless" class="nav-item w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition">
+        <div class="flex items-center gap-3">
+          <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" /></svg>
+          <span>Campaign Showcase (TIMELESS)</span>
+        </div>
+        <span id="sidebarTimelessBadge" class="bg-cyan-500/20 text-cyan-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-cyan-500/30">Active</span>
+      </button>
+
       <button onclick="switchTab('ticker')" id="nav-ticker" class="nav-item w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition">
         <div class="flex items-center gap-3">
           <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.34 15.84c-.688-.06-1.386-.09-2.09-.09H7.5a4.5 4.5 0 110-9h.75c.704 0 1.402-.03 2.09-.09m0 9.18c.253.962.584 1.892.985 2.783.247.55.06 1.21-.463 1.511l-.657.38c-.551.318-1.26.117-1.527-.455a20.89 20.89 0 01-1.637-4.22m3.292-9.18a20.89 20.89 0 00-3.292-9.18c.267-.572.976-.773 1.527-.455l.657.38c.523.301.71.961.463 1.511a19.014 19.014 0 01-.985 2.783m1.02 4.18H18.75a3 3 0 013 3v0a3 3 0 01-3 3H11.36" /></svg>
@@ -994,6 +1002,264 @@
 
           </div>
 
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           TAB: CAMPAIGN SHOWCASE ("TIMELESS. BOLD. UNSTOPPABLE.") MANAGEMENT
+           ===================================================================== -->
+      <section id="tab-timeless" class="space-y-6 hidden">
+        <!-- Top Toolbar & Settings -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h3 class="text-sm font-bold text-slate-800 font-heading flex items-center gap-2">
+              <span>Campaign Showcase ("TIMELESS. BOLD. UNSTOPPABLE.")</span>
+              <span id="timelessStatusBadge" class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200">Active</span>
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5">Customize the 3-panel editorial bento banner grid, image photos, badges, and destinations</p>
+          </div>
+
+          <div class="flex items-center gap-3 w-full sm:w-auto flex-wrap">
+            <label class="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer bg-slate-50 px-3.5 py-2 rounded-lg border border-slate-200 hover:bg-slate-100 transition">
+              <input id="timelessEnableToggle" type="checkbox" checked onchange="toggleTimelessEnabled()" class="rounded text-black focus:ring-black h-4 w-4" />
+              <span>Show on Website</span>
+            </label>
+
+            <a href="/#timelessSection" target="_blank" class="px-3 py-2 text-xs font-semibold text-slate-600 hover:text-black border border-slate-200 rounded-lg bg-white hover:bg-slate-50 transition flex items-center gap-1.5 shadow-2xs">
+              <svg class="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
+              <span>View Live</span>
+            </a>
+
+            <button onclick="handleSaveTimeless(event)" id="saveTimelessBtn" class="save-timeless-btn bg-black hover:bg-slate-800 text-white text-xs font-semibold px-5 py-2 rounded-lg transition shadow-sm flex items-center gap-1.5 min-w-[130px] justify-center">
+              <span>Save Showcase</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Section Headline Configuration -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center gap-4 justify-between">
+          <div class="w-full sm:w-1/3">
+            <label class="block font-semibold text-slate-700 uppercase tracking-wider text-xs">Section Headline</label>
+            <p class="text-[11px] text-slate-400">Uppercase spaced typography across the full showcase section</p>
+          </div>
+          <div class="w-full sm:w-2/3">
+            <input id="timelessHeadlineInput" type="text" value="TIMELESS. BOLD. UNSTOPPABLE." oninput="updateTimelessLivePreview()" class="w-full border border-slate-300 rounded-lg p-2.5 text-xs font-bold tracking-[0.2em] uppercase focus:outline-none focus:border-black" />
+          </div>
+        </div>
+
+        <!-- Live Visual Bento Preview -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-cyan-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+              <span>Live Bento Showcase Preview</span>
+            </span>
+            <span class="text-[10px] text-slate-400 font-mono">Real-time sync</span>
+          </div>
+
+          <!-- Bento Grid Preview Container -->
+          <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg">
+            <h4 id="adminTimelessPreviewHeadline" class="text-center font-bold tracking-[0.25em] text-xs uppercase mb-3 text-slate-900">
+              TIMELESS. BOLD. UNSTOPPABLE.
+            </h4>
+
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-stretch max-w-4xl mx-auto">
+              <!-- Left Big Card Preview -->
+              <div class="md:col-span-8 relative bg-[#dbdcde] rounded overflow-hidden aspect-[16/10] sm:aspect-[16/10] flex items-center justify-center shadow-xs">
+                <img id="adminTimelessCard1Img" src="images/timeless-viral-bag.png" alt="Card 1 Preview" class="w-full h-full object-cover" />
+                <div class="absolute bottom-2.5 left-2.5 bg-black/85 text-white text-[9.5px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded shadow">
+                  <span id="adminTimelessCard1Badge">Explore Shoulder Bags</span>
+                </div>
+              </div>
+
+              <!-- Right Stacked Cards Preview -->
+              <div class="md:col-span-4 flex flex-col gap-3 justify-between">
+                <div class="relative bg-[#dbdcde] rounded overflow-hidden aspect-[16/9] flex-1 flex items-center justify-center shadow-xs">
+                  <img id="adminTimelessCard2Img" src="images/timeless-trending-now.png" alt="Card 2 Preview" class="w-full h-full object-cover" />
+                  <div class="absolute bottom-2 left-2 bg-black/85 text-white text-[9px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded shadow">
+                    <span id="adminTimelessCard2Badge">Shop Trending</span>
+                  </div>
+                </div>
+                <div class="relative bg-[#dbdcde] rounded overflow-hidden aspect-[16/9] flex-1 flex items-center justify-center shadow-xs">
+                  <img id="adminTimelessCard3Img" src="images/timeless-back-in-demand.png" alt="Card 3 Preview" class="w-full h-full object-cover" />
+                  <div class="absolute bottom-2 left-2 bg-black/85 text-white text-[9px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded shadow">
+                    <span id="adminTimelessCard3Badge">Shop Restocked</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3 Cards Form Configuration Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+          <!-- Card 1 Settings: Main Featured Banner (Left) -->
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                <span class="w-5 h-5 bg-black text-white rounded-full flex items-center justify-center text-[10px]">1</span>
+                <span>Main Banner (Left Card)</span>
+              </h4>
+              <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-mono">67% Width</span>
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-600 text-[11px] uppercase mb-1">Title / Caption</label>
+              <input id="timelessCard1TitleInput" type="text" value="The Viral Shoulder Bag" oninput="updateTimelessLivePreview()" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:outline-none focus:border-black font-semibold" />
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-600 text-[11px] uppercase mb-1">Hover Badge Text</label>
+              <input id="timelessCard1BadgeInput" type="text" value="Explore Shoulder Bags" oninput="updateTimelessLivePreview()" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:outline-none focus:border-black" />
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-600 text-[11px] uppercase mb-1">Click Action / Target Tab</label>
+              <select id="timelessCard1TargetSelect" onchange="handleTimelessCardTargetChange(0, this.value)" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:outline-none focus:border-black bg-white font-medium">
+                <option value="Shoulder Bags">Filter: Shoulder Bags</option>
+                <option value="Tote Bags">Filter: Tote Bags</option>
+                <option value="Crossbody">Filter: Crossbody</option>
+                <option value="Wallets & Cards">Filter: Wallets & Cards</option>
+                <option value="Footwear">Filter: Footwear</option>
+                <option value="Best Sellers">Filter: Best Sellers</option>
+                <option value="Just Landed">Filter: Just Landed</option>
+                <option value="All Bags">Filter: All Bags</option>
+                <option value="CUSTOM">Custom Link (URL)</option>
+              </select>
+            </div>
+
+            <div id="timelessCard1CustomUrlGroup" class="hidden">
+              <label class="block font-semibold text-slate-600 text-[11px] uppercase mb-1">Custom Link URL</label>
+              <input id="timelessCard1CustomUrlInput" type="text" placeholder="https://... or #section" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:outline-none focus:border-black" />
+            </div>
+
+            <div class="space-y-2 pt-1 border-t border-slate-100">
+              <label class="block font-semibold text-slate-600 text-[11px] uppercase">Banner Image *</label>
+              <input id="timelessCard1FileInput" type="file" accept="image/*" class="hidden" onchange="handleTimelessFileUpload(event, 0)" />
+              <button type="button" onclick="document.getElementById('timelessCard1FileInput').click()" class="w-full bg-slate-900 hover:bg-black text-white px-3 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition shadow-xs">
+                <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" /></svg>
+                <span>Upload Photo</span>
+              </button>
+              <input id="timelessCard1ImageUrlInput" type="text" placeholder="Or paste image URL" oninput="updateTimelessCardImgFromUrl(0, this.value)" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:outline-none focus:border-black bg-white" />
+              <p class="text-[10px] text-slate-400">Recommended: 1200 x 800 px (3:2 horizontal)</p>
+            </div>
+          </div>
+
+          <!-- Card 2 Settings: Trending Now (Top Right) -->
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                <span class="w-5 h-5 bg-black text-white rounded-full flex items-center justify-center text-[10px]">2</span>
+                <span>Top Right Card</span>
+              </h4>
+              <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-mono">33% Width</span>
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-600 text-[11px] uppercase mb-1">Title / Caption</label>
+              <input id="timelessCard2TitleInput" type="text" value="Trending Now" oninput="updateTimelessLivePreview()" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:outline-none focus:border-black font-semibold" />
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-600 text-[11px] uppercase mb-1">Hover Badge Text</label>
+              <input id="timelessCard2BadgeInput" type="text" value="Shop Trending" oninput="updateTimelessLivePreview()" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:outline-none focus:border-black" />
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-600 text-[11px] uppercase mb-1">Click Action / Target Tab</label>
+              <select id="timelessCard2TargetSelect" onchange="handleTimelessCardTargetChange(1, this.value)" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:outline-none focus:border-black bg-white font-medium">
+                <option value="Best Sellers">Filter: Best Sellers</option>
+                <option value="Shoulder Bags">Filter: Shoulder Bags</option>
+                <option value="Tote Bags">Filter: Tote Bags</option>
+                <option value="Crossbody">Filter: Crossbody</option>
+                <option value="Wallets & Cards">Filter: Wallets & Cards</option>
+                <option value="Footwear">Filter: Footwear</option>
+                <option value="Just Landed">Filter: Just Landed</option>
+                <option value="All Bags">Filter: All Bags</option>
+                <option value="CUSTOM">Custom Link (URL)</option>
+              </select>
+            </div>
+
+            <div id="timelessCard2CustomUrlGroup" class="hidden">
+              <label class="block font-semibold text-slate-600 text-[11px] uppercase mb-1">Custom Link URL</label>
+              <input id="timelessCard2CustomUrlInput" type="text" placeholder="https://... or #section" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:outline-none focus:border-black" />
+            </div>
+
+            <div class="space-y-2 pt-1 border-t border-slate-100">
+              <label class="block font-semibold text-slate-600 text-[11px] uppercase">Banner Image *</label>
+              <input id="timelessCard2FileInput" type="file" accept="image/*" class="hidden" onchange="handleTimelessFileUpload(event, 1)" />
+              <button type="button" onclick="document.getElementById('timelessCard2FileInput').click()" class="w-full bg-slate-900 hover:bg-black text-white px-3 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition shadow-xs">
+                <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" /></svg>
+                <span>Upload Photo</span>
+              </button>
+              <input id="timelessCard2ImageUrlInput" type="text" placeholder="Or paste image URL" oninput="updateTimelessCardImgFromUrl(1, this.value)" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:outline-none focus:border-black bg-white" />
+              <p class="text-[10px] text-slate-400">Recommended: 800 x 500 px (16:10)</p>
+            </div>
+          </div>
+
+          <!-- Card 3 Settings: Back in Demand (Bottom Right) -->
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                <span class="w-5 h-5 bg-black text-white rounded-full flex items-center justify-center text-[10px]">3</span>
+                <span>Bottom Right Card</span>
+              </h4>
+              <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-mono">33% Width</span>
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-600 text-[11px] uppercase mb-1">Title / Caption</label>
+              <input id="timelessCard3TitleInput" type="text" value="Back in Demand" oninput="updateTimelessLivePreview()" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:outline-none focus:border-black font-semibold" />
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-600 text-[11px] uppercase mb-1">Hover Badge Text</label>
+              <input id="timelessCard3BadgeInput" type="text" value="Shop Restocked" oninput="updateTimelessLivePreview()" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:outline-none focus:border-black" />
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-600 text-[11px] uppercase mb-1">Click Action / Target Tab</label>
+              <select id="timelessCard3TargetSelect" onchange="handleTimelessCardTargetChange(2, this.value)" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:outline-none focus:border-black bg-white font-medium">
+                <option value="Just Landed">Filter: Just Landed</option>
+                <option value="Best Sellers">Filter: Best Sellers</option>
+                <option value="Shoulder Bags">Filter: Shoulder Bags</option>
+                <option value="Tote Bags">Filter: Tote Bags</option>
+                <option value="Crossbody">Filter: Crossbody</option>
+                <option value="Wallets & Cards">Filter: Wallets & Cards</option>
+                <option value="Footwear">Filter: Footwear</option>
+                <option value="All Bags">Filter: All Bags</option>
+                <option value="CUSTOM">Custom Link (URL)</option>
+              </select>
+            </div>
+
+            <div id="timelessCard3CustomUrlGroup" class="hidden">
+              <label class="block font-semibold text-slate-600 text-[11px] uppercase mb-1">Custom Link URL</label>
+              <input id="timelessCard3CustomUrlInput" type="text" placeholder="https://... or #section" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:outline-none focus:border-black" />
+            </div>
+
+            <div class="space-y-2 pt-1 border-t border-slate-100">
+              <label class="block font-semibold text-slate-600 text-[11px] uppercase">Banner Image *</label>
+              <input id="timelessCard3FileInput" type="file" accept="image/*" class="hidden" onchange="handleTimelessFileUpload(event, 2)" />
+              <button type="button" onclick="document.getElementById('timelessCard3FileInput').click()" class="w-full bg-slate-900 hover:bg-black text-white px-3 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition shadow-xs">
+                <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" /></svg>
+                <span>Upload Photo</span>
+              </button>
+              <input id="timelessCard3ImageUrlInput" type="text" placeholder="Or paste image URL" oninput="updateTimelessCardImgFromUrl(2, this.value)" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:outline-none focus:border-black bg-white" />
+              <p class="text-[10px] text-slate-400">Recommended: 800 x 500 px (16:10)</p>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Bottom Action Buttons -->
+        <div class="flex justify-end gap-3 pt-2">
+          <button onclick="resetTimelessToDefault()" type="button" class="px-4 py-2.5 border border-slate-300 text-slate-600 hover:text-black hover:bg-slate-50 rounded-lg text-xs font-semibold transition">
+            Reset to Default
+          </button>
+          <button onclick="handleSaveTimeless(event)" id="saveTimelessBtnBottom" type="button" class="save-timeless-btn px-6 py-2.5 bg-black hover:bg-slate-800 text-white rounded-lg text-xs font-semibold shadow transition flex items-center gap-2 min-w-[150px] justify-center">
+            <span>Save Showcase</span>
+          </button>
         </div>
       </section>
 

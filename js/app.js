@@ -79,6 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initHotspots();
   renderLookbookSection();
   renderBrandStorySection();
+  renderTimelessSection();
   if (typeof updateHeaderProfileIcon === 'function') updateHeaderProfileIcon();
 });
 
@@ -180,6 +181,9 @@ window.addEventListener('storage', (e) => {
   }
   if (e.key === 'luxos_brandstory_data') {
     renderBrandStorySection();
+  }
+  if (e.key === 'luxos_timeless_showcase') {
+    renderTimelessSection();
   }
 });
 
@@ -1621,6 +1625,128 @@ window.handleBrandStoryBtnClick = function () {
     if (typeof openStoryModal === 'function') {
       openStoryModal();
     }
+  }
+};
+
+/* ==========================================================================
+   Editorial Campaign Showcase: "TIMELESS. BOLD. UNSTOPPABLE."
+   ========================================================================== */
+function getDefaultTimelessData() {
+  return {
+    enabled: true,
+    headline: 'TIMELESS. BOLD. UNSTOPPABLE.',
+    cards: [
+      {
+        title: 'The Viral Shoulder Bag',
+        badgeText: 'Explore Shoulder Bags',
+        targetTab: 'Shoulder Bags',
+        customUrl: '',
+        image: 'images/timeless-viral-bag.png'
+      },
+      {
+        title: 'Trending Now',
+        badgeText: 'Shop Trending',
+        targetTab: 'Best Sellers',
+        customUrl: '',
+        image: 'images/timeless-trending-now.png'
+      },
+      {
+        title: 'Back in Demand',
+        badgeText: 'Shop Restocked',
+        targetTab: 'Just Landed',
+        customUrl: '',
+        image: 'images/timeless-back-in-demand.png'
+      }
+    ]
+  };
+}
+
+function getTimelessData() {
+  const custom = localStorage.getItem('luxos_timeless_showcase');
+  if (custom) {
+    try {
+      const parsed = JSON.parse(custom);
+      if (parsed && typeof parsed === 'object') return parsed;
+    } catch (e) {}
+  }
+  return getDefaultTimelessData();
+}
+
+function renderTimelessSection() {
+  const section = $('#timelessSection');
+  if (!section) return;
+
+  const data = getTimelessData();
+  if (data.enabled === false) {
+    section.style.display = 'none';
+    return;
+  }
+  section.style.display = 'block';
+
+  if ($('#timelessHeadline')) {
+    $('#timelessHeadline').textContent = data.headline || 'TIMELESS. BOLD. UNSTOPPABLE.';
+  }
+
+  const cards = Array.isArray(data.cards) ? data.cards : getDefaultTimelessData().cards;
+
+  // Card 1
+  if (cards[0]) {
+    if ($('#timelessCard1Img') && cards[0].image) $('#timelessCard1Img').src = cards[0].image;
+    if ($('#timelessCard1Badge')) $('#timelessCard1Badge').textContent = cards[0].badgeText || 'Explore Shoulder Bags';
+  }
+
+  // Card 2
+  if (cards[1]) {
+    if ($('#timelessCard2Img') && cards[1].image) $('#timelessCard2Img').src = cards[1].image;
+    if ($('#timelessCard2Badge')) $('#timelessCard2Badge').textContent = cards[1].badgeText || 'Shop Trending';
+  }
+
+  // Card 3
+  if (cards[2]) {
+    if ($('#timelessCard3Img') && cards[2].image) $('#timelessCard3Img').src = cards[2].image;
+    if ($('#timelessCard3Badge')) $('#timelessCard3Badge').textContent = cards[2].badgeText || 'Shop Restocked';
+  }
+
+  // Background IndexedDB sync
+  if (!renderTimelessSection.idbSynced) {
+    renderTimelessSection.idbSynced = true;
+    try {
+      getItemIndexedDB('luxos_timeless_showcase').then(idbData => {
+        if (idbData && typeof idbData === 'object') {
+          try { localStorage.setItem('luxos_timeless_showcase', JSON.stringify(idbData)); } catch(e){}
+          renderTimelessSection();
+        }
+      }).catch(() => {});
+    } catch (e) {}
+  }
+}
+
+window.handleTimelessCardClick = function (cardIndex) {
+  const data = getTimelessData();
+  const cards = Array.isArray(data.cards) ? data.cards : getDefaultTimelessData().cards;
+  const card = cards[cardIndex];
+  if (!card) return;
+
+  if (card.customUrl && card.customUrl.trim()) {
+    const url = card.customUrl.trim();
+    if (url.startsWith('#')) {
+      const el = document.querySelector(url);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+        return;
+      }
+    }
+    window.location.href = url;
+    return;
+  }
+
+  const targetTab = card.targetTab || 'All Bags';
+  if (typeof filterByTab === 'function') {
+    filterByTab(targetTab);
+  }
+  const colSec = document.getElementById('collectionSection');
+  if (colSec) {
+    colSec.scrollIntoView({ behavior: 'smooth' });
   }
 };
 

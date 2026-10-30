@@ -53,6 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (typeof renderCollectionsManager === 'function') renderCollectionsManager();
   if (typeof renderLookbookManager === 'function') renderLookbookManager();
   if (typeof renderBrandStoryManager === 'function') renderBrandStoryManager();
+  if (typeof renderTimelessManager === 'function') renderTimelessManager();
   if (typeof syncAdminPersistentData === 'function') syncAdminPersistentData();
 });
 
@@ -115,6 +116,21 @@ async function syncAdminPersistentData() {
     }
   } catch (err) {
     console.warn('Brand Story sync error from IndexedDB:', err);
+  }
+
+  try {
+    const idbTimeless = await getItemIndexedDB('luxos_timeless_showcase');
+    if (idbTimeless && typeof idbTimeless === 'object') {
+      AdminState.timeless = idbTimeless;
+      if (typeof renderTimelessManager === 'function') renderTimelessManager();
+      try {
+        localStorage.setItem('luxos_timeless_showcase', JSON.stringify(idbTimeless));
+      } catch (e) {}
+    } else if (AdminState.timeless) {
+      await setItemIndexedDB('luxos_timeless_showcase', AdminState.timeless);
+    }
+  } catch (err) {
+    console.warn('Timeless showcase sync error from IndexedDB:', err);
   }
 }
 
@@ -255,6 +271,19 @@ function initData() {
   } else {
     AdminState.brandStory = getDefaultBrandStory();
     localStorage.setItem('luxos_brandstory_data', JSON.stringify(AdminState.brandStory));
+  }
+
+  // Load Campaign Showcase ("TIMELESS. BOLD. UNSTOPPABLE.")
+  const storedTimeless = localStorage.getItem('luxos_timeless_showcase');
+  if (storedTimeless) {
+    try {
+      AdminState.timeless = JSON.parse(storedTimeless);
+    } catch (e) {
+      AdminState.timeless = getDefaultTimelessData();
+    }
+  } else {
+    AdminState.timeless = getDefaultTimelessData();
+    localStorage.setItem('luxos_timeless_showcase', JSON.stringify(AdminState.timeless));
   }
 }
 
@@ -478,6 +507,7 @@ window.switchTab = function (tabName) {
     collections: 'Shop by Collection (Curated Story Circles)',
     lookbook: 'Street Style Lookbook ("Bag The Vibe")',
     brandstory: 'Brand Story ("OWN IT. LEAD IT.")',
+    timeless: 'Campaign Showcase ("TIMELESS. BOLD. UNSTOPPABLE.")',
     ticker: 'Scrolling Marquee Ticker Management',
     coupons: 'Promo Codes & Offers',
     customers: 'Customer Directory',
@@ -493,6 +523,7 @@ window.switchTab = function (tabName) {
   if (tabName === 'collections') renderCollectionsManager();
   if (tabName === 'lookbook') renderLookbookManager();
   if (tabName === 'brandstory') renderBrandStoryManager();
+  if (tabName === 'timeless') renderTimelessManager();
   if (tabName === 'ticker') renderTickerSettings();
   if (tabName === 'coupons') renderCouponsTable();
   if (tabName === 'customers') renderCustomersTable();
@@ -3511,6 +3542,355 @@ window.resetBrandStoryToDefault = function () {
       await saveBrandStorySafely(AdminState.brandStory);
       renderBrandStoryManager();
       showAdminToast('Brand Story reset to default.');
+    }
+  });
+};
+
+/* ==========================================================================
+   Editorial Campaign Showcase ("TIMELESS. BOLD. UNSTOPPABLE.") Manager
+   ========================================================================== */
+function getDefaultTimelessData() {
+  return {
+    enabled: true,
+    headline: 'TIMELESS. BOLD. UNSTOPPABLE.',
+    cards: [
+      {
+        title: 'The Viral Shoulder Bag',
+        badgeText: 'Explore Shoulder Bags',
+        targetTab: 'Shoulder Bags',
+        customUrl: '',
+        image: 'images/timeless-viral-bag.png'
+      },
+      {
+        title: 'Trending Now',
+        badgeText: 'Shop Trending',
+        targetTab: 'Best Sellers',
+        customUrl: '',
+        image: 'images/timeless-trending-now.png'
+      },
+      {
+        title: 'Back in Demand',
+        badgeText: 'Shop Restocked',
+        targetTab: 'Just Landed',
+        customUrl: '',
+        image: 'images/timeless-back-in-demand.png'
+      }
+    ]
+  };
+}
+
+async function saveTimelessSafely(data) {
+  try {
+    localStorage.setItem('luxos_timeless_showcase', JSON.stringify(data));
+  } catch (err) {
+    console.warn('LocalStorage quota exceeded for Timeless Showcase; falling back to IndexedDB:', err);
+  }
+
+  try {
+    await setItemIndexedDB('luxos_timeless_showcase', data);
+  } catch (idbErr) {
+    console.error('Failed to save Timeless Showcase in IndexedDB:', idbErr);
+  }
+
+  // Notify active storefront tabs
+  try {
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: 'luxos_timeless_showcase',
+      newValue: JSON.stringify(data)
+    }));
+  } catch (e) {}
+}
+
+window.renderTimelessManager = function () {
+  const data = AdminState.timeless || getDefaultTimelessData();
+  AdminState.timeless = data;
+
+  // Toggle & Status
+  const isEn = data.enabled !== false;
+  if ($('#timelessEnableToggle')) $('#timelessEnableToggle').checked = isEn;
+  if ($('#timelessStatusBadge')) {
+    $('#timelessStatusBadge').textContent = isEn ? 'Active' : 'Hidden';
+    $('#timelessStatusBadge').className = isEn
+      ? 'bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200'
+      : 'bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded-full border border-slate-200';
+  }
+  if ($('#sidebarTimelessBadge')) {
+    $('#sidebarTimelessBadge').textContent = isEn ? 'Active' : 'Hidden';
+    $('#sidebarTimelessBadge').className = isEn
+      ? 'bg-cyan-500/20 text-cyan-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-cyan-500/30'
+      : 'bg-slate-700/50 text-slate-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-slate-600';
+  }
+
+  // Section Headline Input
+  if ($('#timelessHeadlineInput')) $('#timelessHeadlineInput').value = data.headline || 'TIMELESS. BOLD. UNSTOPPABLE.';
+
+  const cards = Array.isArray(data.cards) ? data.cards : getDefaultTimelessData().cards;
+
+  // Populate Card 1 Inputs
+  if (cards[0]) {
+    if ($('#timelessCard1TitleInput')) $('#timelessCard1TitleInput').value = cards[0].title || '';
+    if ($('#timelessCard1BadgeInput')) $('#timelessCard1BadgeInput').value = cards[0].badgeText || '';
+    if ($('#timelessCard1ImageUrlInput')) $('#timelessCard1ImageUrlInput').value = cards[0].image || '';
+    if ($('#timelessCard1TargetSelect')) {
+      const isCustom = cards[0].customUrl && cards[0].customUrl.trim() !== '';
+      $('#timelessCard1TargetSelect').value = isCustom ? 'CUSTOM' : (cards[0].targetTab || 'Shoulder Bags');
+      if ($('#timelessCard1CustomUrlGroup')) {
+        $('#timelessCard1CustomUrlGroup').classList.toggle('hidden', !isCustom);
+      }
+    }
+    if ($('#timelessCard1CustomUrlInput')) $('#timelessCard1CustomUrlInput').value = cards[0].customUrl || '';
+  }
+
+  // Populate Card 2 Inputs
+  if (cards[1]) {
+    if ($('#timelessCard2TitleInput')) $('#timelessCard2TitleInput').value = cards[1].title || '';
+    if ($('#timelessCard2BadgeInput')) $('#timelessCard2BadgeInput').value = cards[1].badgeText || '';
+    if ($('#timelessCard2ImageUrlInput')) $('#timelessCard2ImageUrlInput').value = cards[1].image || '';
+    if ($('#timelessCard2TargetSelect')) {
+      const isCustom = cards[1].customUrl && cards[1].customUrl.trim() !== '';
+      $('#timelessCard2TargetSelect').value = isCustom ? 'CUSTOM' : (cards[1].targetTab || 'Best Sellers');
+      if ($('#timelessCard2CustomUrlGroup')) {
+        $('#timelessCard2CustomUrlGroup').classList.toggle('hidden', !isCustom);
+      }
+    }
+    if ($('#timelessCard2CustomUrlInput')) $('#timelessCard2CustomUrlInput').value = cards[1].customUrl || '';
+  }
+
+  // Populate Card 3 Inputs
+  if (cards[2]) {
+    if ($('#timelessCard3TitleInput')) $('#timelessCard3TitleInput').value = cards[2].title || '';
+    if ($('#timelessCard3BadgeInput')) $('#timelessCard3BadgeInput').value = cards[2].badgeText || '';
+    if ($('#timelessCard3ImageUrlInput')) $('#timelessCard3ImageUrlInput').value = cards[2].image || '';
+    if ($('#timelessCard3TargetSelect')) {
+      const isCustom = cards[2].customUrl && cards[2].customUrl.trim() !== '';
+      $('#timelessCard3TargetSelect').value = isCustom ? 'CUSTOM' : (cards[2].targetTab || 'Just Landed');
+      if ($('#timelessCard3CustomUrlGroup')) {
+        $('#timelessCard3CustomUrlGroup').classList.toggle('hidden', !isCustom);
+      }
+    }
+    if ($('#timelessCard3CustomUrlInput')) $('#timelessCard3CustomUrlInput').value = cards[2].customUrl || '';
+  }
+
+  // Update Live Preview Bento
+  updateTimelessLivePreview();
+};
+
+window.updateTimelessLivePreview = function () {
+  const data = AdminState.timeless || getDefaultTimelessData();
+  const headline = $('#timelessHeadlineInput') ? $('#timelessHeadlineInput').value.trim() : (data.headline || 'TIMELESS. BOLD. UNSTOPPABLE.');
+
+  if ($('#adminTimelessPreviewHeadline')) {
+    $('#adminTimelessPreviewHeadline').textContent = headline || 'TIMELESS. BOLD. UNSTOPPABLE.';
+  }
+
+  // Card 1
+  const c1Img = ($('#timelessCard1ImageUrlInput') ? $('#timelessCard1ImageUrlInput').value.trim() : '') || (data.cards && data.cards[0] && data.cards[0].image) || 'images/timeless-viral-bag.png';
+  const c1Badge = $('#timelessCard1BadgeInput') ? $('#timelessCard1BadgeInput').value.trim() : 'Explore Shoulder Bags';
+  if ($('#adminTimelessCard1Img')) $('#adminTimelessCard1Img').src = c1Img;
+  if ($('#adminTimelessCard1Badge')) $('#adminTimelessCard1Badge').textContent = c1Badge;
+
+  // Card 2
+  const c2Img = ($('#timelessCard2ImageUrlInput') ? $('#timelessCard2ImageUrlInput').value.trim() : '') || (data.cards && data.cards[1] && data.cards[1].image) || 'images/timeless-trending-now.png';
+  const c2Badge = $('#timelessCard2BadgeInput') ? $('#timelessCard2BadgeInput').value.trim() : 'Shop Trending';
+  if ($('#adminTimelessCard2Img')) $('#adminTimelessCard2Img').src = c2Img;
+  if ($('#adminTimelessCard2Badge')) $('#adminTimelessCard2Badge').textContent = c2Badge;
+
+  // Card 3
+  const c3Img = ($('#timelessCard3ImageUrlInput') ? $('#timelessCard3ImageUrlInput').value.trim() : '') || (data.cards && data.cards[2] && data.cards[2].image) || 'images/timeless-back-in-demand.png';
+  const c3Badge = $('#timelessCard3BadgeInput') ? $('#timelessCard3BadgeInput').value.trim() : 'Shop Restocked';
+  if ($('#adminTimelessCard3Img')) $('#adminTimelessCard3Img').src = c3Img;
+  if ($('#adminTimelessCard3Badge')) $('#adminTimelessCard3Badge').textContent = c3Badge;
+};
+
+window.handleTimelessCardTargetChange = function (cardIdx, val) {
+  const group = $(`#timelessCard${cardIdx + 1}CustomUrlGroup`);
+  if (group) {
+    group.classList.toggle('hidden', val !== 'CUSTOM');
+  }
+};
+
+window.handleTimelessFileUpload = async function (event, cardIdx) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+
+  if (!file.type.startsWith('image/')) {
+    showAdminToast('Please select a valid image file (JPG, PNG, or WebP).');
+    return;
+  }
+
+  showAdminToast(`Optimizing Card ${cardIdx + 1} banner photo...`);
+
+  try {
+    const width = cardIdx === 0 ? 1200 : 800;
+    const height = cardIdx === 0 ? 800 : 500;
+    const compressedBase64 = await compressImageFile(file, width, height, 0.85);
+
+    const input = $(`#timelessCard${cardIdx + 1}ImageUrlInput`);
+    if (input) input.value = compressedBase64;
+
+    if (!AdminState.timeless) AdminState.timeless = getDefaultTimelessData();
+    if (!AdminState.timeless.cards) AdminState.timeless.cards = getDefaultTimelessData().cards;
+    if (AdminState.timeless.cards[cardIdx]) {
+      AdminState.timeless.cards[cardIdx].image = compressedBase64;
+    }
+
+    updateTimelessLivePreview();
+    const sizeKB = Math.round(compressedBase64.length * 0.75 / 1024);
+    showAdminToast(`Card ${cardIdx + 1} photo loaded (${sizeKB} KB)!`);
+  } catch (err) {
+    console.error('Timeless image upload error:', err);
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      const base64 = e.target.result;
+      const input = $(`#timelessCard${cardIdx + 1}ImageUrlInput`);
+      if (input) input.value = base64;
+      if (!AdminState.timeless) AdminState.timeless = getDefaultTimelessData();
+      if (!AdminState.timeless.cards) AdminState.timeless.cards = getDefaultTimelessData().cards;
+      if (AdminState.timeless.cards[cardIdx]) {
+        AdminState.timeless.cards[cardIdx].image = base64;
+      }
+      updateTimelessLivePreview();
+      showAdminToast(`Card ${cardIdx + 1} photo loaded!`);
+    };
+    reader.readAsDataURL(file);
+  }
+};
+
+window.updateTimelessCardImgFromUrl = function (cardIdx, url) {
+  const val = url.trim();
+  if (!AdminState.timeless) AdminState.timeless = getDefaultTimelessData();
+  if (!AdminState.timeless.cards) AdminState.timeless.cards = getDefaultTimelessData().cards;
+  if (AdminState.timeless.cards[cardIdx]) {
+    AdminState.timeless.cards[cardIdx].image = val;
+  }
+  updateTimelessLivePreview();
+};
+
+window.toggleTimelessEnabled = async function () {
+  const isEn = $('#timelessEnableToggle') ? $('#timelessEnableToggle').checked : true;
+  if (!AdminState.timeless) AdminState.timeless = getDefaultTimelessData();
+  AdminState.timeless.enabled = isEn;
+  await saveTimelessSafely(AdminState.timeless);
+  renderTimelessManager();
+  showAdminToast(isEn ? 'Campaign Showcase ("TIMELESS") is now visible on storefront.' : 'Campaign Showcase is now hidden on storefront.');
+};
+
+window.handleSaveTimeless = async function (e) {
+  if (e && e.preventDefault) e.preventDefault();
+
+  const saveBtns = Array.from(document.querySelectorAll('.save-timeless-btn, #saveTimelessBtn, #saveTimelessBtnBottom'));
+
+  // Trigger smooth loading animation
+  saveBtns.forEach(btn => {
+    btn.disabled = true;
+    btn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700', 'bg-red-600', 'hover:bg-red-700', 'scale-105', 'bg-black', 'hover:bg-slate-800');
+    btn.classList.add('bg-slate-800', 'cursor-wait', 'opacity-90');
+    btn.innerHTML = `
+      <svg class="animate-spin w-4 h-4 text-cyan-400 shrink-0 inline mr-1.5" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+      </svg>
+      <span class="tracking-wide">Saving...</span>
+    `;
+  });
+
+  try {
+    const defaultData = getDefaultTimelessData();
+
+    // Helper to get card data from inputs
+    const extractCard = async (idx) => {
+      const num = idx + 1;
+      let img = ($(`#timelessCard${num}ImageUrlInput`) ? $(`#timelessCard${num}ImageUrlInput`).value.trim() : '') || (AdminState.timeless && AdminState.timeless.cards && AdminState.timeless.cards[idx] && AdminState.timeless.cards[idx].image) || defaultData.cards[idx].image;
+      if (img.startsWith('data:image/') && img.length > 50000) {
+        try {
+          const w = idx === 0 ? 1200 : 800;
+          const h = idx === 0 ? 800 : 500;
+          img = await compressDataUrl(img, w, h, 0.82);
+        } catch (cErr) {}
+      }
+
+      const targetSelect = $(`#timelessCard${num}TargetSelect`);
+      const targetVal = targetSelect ? targetSelect.value : defaultData.cards[idx].targetTab;
+      const customUrl = targetVal === 'CUSTOM' ? ($(`#timelessCard${num}CustomUrlInput`) ? $(`#timelessCard${num}CustomUrlInput`).value.trim() : '') : '';
+
+      return {
+        title: $(`#timelessCard${num}TitleInput`) ? $(`#timelessCard${num}TitleInput`).value.trim() : defaultData.cards[idx].title,
+        badgeText: $(`#timelessCard${num}BadgeInput`) ? $(`#timelessCard${num}BadgeInput`).value.trim() : defaultData.cards[idx].badgeText,
+        targetTab: targetVal === 'CUSTOM' ? 'All Bags' : targetVal,
+        customUrl: customUrl,
+        image: img
+      };
+    };
+
+    const card1 = await extractCard(0);
+    const card2 = await extractCard(1);
+    const card3 = await extractCard(2);
+
+    const data = {
+      enabled: $('#timelessEnableToggle') ? $('#timelessEnableToggle').checked : true,
+      headline: $('#timelessHeadlineInput') ? $('#timelessHeadlineInput').value.trim() : 'TIMELESS. BOLD. UNSTOPPABLE.',
+      cards: [card1, card2, card3]
+    };
+
+    AdminState.timeless = data;
+    await saveTimelessSafely(data);
+
+    // Small delay so user clearly perceives the smooth transition
+    await new Promise(resolve => setTimeout(resolve, 350));
+
+    // Animate to success "Saved" state
+    saveBtns.forEach(btn => {
+      btn.disabled = false;
+      btn.classList.remove('bg-slate-800', 'cursor-wait', 'opacity-90', 'bg-black', 'hover:bg-slate-800');
+      btn.classList.add('bg-emerald-600', 'hover:bg-emerald-700', 'text-white', 'scale-105', 'transition-all', 'duration-300', 'shadow-md');
+      btn.innerHTML = `
+        <svg class="w-4 h-4 text-white shrink-0 inline mr-1.5 animate-bounce" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"></path>
+        </svg>
+        <span class="font-bold text-white tracking-wide">Saved!</span>
+      `;
+    });
+
+    showAdminToast('Campaign Showcase ("TIMELESS. BOLD. UNSTOPPABLE.") saved successfully!');
+
+    // Smoothly restore default idle state after 2.5s
+    setTimeout(() => {
+      saveBtns.forEach(btn => {
+        btn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700', 'scale-105', 'shadow-md');
+        btn.classList.add('bg-black', 'hover:bg-slate-800');
+        btn.innerHTML = `<span>Save Showcase</span>`;
+      });
+    }, 2500);
+
+  } catch (err) {
+    console.error('Error saving timeless showcase:', err);
+    saveBtns.forEach(btn => {
+      btn.disabled = false;
+      btn.classList.remove('bg-slate-800', 'cursor-wait', 'opacity-90', 'bg-black');
+      btn.classList.add('bg-red-600', 'hover:bg-red-700', 'text-white');
+      btn.innerHTML = `<span>Save Failed</span>`;
+    });
+    setTimeout(() => {
+      saveBtns.forEach(btn => {
+        btn.classList.remove('bg-red-600', 'hover:bg-red-700');
+        btn.classList.add('bg-black', 'hover:bg-slate-800');
+        btn.innerHTML = `<span>Save Showcase</span>`;
+      });
+    }, 2500);
+    showAdminToast(err.message || 'Error saving showcase. Please try again.');
+  }
+};
+
+window.resetTimelessToDefault = function () {
+  showConfirmDialog({
+    title: 'Reset Campaign Showcase?',
+    message: 'Are you sure you want to restore the default headline and campaign cards?',
+    confirmText: 'Reset to Default',
+    onConfirm: async () => {
+      AdminState.timeless = getDefaultTimelessData();
+      await saveTimelessSafely(AdminState.timeless);
+      renderTimelessManager();
+      showAdminToast('Campaign Showcase reset to default.');
     }
   });
 };
