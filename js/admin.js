@@ -567,8 +567,25 @@ function getSeedOrders() {
 }
 
 /* ==========================================================================
-   2. Tab Switching Controller
+   2. Tab Switching Controller & Sidebar Dropdowns
    ========================================================================== */
+window.toggleHeaderFooterMenu = function (forceOpen) {
+  const submenu = $('#headerFooterSubmenu');
+  const chevron = $('#headerFooterChevron');
+  if (!submenu) return;
+
+  const isOpen = !submenu.classList.contains('hidden');
+  const shouldOpen = forceOpen !== undefined ? forceOpen : !isOpen;
+
+  if (shouldOpen) {
+    submenu.classList.remove('hidden');
+    if (chevron) chevron.classList.add('rotate-180');
+  } else {
+    submenu.classList.add('hidden');
+    if (chevron) chevron.classList.remove('rotate-180');
+  }
+};
+
 window.switchTab = function (tabName) {
   AdminState.currentTab = tabName;
 
@@ -586,6 +603,20 @@ window.switchTab = function (tabName) {
   if (currentNav) {
     currentNav.classList.add('bg-slate-800', 'text-white');
     currentNav.classList.remove('text-slate-300');
+  }
+
+  // Handle Header & Footer dropdown grouping
+  const isHeaderFooterTab = ['topbar', 'trustbadges', 'footer'].includes(tabName);
+  const hfGroupBtn = $('#btn-headerfooter-group');
+  if (isHeaderFooterTab) {
+    if (typeof toggleHeaderFooterMenu === 'function') toggleHeaderFooterMenu(true);
+    if (hfGroupBtn) {
+      hfGroupBtn.classList.add('bg-slate-800/60', 'text-white');
+    }
+  } else {
+    if (hfGroupBtn) {
+      hfGroupBtn.classList.remove('bg-slate-800/60', 'text-white');
+    }
   }
 
   // Update Page Title
