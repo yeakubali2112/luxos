@@ -81,6 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderLookbookSection();
   renderBrandStorySection();
   renderTimelessSection();
+  renderTrustBadges();
   renderFooter();
   if (typeof updateHeaderProfileIcon === 'function') updateHeaderProfileIcon();
 });
@@ -189,6 +190,9 @@ window.addEventListener('storage', (e) => {
   }
   if (e.key === 'luxos_topbar_settings') {
     renderTopBar();
+  }
+  if (e.key === 'luxos_trust_badges') {
+    renderTrustBadges();
   }
   if (e.key === 'luxos_footer_settings') {
     renderFooter();
@@ -1998,27 +2002,7 @@ function renderFooter() {
   }
 
   // 6. Trust Badges / Value Props
-  const trustSection = $('#trustBadgesSection');
-  const tb = data.trustBadges || {};
-  if (trustSection) {
-    trustSection.style.display = tb.enabled === false ? 'none' : 'block';
-    if (tb.badge1) {
-      if ($('#trustBadge1Title')) $('#trustBadge1Title').textContent = tb.badge1.title || 'Fast Delivery';
-      if ($('#trustBadge1Sub')) $('#trustBadge1Sub').textContent = tb.badge1.subtitle || '';
-    }
-    if (tb.badge2) {
-      if ($('#trustBadge2Title')) $('#trustBadge2Title').textContent = tb.badge2.title || '7 Days Return';
-      if ($('#trustBadge2Sub')) $('#trustBadge2Sub').textContent = tb.badge2.subtitle || '';
-    }
-    if (tb.badge3) {
-      if ($('#trustBadge3Title')) $('#trustBadge3Title').textContent = tb.badge3.title || 'Premium Quality';
-      if ($('#trustBadge3Sub')) $('#trustBadge3Sub').textContent = tb.badge3.subtitle || '';
-    }
-    if (tb.badge4) {
-      if ($('#trustBadge4Title')) $('#trustBadge4Title').textContent = tb.badge4.title || 'Cash on Delivery';
-      if ($('#trustBadge4Sub')) $('#trustBadge4Sub').textContent = tb.badge4.subtitle || '';
-    }
-  }
+  renderTrustBadges();
 
   // Background IndexedDB sync
   if (!renderFooter.idbSynced) {
@@ -2030,6 +2014,142 @@ function renderFooter() {
           renderFooter();
         }
       }).catch(() => {});
+    } catch (e) {}
+  }
+}
+
+/* ==========================================================================
+   Trust Badges & Value Props Component
+   ========================================================================== */
+function getDefaultTrustBadgesData() {
+  return {
+    enabled: true,
+    badges: [
+      {
+        id: 1,
+        visible: true,
+        icon: 'truck',
+        title: 'FAST DELIVERY',
+        subtitle: '2-4 days inside Dhaka, 3-7 days nationwide.'
+      },
+      {
+        id: 2,
+        visible: true,
+        icon: 'return',
+        title: '7 DAYS RETURN',
+        subtitle: 'Hassle-free exchange & money back guaranteed.'
+      },
+      {
+        id: 3,
+        visible: true,
+        icon: 'shield',
+        title: 'PREMIUM QUALITY',
+        subtitle: 'Handcrafted with luxury hardware & fabrics.'
+      },
+      {
+        id: 4,
+        visible: true,
+        icon: 'cash',
+        title: 'CASH ON DELIVERY',
+        subtitle: 'Pay when your parcel arrives at your doorstep.'
+      }
+    ]
+  };
+}
+
+function getTrustBadgeSvg(iconKey) {
+  switch (iconKey) {
+    case 'truck':
+      return '<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.25V3.75m0 3.75a2.25 2.25 0 01-2.25 2.25h-6.75a2.25 2.25 0 01-2.25-2.25V3.75" /></svg>';
+    case 'return':
+      return '<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>';
+    case 'shield':
+      return '<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" /></svg>';
+    case 'cash':
+      return '<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6H2.25m0 0v10.5m0-10.5h1.5A2.25 2.25 0 016 8.25v7.5A2.25 2.25 0 013.75 18H2.25m16.5-13.5v.75a.75.75 0 00.75.75h1.5m0 0v10.5m0-10.5h-1.5A2.25 2.25 0 0018 8.25v7.5A2.25 2.25 0 0020.25 18h1.5M6 10.5h12m-12 3h12" /></svg>';
+    case 'diamond':
+      return '<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" /></svg>';
+    case 'star':
+      return '<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" /></svg>';
+    case 'support':
+      return '<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3.6-3.091H7.5A4.5 4.5 0 013 12.571V10.6c0-.97.616-1.813 1.5-2.097M17.25 4.5h-10.5A2.25 2.25 0 004.5 6.75v5.25" /></svg>';
+    case 'lock':
+      return '<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" /></svg>';
+    default:
+      return '<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" /></svg>';
+  }
+}
+
+function getTrustBadgesData() {
+  const custom = localStorage.getItem('luxos_trust_badges');
+  if (custom) {
+    try {
+      const parsed = JSON.parse(custom);
+      if (parsed && typeof parsed === 'object') return parsed;
+    } catch (e) {}
+  }
+  // Fallback to footer settings if present
+  const footerCustom = localStorage.getItem('luxos_footer_settings');
+  if (footerCustom) {
+    try {
+      const f = JSON.parse(footerCustom);
+      if (f && f.trustBadges) {
+        return {
+          enabled: f.trustBadges.enabled !== false,
+          badges: [
+            { id: 1, visible: true, icon: 'truck', title: f.trustBadges.badge1?.title || 'FAST DELIVERY', subtitle: f.trustBadges.badge1?.subtitle || '' },
+            { id: 2, visible: true, icon: 'return', title: f.trustBadges.badge2?.title || '7 DAYS RETURN', subtitle: f.trustBadges.badge2?.subtitle || '' },
+            { id: 3, visible: true, icon: 'shield', title: f.trustBadges.badge3?.title || 'PREMIUM QUALITY', subtitle: f.trustBadges.badge3?.subtitle || '' },
+            { id: 4, visible: true, icon: 'cash', title: f.trustBadges.badge4?.title || 'CASH ON DELIVERY', subtitle: f.trustBadges.badge4?.subtitle || '' }
+          ]
+        };
+      }
+    } catch (e) {}
+  }
+  return getDefaultTrustBadgesData();
+}
+
+function renderTrustBadges() {
+  const data = getTrustBadgesData();
+  const trustSection = $('#trustBadgesSection');
+  if (trustSection) {
+    trustSection.style.display = data.enabled === false ? 'none' : 'block';
+  }
+
+  const badges = data.badges || getDefaultTrustBadgesData().badges;
+  badges.forEach((badge, idx) => {
+    const num = idx + 1;
+    const card = $(`#trustBadgeCard${num}`);
+    const iconEl = $(`#trustBadge${num}Icon`);
+    const titleEl = $(`#trustBadge${num}Title`);
+    const subEl = $(`#trustBadge${num}Sub`);
+
+    if (card) {
+      card.style.display = badge.visible === false ? 'none' : 'block';
+    }
+    if (iconEl && badge.icon) {
+      iconEl.innerHTML = getTrustBadgeSvg(badge.icon);
+    }
+    if (titleEl && badge.title) {
+      titleEl.textContent = badge.title;
+    }
+    if (subEl && badge.subtitle !== undefined) {
+      subEl.textContent = badge.subtitle;
+    }
+  });
+
+  // Background IndexedDB sync
+  if (!renderTrustBadges.idbSynced) {
+    renderTrustBadges.idbSynced = true;
+    try {
+      if (typeof getItemIndexedDB === 'function') {
+        getItemIndexedDB('luxos_trust_badges').then(idbData => {
+          if (idbData && typeof idbData === 'object') {
+            try { localStorage.setItem('luxos_trust_badges', JSON.stringify(idbData)); } catch(e){}
+            renderTrustBadges();
+          }
+        }).catch(() => {});
+      }
     } catch (e) {}
   }
 }

@@ -185,6 +185,14 @@
         <span id="sidebarTopBarBadge" class="bg-sky-500/20 text-sky-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-sky-500/30">Active</span>
       </button>
 
+      <button onclick="switchTab('trustbadges')" id="nav-trustbadges" class="nav-item w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition">
+        <div class="flex items-center gap-3">
+          <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" /></svg>
+          <span>Trust Badges &amp; Perks</span>
+        </div>
+        <span id="sidebarTrustBadgesBadge" class="bg-emerald-500/20 text-emerald-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-500/30">Active</span>
+      </button>
+
       <button onclick="switchTab('footer')" id="nav-footer" class="nav-item w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition">
         <div class="flex items-center gap-3">
           <svg class="w-4 h-4 text-teal-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12" /></svg>
@@ -1562,6 +1570,258 @@
           <button type="button" onclick="handleSaveTopBar(event)" id="saveTopBarBtnBottom" class="save-topbar-btn bg-black hover:bg-slate-800 text-white text-xs font-semibold px-6 py-2.5 rounded-lg transition flex items-center gap-2 shadow-sm">
             <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
             <span>Save Top Bar &amp; Social Links</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           TAB: TRUST BADGES & VALUE PROPS
+           ===================================================================== -->
+      <section id="tab-trustbadges" class="space-y-6 hidden">
+        <!-- Top Banner & Controls -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h3 class="text-sm font-bold text-slate-800 font-heading flex items-center gap-2">
+              <span>Trust Badges &amp; Value Props</span>
+              <span id="trustBadgesStatusBadge" class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200">Active</span>
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5">Edit the 4 reassurance guarantee cards displayed above the footer on the storefront</p>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <label class="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer bg-slate-50 px-3.5 py-2 rounded-lg border border-slate-200 hover:bg-slate-100 transition">
+              <input id="tbMasterEnableToggle" type="checkbox" checked onchange="toggleTrustBadgesEnabled()" class="rounded text-black focus:ring-black h-4 w-4" />
+              <span>Show on Website</span>
+            </label>
+
+            <button onclick="handleSaveTrustBadges(event)" class="save-trustbadges-btn bg-black hover:bg-slate-800 text-white text-xs font-semibold px-4 py-2 rounded-lg transition flex items-center gap-1.5 shadow-sm">
+              <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+              <span>Save &amp; Publish</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Live Storefront Preview -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Live Storefront Preview</span>
+            <span class="text-[11px] text-slate-400">Updates instantly as you edit below</span>
+          </div>
+          
+          <div class="p-6 bg-slate-50 rounded-lg border border-slate-200 overflow-x-auto">
+            <div id="tbLivePreviewGrid" class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center max-w-5xl mx-auto py-4 bg-white rounded-lg border border-gray-200">
+              <!-- Live Card 1 -->
+              <div id="tbPreviewCard1" class="space-y-2 p-3">
+                <div id="tbPreviewIcon1" class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto text-black">
+                  <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.25V3.75m0 3.75a2.25 2.25 0 01-2.25 2.25h-6.75a2.25 2.25 0 01-2.25-2.25V3.75" /></svg>
+                </div>
+                <h4 id="tbPreviewTitle1" class="text-xs font-bold text-gray-900 uppercase tracking-wider">Fast Delivery</h4>
+                <p id="tbPreviewSub1" class="text-[11px] text-gray-500">2-4 days inside Dhaka, 3-7 days nationwide.</p>
+              </div>
+
+              <!-- Live Card 2 -->
+              <div id="tbPreviewCard2" class="space-y-2 p-3">
+                <div id="tbPreviewIcon2" class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto text-black">
+                  <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>
+                </div>
+                <h4 id="tbPreviewTitle2" class="text-xs font-bold text-gray-900 uppercase tracking-wider">7 Days Return</h4>
+                <p id="tbPreviewSub2" class="text-[11px] text-gray-500">Hassle-free exchange &amp; money back guaranteed.</p>
+              </div>
+
+              <!-- Live Card 3 -->
+              <div id="tbPreviewCard3" class="space-y-2 p-3">
+                <div id="tbPreviewIcon3" class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto text-black">
+                  <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" /></svg>
+                </div>
+                <h4 id="tbPreviewTitle3" class="text-xs font-bold text-gray-900 uppercase tracking-wider">Premium Quality</h4>
+                <p id="tbPreviewSub3" class="text-[11px] text-gray-500">Handcrafted with luxury hardware &amp; fabrics.</p>
+              </div>
+
+              <!-- Live Card 4 -->
+              <div id="tbPreviewCard4" class="space-y-2 p-3">
+                <div id="tbPreviewIcon4" class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto text-black">
+                  <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6H2.25m0 0v10.5m0-10.5h1.5A2.25 2.25 0 016 8.25v7.5A2.25 2.25 0 013.75 18H2.25m16.5-13.5v.75a.75.75 0 00.75.75h1.5m0 0v10.5m0-10.5h-1.5A2.25 2.25 0 0018 8.25v7.5A2.25 2.25 0 0020.25 18h1.5M6 10.5h12m-12 3h12" /></svg>
+                </div>
+                <h4 id="tbPreviewTitle4" class="text-xs font-bold text-gray-900 uppercase tracking-wider">Cash on Delivery</h4>
+                <p id="tbPreviewSub4" class="text-[11px] text-gray-500">Pay when your parcel arrives at your doorstep.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4 Badges Editor Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <!-- Badge 1 Config -->
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div class="flex items-center gap-2">
+                <span class="w-6 h-6 rounded-full bg-slate-100 text-slate-800 font-bold text-xs flex items-center justify-center">1</span>
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-800">Badge 1 Settings</span>
+              </div>
+              <label class="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
+                <input id="tb1Visible" type="checkbox" checked onchange="updateTrustBadgesLivePreview()" class="rounded text-black focus:ring-black h-3.5 w-3.5" />
+                <span>Show</span>
+              </label>
+            </div>
+
+            <div class="space-y-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Icon Style</label>
+                <select id="tb1IconSelect" onchange="updateTrustBadgesLivePreview()" class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:ring-1 focus:ring-black focus:border-black outline-none transition">
+                  <option value="truck" selected>🚚 Fast Delivery (Truck)</option>
+                  <option value="return">🔄 7 Days Return (Sync/Exchange)</option>
+                  <option value="shield">🛡️ Premium Quality (Shield/Guarantee)</option>
+                  <option value="cash">💵 Cash on Delivery (Banknote/Card)</option>
+                  <option value="diamond">💎 Luxury Authentic (Diamond)</option>
+                  <option value="star">⭐ 5-Star Customer Rating</option>
+                  <option value="support">🎧 24/7 Dedicated Support</option>
+                  <option value="lock">🔒 Secure Payment Guaranteed</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Badge Title</label>
+                <input id="tb1TitleInput" type="text" value="Fast Delivery" oninput="updateTrustBadgesLivePreview()" class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:ring-1 focus:ring-black focus:border-black outline-none transition" placeholder="e.g. Fast Delivery" />
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Subtitle / Details</label>
+                <input id="tb1SubInput" type="text" value="2-4 days inside Dhaka, 3-7 days nationwide." oninput="updateTrustBadgesLivePreview()" class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:ring-1 focus:ring-black focus:border-black outline-none transition" placeholder="e.g. 2-4 days inside Dhaka, 3-7 days nationwide." />
+              </div>
+            </div>
+          </div>
+
+          <!-- Badge 2 Config -->
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div class="flex items-center gap-2">
+                <span class="w-6 h-6 rounded-full bg-slate-100 text-slate-800 font-bold text-xs flex items-center justify-center">2</span>
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-800">Badge 2 Settings</span>
+              </div>
+              <label class="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
+                <input id="tb2Visible" type="checkbox" checked onchange="updateTrustBadgesLivePreview()" class="rounded text-black focus:ring-black h-3.5 w-3.5" />
+                <span>Show</span>
+              </label>
+            </div>
+
+            <div class="space-y-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Icon Style</label>
+                <select id="tb2IconSelect" onchange="updateTrustBadgesLivePreview()" class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:ring-1 focus:ring-black focus:border-black outline-none transition">
+                  <option value="truck">🚚 Fast Delivery (Truck)</option>
+                  <option value="return" selected>🔄 7 Days Return (Sync/Exchange)</option>
+                  <option value="shield">🛡️ Premium Quality (Shield/Guarantee)</option>
+                  <option value="cash">💵 Cash on Delivery (Banknote/Card)</option>
+                  <option value="diamond">💎 Luxury Authentic (Diamond)</option>
+                  <option value="star">⭐ 5-Star Customer Rating</option>
+                  <option value="support">🎧 24/7 Dedicated Support</option>
+                  <option value="lock">🔒 Secure Payment Guaranteed</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Badge Title</label>
+                <input id="tb2TitleInput" type="text" value="7 Days Return" oninput="updateTrustBadgesLivePreview()" class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:ring-1 focus:ring-black focus:border-black outline-none transition" placeholder="e.g. 7 Days Return" />
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Subtitle / Details</label>
+                <input id="tb2SubInput" type="text" value="Hassle-free exchange & money back guaranteed." oninput="updateTrustBadgesLivePreview()" class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:ring-1 focus:ring-black focus:border-black outline-none transition" placeholder="e.g. Hassle-free exchange & money back guaranteed." />
+              </div>
+            </div>
+          </div>
+
+          <!-- Badge 3 Config -->
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div class="flex items-center gap-2">
+                <span class="w-6 h-6 rounded-full bg-slate-100 text-slate-800 font-bold text-xs flex items-center justify-center">3</span>
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-800">Badge 3 Settings</span>
+              </div>
+              <label class="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
+                <input id="tb3Visible" type="checkbox" checked onchange="updateTrustBadgesLivePreview()" class="rounded text-black focus:ring-black h-3.5 w-3.5" />
+                <span>Show</span>
+              </label>
+            </div>
+
+            <div class="space-y-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Icon Style</label>
+                <select id="tb3IconSelect" onchange="updateTrustBadgesLivePreview()" class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:ring-1 focus:ring-black focus:border-black outline-none transition">
+                  <option value="truck">🚚 Fast Delivery (Truck)</option>
+                  <option value="return">🔄 7 Days Return (Sync/Exchange)</option>
+                  <option value="shield" selected>🛡️ Premium Quality (Shield/Guarantee)</option>
+                  <option value="cash">💵 Cash on Delivery (Banknote/Card)</option>
+                  <option value="diamond">💎 Luxury Authentic (Diamond)</option>
+                  <option value="star">⭐ 5-Star Customer Rating</option>
+                  <option value="support">🎧 24/7 Dedicated Support</option>
+                  <option value="lock">🔒 Secure Payment Guaranteed</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Badge Title</label>
+                <input id="tb3TitleInput" type="text" value="Premium Quality" oninput="updateTrustBadgesLivePreview()" class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:ring-1 focus:ring-black focus:border-black outline-none transition" placeholder="e.g. Premium Quality" />
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Subtitle / Details</label>
+                <input id="tb3SubInput" type="text" value="Handcrafted with luxury hardware & fabrics." oninput="updateTrustBadgesLivePreview()" class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:ring-1 focus:ring-black focus:border-black outline-none transition" placeholder="e.g. Handcrafted with luxury hardware & fabrics." />
+              </div>
+            </div>
+          </div>
+
+          <!-- Badge 4 Config -->
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div class="flex items-center gap-2">
+                <span class="w-6 h-6 rounded-full bg-slate-100 text-slate-800 font-bold text-xs flex items-center justify-center">4</span>
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-800">Badge 4 Settings</span>
+              </div>
+              <label class="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
+                <input id="tb4Visible" type="checkbox" checked onchange="updateTrustBadgesLivePreview()" class="rounded text-black focus:ring-black h-3.5 w-3.5" />
+                <span>Show</span>
+              </label>
+            </div>
+
+            <div class="space-y-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Icon Style</label>
+                <select id="tb4IconSelect" onchange="updateTrustBadgesLivePreview()" class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:ring-1 focus:ring-black focus:border-black outline-none transition">
+                  <option value="truck">🚚 Fast Delivery (Truck)</option>
+                  <option value="return">🔄 7 Days Return (Sync/Exchange)</option>
+                  <option value="shield">🛡️ Premium Quality (Shield/Guarantee)</option>
+                  <option value="cash" selected>💵 Cash on Delivery (Banknote/Card)</option>
+                  <option value="diamond">💎 Luxury Authentic (Diamond)</option>
+                  <option value="star">⭐ 5-Star Customer Rating</option>
+                  <option value="support">🎧 24/7 Dedicated Support</option>
+                  <option value="lock">🔒 Secure Payment Guaranteed</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Badge Title</label>
+                <input id="tb4TitleInput" type="text" value="Cash on Delivery" oninput="updateTrustBadgesLivePreview()" class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:ring-1 focus:ring-black focus:border-black outline-none transition" placeholder="e.g. Cash on Delivery" />
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Subtitle / Details</label>
+                <input id="tb4SubInput" type="text" value="Pay when your parcel arrives at your doorstep." oninput="updateTrustBadgesLivePreview()" class="w-full text-xs px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:ring-1 focus:ring-black focus:border-black outline-none transition" placeholder="e.g. Pay when your parcel arrives at your doorstep." />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Action Bar -->
+        <div class="flex items-center justify-between pt-4 border-t border-slate-200">
+          <button type="button" onclick="resetTrustBadgesToDefault()" class="text-xs text-rose-600 hover:text-rose-700 hover:underline font-semibold flex items-center gap-1.5 transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>
+            <span>Reset to Default Values</span>
+          </button>
+
+          <button type="button" onclick="handleSaveTrustBadges(event)" id="saveTrustBadgesBtnBottom" class="save-trustbadges-btn bg-black hover:bg-slate-800 text-white text-xs font-semibold px-6 py-2.5 rounded-lg transition flex items-center gap-2 shadow-sm">
+            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+            <span>Save Trust Badges</span>
           </button>
         </div>
       </section>
