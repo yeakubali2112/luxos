@@ -15,6 +15,7 @@ const AdminState = {
   collectionsHeader: { eyebrow: 'Curated Categories', heading: 'Shop by Collection', enabled: true },
   coupons: [],
   settings: {},
+  topbar: null,
   orderFilter: 'all',
   productFilter: { query: '', category: 'all' }
 };
@@ -54,6 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (typeof renderLookbookManager === 'function') renderLookbookManager();
   if (typeof renderBrandStoryManager === 'function') renderBrandStoryManager();
   if (typeof renderTimelessManager === 'function') renderTimelessManager();
+  if (typeof renderTopBarManager === 'function') renderTopBarManager();
   if (typeof syncAdminPersistentData === 'function') syncAdminPersistentData();
 });
 
@@ -131,6 +133,21 @@ async function syncAdminPersistentData() {
     }
   } catch (err) {
     console.warn('Timeless showcase sync error from IndexedDB:', err);
+  }
+
+  try {
+    const idbTopBar = await getItemIndexedDB('luxos_topbar_settings');
+    if (idbTopBar && typeof idbTopBar === 'object') {
+      AdminState.topbar = idbTopBar;
+      if (typeof renderTopBarManager === 'function') renderTopBarManager();
+      try {
+        localStorage.setItem('luxos_topbar_settings', JSON.stringify(idbTopBar));
+      } catch (e) {}
+    } else if (AdminState.topbar) {
+      await setItemIndexedDB('luxos_topbar_settings', AdminState.topbar);
+    }
+  } catch (err) {
+    console.warn('Top bar sync error from IndexedDB:', err);
   }
 }
 
@@ -284,6 +301,19 @@ function initData() {
   } else {
     AdminState.timeless = getDefaultTimelessData();
     localStorage.setItem('luxos_timeless_showcase', JSON.stringify(AdminState.timeless));
+  }
+
+  // Load Top Bar & Social Media Settings
+  const storedTopBar = localStorage.getItem('luxos_topbar_settings');
+  if (storedTopBar) {
+    try {
+      AdminState.topbar = JSON.parse(storedTopBar);
+    } catch (e) {
+      AdminState.topbar = getDefaultTopBarData();
+    }
+  } else {
+    AdminState.topbar = getDefaultTopBarData();
+    localStorage.setItem('luxos_topbar_settings', JSON.stringify(AdminState.topbar));
   }
 }
 
@@ -509,6 +539,7 @@ window.switchTab = function (tabName) {
     brandstory: 'Brand Story ("OWN IT. LEAD IT.")',
     timeless: 'Campaign Showcase ("TIMELESS. BOLD. UNSTOPPABLE.")',
     ticker: 'Scrolling Marquee Ticker Management',
+    topbar: 'Top Header Bar & Social Media Links',
     coupons: 'Promo Codes & Offers',
     customers: 'Customer Directory',
     settings: 'Store & Delivery Configuration'
@@ -525,6 +556,7 @@ window.switchTab = function (tabName) {
   if (tabName === 'brandstory') renderBrandStoryManager();
   if (tabName === 'timeless') renderTimelessManager();
   if (tabName === 'ticker') renderTickerSettings();
+  if (tabName === 'topbar') renderTopBarManager();
   if (tabName === 'coupons') renderCouponsTable();
   if (tabName === 'customers') renderCustomersTable();
 };
@@ -4431,4 +4463,251 @@ window.saveLandingPageSettings = function () {
   if (typeof renderProductsTable === 'function') renderProductsTable();
 
   showAdminToast(`Landing Page for "${currentPdpProduct.title}" updated successfully!`);
+};
+
+/* ==========================================================================
+   Top Header Bar & Social Media Links Manager
+   ========================================================================== */
+function getDefaultTopBarData() {
+  return {
+    enabled: true,
+    phone: {
+      enabled: true,
+      number: '+8801701-800216',
+      label: ''
+    },
+    socialLinks: {
+      facebook: { enabled: true, url: 'https://facebook.com' },
+      instagram: { enabled: true, url: 'https://instagram.com' },
+      whatsapp: { enabled: true, url: 'https://wa.me/8801701800216' },
+      tiktok: { enabled: true, url: 'https://tiktok.com' },
+      youtube: { enabled: true, url: 'https://youtube.com' }
+    }
+  };
+}
+
+async function saveTopBarSafely(data) {
+  try {
+    localStorage.setItem('luxos_topbar_settings', JSON.stringify(data));
+  } catch (err) {
+    console.warn('LocalStorage error for topbar settings; falling back to IndexedDB:', err);
+  }
+
+  try {
+    await setItemIndexedDB('luxos_topbar_settings', data);
+  } catch (idbErr) {
+    console.error('Failed to save topbar settings in IndexedDB:', idbErr);
+  }
+
+  // Notify active storefront tabs
+  try {
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: 'luxos_topbar_settings',
+      newValue: JSON.stringify(data)
+    }));
+  } catch (e) {}
+}
+
+window.renderTopBarManager = function () {
+  const data = AdminState.topbar || getDefaultTopBarData();
+  AdminState.topbar = data;
+
+  const isEn = data.enabled !== false;
+  if ($('#topbarEnableToggle')) $('#topbarEnableToggle').checked = isEn;
+  if ($('#topbarStatusBadge')) {
+    $('#topbarStatusBadge').textContent = isEn ? 'Active' : 'Hidden';
+    $('#topbarStatusBadge').className = isEn
+      ? 'bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200'
+      : 'bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded-full border border-slate-200';
+  }
+  if ($('#sidebarTopBarBadge')) {
+    $('#sidebarTopBarBadge').textContent = isEn ? 'Active' : 'Hidden';
+    $('#sidebarTopBarBadge').className = isEn
+      ? 'bg-sky-500/20 text-sky-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-sky-500/30'
+      : 'bg-slate-700/50 text-slate-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-slate-600';
+  }
+
+  // Phone inputs
+  const phone = data.phone || {};
+  if ($('#topbarPhoneEnableToggle')) $('#topbarPhoneEnableToggle').checked = phone.enabled !== false;
+  if ($('#topbarPhoneInput')) $('#topbarPhoneInput').value = phone.number || '+8801701-800216';
+  if ($('#topbarPhoneLabelInput')) $('#topbarPhoneLabelInput').value = phone.label || '';
+
+  // Social inputs
+  const social = data.socialLinks || {};
+  const fb = social.facebook || {};
+  if ($('#topbarFbEnable')) $('#topbarFbEnable').checked = fb.enabled !== false;
+  if ($('#topbarFbUrl')) $('#topbarFbUrl').value = fb.url || '';
+
+  const insta = social.instagram || {};
+  if ($('#topbarInstaEnable')) $('#topbarInstaEnable').checked = insta.enabled !== false;
+  if ($('#topbarInstaUrl')) $('#topbarInstaUrl').value = insta.url || '';
+
+  const wa = social.whatsapp || {};
+  if ($('#topbarWaEnable')) $('#topbarWaEnable').checked = wa.enabled !== false;
+  if ($('#topbarWaUrl')) $('#topbarWaUrl').value = wa.url || '';
+
+  const tiktok = social.tiktok || {};
+  if ($('#topbarTiktokEnable')) $('#topbarTiktokEnable').checked = tiktok.enabled !== false;
+  if ($('#topbarTiktokUrl')) $('#topbarTiktokUrl').value = tiktok.url || '';
+
+  const yt = social.youtube || {};
+  if ($('#topbarYtEnable')) $('#topbarYtEnable').checked = yt.enabled !== false;
+  if ($('#topbarYtUrl')) $('#topbarYtUrl').value = yt.url || '';
+
+  updateTopBarLivePreview();
+};
+
+window.updateTopBarLivePreview = function () {
+  const phoneNum = $('#topbarPhoneInput') ? $('#topbarPhoneInput').value.trim() : '+8801701-800216';
+  const phoneLabel = $('#topbarPhoneLabelInput') ? $('#topbarPhoneLabelInput').value.trim() : '';
+  const phoneEn = $('#topbarPhoneEnableToggle') ? $('#topbarPhoneEnableToggle').checked : true;
+
+  if ($('#adminTopBarPhonePreview')) {
+    if (phoneEn && phoneNum) {
+      $('#adminTopBarPhonePreview').style.display = 'flex';
+      const displayText = phoneLabel ? `${phoneLabel} ${phoneNum}` : phoneNum;
+      if ($('#adminPreviewPhoneDisplay')) $('#adminPreviewPhoneDisplay').textContent = displayText;
+    } else {
+      $('#adminTopBarPhonePreview').style.display = 'none';
+    }
+  }
+
+  // Social preview
+  const previewContainer = $('#adminTopBarSocialPreview');
+  if (previewContainer) {
+    const fbEn = $('#topbarFbEnable') ? $('#topbarFbEnable').checked : false;
+    const fbUrl = $('#topbarFbUrl') ? $('#topbarFbUrl').value.trim() : '';
+
+    const instaEn = $('#topbarInstaEnable') ? $('#topbarInstaEnable').checked : false;
+    const instaUrl = $('#topbarInstaUrl') ? $('#topbarInstaUrl').value.trim() : '';
+
+    const waEn = $('#topbarWaEnable') ? $('#topbarWaEnable').checked : false;
+    const waUrl = $('#topbarWaUrl') ? $('#topbarWaUrl').value.trim() : '';
+
+    const tiktokEn = $('#topbarTiktokEnable') ? $('#topbarTiktokEnable').checked : false;
+    const tiktokUrl = $('#topbarTiktokUrl') ? $('#topbarTiktokUrl').value.trim() : '';
+
+    const ytEn = $('#topbarYtEnable') ? $('#topbarYtEnable').checked : false;
+    const ytUrl = $('#topbarYtUrl') ? $('#topbarYtUrl').value.trim() : '';
+
+    let html = '';
+    if (fbEn && fbUrl) {
+      html += `<span title="Facebook" class="hover:text-white transition cursor-pointer"><svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></span>`;
+    }
+    if (instaEn && instaUrl) {
+      html += `<span title="Instagram" class="hover:text-white transition cursor-pointer"><svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></span>`;
+    }
+    if (waEn && waUrl) {
+      html += `<span title="WhatsApp" class="hover:text-emerald-400 transition cursor-pointer"><svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg></span>`;
+    }
+    if (tiktokEn && tiktokUrl) {
+      html += `<span title="TikTok" class="hover:text-white transition cursor-pointer"><svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.24 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg></span>`;
+    }
+    if (ytEn && ytUrl) {
+      html += `<span title="YouTube" class="hover:text-red-500 transition cursor-pointer"><svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></span>`;
+    }
+    previewContainer.innerHTML = html || '<span class="text-[11px] text-neutral-500 italic">No social icons enabled</span>';
+  }
+};
+
+window.toggleTopBarEnabled = async function () {
+  const isEn = $('#topbarEnableToggle') ? $('#topbarEnableToggle').checked : true;
+  if (!AdminState.topbar) AdminState.topbar = getDefaultTopBarData();
+  AdminState.topbar.enabled = isEn;
+  await saveTopBarSafely(AdminState.topbar);
+  renderTopBarManager();
+  showAdminToast(isEn ? 'Top Announcement Bar is now visible on storefront.' : 'Top Announcement Bar is hidden on storefront.');
+};
+
+window.handleSaveTopBar = async function (e) {
+  if (e) e.preventDefault();
+  const saveBtns = Array.from(document.querySelectorAll('.save-topbar-btn, #saveTopBarBtnBottom'));
+  saveBtns.forEach(btn => {
+    btn.disabled = true;
+    btn.dataset.origHtml = btn.innerHTML;
+    btn.innerHTML = `<svg class="w-4 h-4 animate-spin inline-block mr-1 text-amber-400" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> <span>Saving...</span>`;
+  });
+
+  try {
+    const rawWa = $('#topbarWaUrl') ? $('#topbarWaUrl').value.trim() : '';
+    let waUrl = rawWa;
+    if (rawWa && !rawWa.startsWith('http://') && !rawWa.startsWith('https://')) {
+      const cleanPhone = rawWa.replace(/[^\d]/g, '');
+      waUrl = `https://wa.me/${cleanPhone.startsWith('88') ? cleanPhone : '88' + cleanPhone}`;
+    }
+
+    const data = {
+      enabled: $('#topbarEnableToggle') ? $('#topbarEnableToggle').checked : true,
+      phone: {
+        enabled: $('#topbarPhoneEnableToggle') ? $('#topbarPhoneEnableToggle').checked : true,
+        number: $('#topbarPhoneInput') ? $('#topbarPhoneInput').value.trim() : '+8801701-800216',
+        label: $('#topbarPhoneLabelInput') ? $('#topbarPhoneLabelInput').value.trim() : ''
+      },
+      socialLinks: {
+        facebook: {
+          enabled: $('#topbarFbEnable') ? $('#topbarFbEnable').checked : true,
+          url: $('#topbarFbUrl') ? $('#topbarFbUrl').value.trim() : 'https://facebook.com'
+        },
+        instagram: {
+          enabled: $('#topbarInstaEnable') ? $('#topbarInstaEnable').checked : true,
+          url: $('#topbarInstaUrl') ? $('#topbarInstaUrl').value.trim() : 'https://instagram.com'
+        },
+        whatsapp: {
+          enabled: $('#topbarWaEnable') ? $('#topbarWaEnable').checked : true,
+          url: waUrl || 'https://wa.me/8801701800216'
+        },
+        tiktok: {
+          enabled: $('#topbarTiktokEnable') ? $('#topbarTiktokEnable').checked : true,
+          url: $('#topbarTiktokUrl') ? $('#topbarTiktokUrl').value.trim() : 'https://tiktok.com'
+        },
+        youtube: {
+          enabled: $('#topbarYtEnable') ? $('#topbarYtEnable').checked : true,
+          url: $('#topbarYtUrl') ? $('#topbarYtUrl').value.trim() : 'https://youtube.com'
+        }
+      }
+    };
+
+    AdminState.topbar = data;
+    await saveTopBarSafely(data);
+
+    // Also sync the phone hotline to AdminState.settings if present
+    if (data.phone.number) {
+      if (!AdminState.settings) AdminState.settings = {};
+      AdminState.settings.hotline = data.phone.number;
+      if ($('#settingHotline')) $('#settingHotline').value = data.phone.number;
+      try { localStorage.setItem('luxos_settings', JSON.stringify(AdminState.settings)); } catch(e){}
+    }
+
+    saveBtns.forEach(btn => {
+      btn.innerHTML = `<span class="text-emerald-300 font-bold">✓ Saved!</span>`;
+      btn.classList.add('bg-emerald-700');
+    });
+
+    setTimeout(() => {
+      saveBtns.forEach(btn => {
+        btn.disabled = false;
+        btn.classList.remove('bg-emerald-700');
+        if (btn.dataset.origHtml) btn.innerHTML = btn.dataset.origHtml;
+      });
+      renderTopBarManager();
+    }, 1200);
+
+    showAdminToast('Top Bar & Social Media links saved successfully!');
+  } catch (err) {
+    console.error('Error saving topbar settings:', err);
+    saveBtns.forEach(btn => {
+      btn.disabled = false;
+      if (btn.dataset.origHtml) btn.innerHTML = btn.dataset.origHtml;
+    });
+    alert('Failed to save Top Bar settings: ' + err.message);
+  }
+};
+
+window.resetTopBarToDefault = async function () {
+  if (!confirm('Are you sure you want to reset Top Bar & Social Media settings to default?')) return;
+  AdminState.topbar = getDefaultTopBarData();
+  await saveTopBarSafely(AdminState.topbar);
+  renderTopBarManager();
+  showAdminToast('Top Bar settings have been reset to defaults.');
 };
