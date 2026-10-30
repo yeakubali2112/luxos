@@ -580,6 +580,13 @@ window.toggleCampaignsMenu = function (forceOpen) {
   if (shouldOpen) {
     submenu.classList.remove('hidden');
     if (chevron) chevron.classList.add('rotate-180');
+    // Auto close Header & Footer menu if open
+    if (typeof toggleHeaderFooterMenu === 'function') {
+      const hfSubmenu = $('#headerFooterSubmenu');
+      if (hfSubmenu && !hfSubmenu.classList.contains('hidden')) {
+        toggleHeaderFooterMenu(false);
+      }
+    }
   } else {
     submenu.classList.add('hidden');
     if (chevron) chevron.classList.remove('rotate-180');
@@ -597,11 +604,40 @@ window.toggleHeaderFooterMenu = function (forceOpen) {
   if (shouldOpen) {
     submenu.classList.remove('hidden');
     if (chevron) chevron.classList.add('rotate-180');
+    // Auto close Campaigns menu if open
+    if (typeof toggleCampaignsMenu === 'function') {
+      const campSubmenu = $('#campaignsSubmenu');
+      if (campSubmenu && !campSubmenu.classList.contains('hidden')) {
+        toggleCampaignsMenu(false);
+      }
+    }
   } else {
     submenu.classList.add('hidden');
     if (chevron) chevron.classList.remove('rotate-180');
   }
 };
+
+// Auto-close open dropdowns if user clicks outside of them
+document.addEventListener('click', (e) => {
+  const campGroup = $('#btn-campaigns-group')?.closest('.space-y-1');
+  const hfGroup = $('#btn-headerfooter-group')?.closest('.space-y-1');
+
+  // If click is outside campaigns dropdown and current tab is not in it, close it
+  if (campGroup && !campGroup.contains(e.target)) {
+    const isCampaignTab = ['lookbook', 'brandstory', 'timeless'].includes(AdminState.currentTab);
+    if (!isCampaignTab) {
+      if (typeof toggleCampaignsMenu === 'function') toggleCampaignsMenu(false);
+    }
+  }
+
+  // If click is outside header-footer dropdown and current tab is not in it, close it
+  if (hfGroup && !hfGroup.contains(e.target)) {
+    const isHeaderFooterTab = ['topbar', 'trustbadges', 'footer'].includes(AdminState.currentTab);
+    if (!isHeaderFooterTab) {
+      if (typeof toggleHeaderFooterMenu === 'function') toggleHeaderFooterMenu(false);
+    }
+  }
+});
 
 window.switchTab = function (tabName) {
   AdminState.currentTab = tabName;
@@ -631,6 +667,7 @@ window.switchTab = function (tabName) {
       campGroupBtn.classList.add('bg-slate-800/60', 'text-white');
     }
   } else {
+    if (typeof toggleCampaignsMenu === 'function') toggleCampaignsMenu(false);
     if (campGroupBtn) {
       campGroupBtn.classList.remove('bg-slate-800/60', 'text-white');
     }
@@ -645,6 +682,7 @@ window.switchTab = function (tabName) {
       hfGroupBtn.classList.add('bg-slate-800/60', 'text-white');
     }
   } else {
+    if (typeof toggleHeaderFooterMenu === 'function') toggleHeaderFooterMenu(false);
     if (hfGroupBtn) {
       hfGroupBtn.classList.remove('bg-slate-800/60', 'text-white');
     }
