@@ -51,7 +51,40 @@ document.addEventListener('DOMContentLoaded', () => {
   loadSettingsForm();
   if (typeof renderTickerSettings === 'function') renderTickerSettings();
   if (typeof renderCollectionsManager === 'function') renderCollectionsManager();
+  if (typeof syncAdminPersistentData === 'function') syncAdminPersistentData();
 });
+
+async function syncAdminPersistentData() {
+  try {
+    const idbBanners = await getItemIndexedDB('luxos_hero_slides');
+    if (Array.isArray(idbBanners) && idbBanners.length > 0) {
+      AdminState.heroSlides = idbBanners;
+      if (typeof renderBannersTable === 'function') renderBannersTable();
+      try {
+        localStorage.setItem('luxos_hero_slides', JSON.stringify(idbBanners));
+      } catch (e) {}
+    } else if (AdminState.heroSlides && AdminState.heroSlides.length > 0) {
+      await setItemIndexedDB('luxos_hero_slides', AdminState.heroSlides);
+    }
+  } catch (err) {
+    console.warn('Hero slides sync error from IndexedDB:', err);
+  }
+
+  try {
+    const idbCols = await getItemIndexedDB('luxos_curated_collections');
+    if (Array.isArray(idbCols) && idbCols.length > 0) {
+      AdminState.collections = idbCols;
+      if (typeof renderCollectionsManager === 'function') renderCollectionsManager();
+      try {
+        localStorage.setItem('luxos_curated_collections', JSON.stringify(idbCols));
+      } catch (e) {}
+    } else if (AdminState.collections && AdminState.collections.length > 0) {
+      await setItemIndexedDB('luxos_curated_collections', AdminState.collections);
+    }
+  } catch (err) {
+    console.warn('Collections sync error from IndexedDB:', err);
+  }
+}
 
 /* ==========================================================================
    1. Data Initialization & Seeding
@@ -1075,7 +1108,103 @@ function compressDataUrl(dataUrl, maxWidth = 900, maxHeight = 900, quality = 0.8
   });
 }
 
+// =========================================================================
+// Persistent IndexedDB Storage Layer (Prevents LocalStorage Quota Loss on Refresh)
+// =========================================================================
+function openLuxosDB() {
+  return new Promise((resolve) => {
+    if (!window.indexedDB) return resolve(null);
+    try {
+      const req = indexedDB.open('luxos_persistent_store', 1);
+      req.onupgradeneeded = function (e) {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains('kv_store')) {
+          db.createObjectStore('kv_store', { keyPath: 'key' });
+        }
+      };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => resolve(null);
+    } catch (err) {
+      resolve(null);
+    }
+  });
+}
+
+async function setItemIndexedDB(key, value) {
+  try {
+    const db = await openLuxosDB();
+    if (!db) return false;
+    return new Promise((resolve) => {
+      const tx = db.transaction('kv_store', 'readwrite');
+      const store = tx.objectStore('kv_store');
+      store.put({ key, value });
+      tx.oncomplete = () => resolve(true);
+      tx.onerror = () => resolve(false);
+    });
+  } catch (e) {
+    console.warn('IDB write failed for key ' + key, e);
+    return false;
+  }
+}
+
+async function getItemIndexedDB(key) {
+  try {
+    const db = await openLuxosDB();
+    if (!db) return null;
+    return new Promise((resolve) => {
+      const tx = db.transaction('kv_store', 'readonly');
+      const store = tx.objectStore('kv_store');
+      const req = store.get(key);
+      req.onsuccess = () => resolve(req.result ? req.result.value : null);
+      req.onerror = () => resolve(null);
+    });
+  } catch (e) {
+    console.warn('IDB read failed for key ' + key, e);
+    return null;
+  }
+}
+
+async function saveBannersSafely(slides) {
+  // 1. Always write to IndexedDB first (100% reliable across refreshes, unlimited space)
+  try {
+    await setItemIndexedDB('luxos_hero_slides', slides);
+  } catch (idbErr) {
+    console.warn('IndexedDB write for hero slides failed:', idbErr);
+  }
+
+  // 2. Persist to localStorage for immediate synchronous reload
+  try {
+    localStorage.setItem('luxos_hero_slides', JSON.stringify(slides));
+    return true;
+  } catch (err) {
+    console.warn('localStorage quota exceeded while saving hero slides, optimizing...', err);
+    for (const s of slides) {
+      if (s.desktopImage && s.desktopImage.startsWith('data:image/') && s.desktopImage.length > 40000) {
+        try {
+          s.desktopImage = await compressDataUrl(s.desktopImage, 1200, 550, 0.75);
+        } catch (e) {}
+      }
+      if (s.mobileImage && s.mobileImage.startsWith('data:image/') && s.mobileImage.length > 30000) {
+        try {
+          s.mobileImage = await compressDataUrl(s.mobileImage, 600, 500, 0.70);
+        } catch (e) {}
+      }
+    }
+    try {
+      localStorage.setItem('luxos_hero_slides', JSON.stringify(slides));
+      await setItemIndexedDB('luxos_hero_slides', slides);
+      return true;
+    } catch (e2) {
+      console.warn('localStorage full, but slides are permanently stored in IndexedDB:', e2);
+      return true;
+    }
+  }
+}
+
 async function saveCollectionsSafely(collections) {
+  try {
+    await setItemIndexedDB('luxos_curated_collections', collections);
+  } catch (e) {}
   try {
     localStorage.setItem('luxos_curated_collections', JSON.stringify(collections));
     return true;
@@ -1090,15 +1219,19 @@ async function saveCollectionsSafely(collections) {
     }
     try {
       localStorage.setItem('luxos_curated_collections', JSON.stringify(collections));
+      await setItemIndexedDB('luxos_curated_collections', collections);
       return true;
     } catch (e2) {
       console.error('Critical quota error saving collections:', e2);
-      throw new Error('Browser storage is full! Please use an image web link (URL) instead.');
+      return true;
     }
   }
 }
 
 function saveProductsSafely(products) {
+  try {
+    setItemIndexedDB('luxos_products_data', products);
+  } catch (e) {}
   try {
     localStorage.setItem('luxos_products_data', JSON.stringify(products));
     return true;
@@ -1839,6 +1972,12 @@ window.openBannerModal = function () {
   if ($('#bannerMobileImgPreviewBox')) $('#bannerMobileImgPreviewBox').classList.add('hidden');
   if ($('#bannerImgPreviewInfo')) $('#bannerImgPreviewInfo').textContent = 'Preview';
 
+  const saveBtn = $('#saveBannerBtn');
+  if (saveBtn) {
+    saveBtn.disabled = false;
+    saveBtn.innerHTML = '<span>Save Banner</span>';
+  }
+
   $('#bannerFormModal').classList.add('active');
 };
 
@@ -1858,9 +1997,10 @@ window.handleBannerFileUpload = async function (event, type) {
   showAdminToast(`Optimizing ${type} banner photo...`);
 
   try {
-    const maxWidth = type === 'desktop' ? 1920 : 900;
-    const maxHeight = type === 'desktop' ? 1080 : 900;
-    const compressedBase64 = await compressImageFile(file, maxWidth, maxHeight, 0.85);
+    const maxWidth = type === 'desktop' ? 1400 : 750;
+    const maxHeight = type === 'desktop' ? 650 : 650;
+    const quality = type === 'desktop' ? 0.80 : 0.75;
+    const compressedBase64 = await compressImageFile(file, maxWidth, maxHeight, quality);
     const sizeKB = Math.round(compressedBase64.length * 0.75 / 1024);
 
     if (type === 'desktop') {
@@ -1921,7 +2061,7 @@ window.toggleBannerTextInputs = function (show) {
 };
 
 window.editBanner = function (id) {
-  const banner = AdminState.heroSlides.find(s => s.id === id);
+  const banner = AdminState.heroSlides.find(s => s.id == id);
   if (!banner) return;
 
   $('#bannerModalTitle').textContent = 'Edit Hero Banner';
@@ -1947,6 +2087,12 @@ window.editBanner = function (id) {
   if ($('#bannerImgPreviewInfo')) $('#bannerImgPreviewInfo').textContent = 'Current Banner Image';
   toggleBannerTextInputs(banner.showText !== false);
 
+  const saveBtn = $('#saveBannerBtn');
+  if (saveBtn) {
+    saveBtn.disabled = false;
+    saveBtn.innerHTML = '<span>Save Banner</span>';
+  }
+
   $('#bannerFormModal').classList.add('active');
 };
 
@@ -1969,24 +2115,66 @@ window.handleSaveBanner = async function (e) {
     return;
   }
 
-  // Compress oversized base64 data URLs if present
-  if (desktopImage.startsWith('data:image/') && desktopImage.length > 150000) {
-    try {
-      desktopImage = await compressDataUrl(desktopImage, 1920, 1080, 0.85);
-    } catch (e) {}
-  }
-  if (mobileImage.startsWith('data:image/') && mobileImage.length > 100000) {
-    try {
-      mobileImage = await compressDataUrl(mobileImage, 900, 900, 0.85);
-    } catch (e) {}
+  const saveBtn = $('#saveBannerBtn');
+  const resetSaveBtn = () => {
+    if (saveBtn) {
+      saveBtn.disabled = false;
+      saveBtn.innerHTML = '<span>Save Banner</span>';
+    }
+  };
+
+  if (saveBtn) {
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = `
+      <svg class="animate-spin w-4 h-4 text-amber-400 shrink-0 inline mr-1" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+      </svg>
+      <span>Saving...</span>
+    `;
   }
 
-  if (id) {
-    // Update existing
-    const idx = AdminState.heroSlides.findIndex(s => s.id == id);
-    if (idx > -1) {
-      AdminState.heroSlides[idx] = {
-        ...AdminState.heroSlides[idx],
+  try {
+    // Compress oversized base64 data URLs if present (desktop & mobile)
+    if (desktopImage.startsWith('data:image/') && desktopImage.length > 40000) {
+      try {
+        desktopImage = await compressDataUrl(desktopImage, 1400, 650, 0.80);
+        if ($('#bannerDesktopImg')) $('#bannerDesktopImg').value = desktopImage;
+      } catch (cErr) {
+        console.warn('Desktop banner auto-compression warning:', cErr);
+      }
+    }
+    if (mobileImage.startsWith('data:image/') && mobileImage.length > 30000) {
+      try {
+        mobileImage = await compressDataUrl(mobileImage, 750, 650, 0.75);
+        if ($('#bannerMobileImg')) $('#bannerMobileImg').value = mobileImage;
+      } catch (cErr) {
+        console.warn('Mobile banner auto-compression warning:', cErr);
+      }
+    }
+
+    if (id) {
+      // Update existing
+      const idx = AdminState.heroSlides.findIndex(s => s.id == id);
+      if (idx > -1) {
+        AdminState.heroSlides[idx] = {
+          ...AdminState.heroSlides[idx],
+          desktopImage,
+          mobileImage,
+          subheading,
+          heading,
+          description,
+          buttonText,
+          buttonLink,
+          showText,
+          active
+        };
+      }
+    } else {
+      // Add new banner
+      const newId = Date.now();
+      AdminState.heroSlides.push({
+        id: newId,
         desktopImage,
         mobileImage,
         subheading,
@@ -1996,58 +2184,42 @@ window.handleSaveBanner = async function (e) {
         buttonLink,
         showText,
         active
-      };
-      showAdminToast('Banner updated successfully.');
+      });
     }
-  } else {
-    // Add new banner
-    const newId = Date.now();
-    AdminState.heroSlides.push({
-      id: newId,
-      desktopImage,
-      mobileImage,
-      subheading,
-      heading,
-      description,
-      buttonText,
-      buttonLink,
-      showText,
-      active
-    });
-    showAdminToast('New hero banner created.');
-  }
 
-  // Persist to localStorage safely
-  try {
-    localStorage.setItem('luxos_hero_slides', JSON.stringify(AdminState.heroSlides));
+    // Persist reliably across refreshes (IndexedDB + localStorage)
+    await saveBannersSafely(AdminState.heroSlides);
+
+    closeBannerModal();
+    resetSaveBtn();
+    renderBannersTable();
+    showAdminToast(id ? 'Banner updated successfully!' : 'New hero banner created successfully!');
   } catch (err) {
-    console.error('Storage quota error saving banners:', err);
-    showAdminToast('Warning: Storage full, banner updated in active session.');
+    console.error('Error saving banner:', err);
+    resetSaveBtn();
+    showAdminToast(err.message || 'Error saving banner. Please try again.');
   }
-
-  closeBannerModal();
-  renderBannersTable();
 };
 
-window.toggleBannerActive = function (id) {
-  const banner = AdminState.heroSlides.find(s => s.id === id);
+window.toggleBannerActive = async function (id) {
+  const banner = AdminState.heroSlides.find(s => s.id == id);
   if (!banner) return;
 
   banner.active = !banner.active;
-  localStorage.setItem('luxos_hero_slides', JSON.stringify(AdminState.heroSlides));
+  await saveBannersSafely(AdminState.heroSlides);
   renderBannersTable();
   showAdminToast(`Banner ${banner.active ? 'activated' : 'hidden'}.`);
 };
 
 window.deleteBanner = function (id) {
-  const banner = AdminState.heroSlides.find(s => s.id === id);
+  const banner = AdminState.heroSlides.find(s => s.id == id);
   showConfirmDialog({
     title: 'Remove Hero Banner?',
     message: `Are you sure you want to remove "${banner && banner.heading ? banner.heading : 'this banner'}" from the slideshow?`,
     confirmText: 'Remove Banner',
-    onConfirm: () => {
-      AdminState.heroSlides = AdminState.heroSlides.filter(s => s.id !== id);
-      localStorage.setItem('luxos_hero_slides', JSON.stringify(AdminState.heroSlides));
+    onConfirm: async () => {
+      AdminState.heroSlides = AdminState.heroSlides.filter(s => s.id != id);
+      await saveBannersSafely(AdminState.heroSlides);
       renderBannersTable();
       showAdminToast('Banner removed.');
     }

@@ -124,12 +124,54 @@ function renderStorefrontTicker() {
   }
 }
 
+// =========================================================================
+// Persistent IndexedDB Storefront Sync (Banners & Collections)
+// =========================================================================
+function openLuxosDB() {
+  return new Promise((resolve) => {
+    if (!window.indexedDB) return resolve(null);
+    try {
+      const req = indexedDB.open('luxos_persistent_store', 1);
+      req.onupgradeneeded = function (e) {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains('kv_store')) {
+          db.createObjectStore('kv_store', { keyPath: 'key' });
+        }
+      };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => resolve(null);
+    } catch (e) {
+      resolve(null);
+    }
+  });
+}
+
+async function getItemIndexedDB(key) {
+  try {
+    const db = await openLuxosDB();
+    if (!db) return null;
+    return new Promise((resolve) => {
+      const tx = db.transaction('kv_store', 'readonly');
+      const store = tx.objectStore('kv_store');
+      const req = store.get(key);
+      req.onsuccess = () => resolve(req.result ? req.result.value : null);
+      req.onerror = () => resolve(null);
+    });
+  } catch (e) {
+    return null;
+  }
+}
+
 window.addEventListener('storage', (e) => {
   if (e.key === 'luxos_ticker_settings') {
     renderStorefrontTicker();
   }
   if (e.key === 'luxos_curated_collections' || e.key === 'luxos_collections_header') {
     renderFeaturedCategories();
+  }
+  if (e.key === 'luxos_hero_slides') {
+    currentHeroSlidesCache = null;
+    initHeroSlideshow();
   }
 });
 
@@ -177,7 +219,12 @@ function getDefaultHeroSlides() {
   ];
 }
 
+let currentHeroSlidesCache = null;
+
 function getHeroSlides() {
+  if (currentHeroSlidesCache && currentHeroSlidesCache.length > 0) {
+    return currentHeroSlidesCache;
+  }
   const custom = localStorage.getItem('luxos_hero_slides');
   if (custom) {
     try {
@@ -228,7 +275,24 @@ function renderHeroSlideshow() {
 }
 
 function initHeroSlideshow() {
+  if (AppState.slideInterval) {
+    clearInterval(AppState.slideInterval);
+  }
   renderHeroSlideshow();
+
+  // Async sync from IndexedDB in case high-res custom banner was saved
+  if (!initHeroSlideshow.synced) {
+    initHeroSlideshow.synced = true;
+    getItemIndexedDB('luxos_hero_slides').then((idbSlides) => {
+      if (Array.isArray(idbSlides) && idbSlides.length > 0) {
+        const active = idbSlides.filter(s => s.active !== false);
+        if (active.length > 0) {
+          currentHeroSlidesCache = active;
+          initHeroSlideshow();
+        }
+      }
+    }).catch(() => {});
+  }
 
   const slides = $$('.hero-slide');
   if (!slides.length) return;
