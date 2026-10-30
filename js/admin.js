@@ -569,6 +569,23 @@ function getSeedOrders() {
 /* ==========================================================================
    2. Tab Switching Controller & Sidebar Dropdowns
    ========================================================================== */
+window.toggleCampaignsMenu = function (forceOpen) {
+  const submenu = $('#campaignsSubmenu');
+  const chevron = $('#campaignsChevron');
+  if (!submenu) return;
+
+  const isOpen = !submenu.classList.contains('hidden');
+  const shouldOpen = forceOpen !== undefined ? forceOpen : !isOpen;
+
+  if (shouldOpen) {
+    submenu.classList.remove('hidden');
+    if (chevron) chevron.classList.add('rotate-180');
+  } else {
+    submenu.classList.add('hidden');
+    if (chevron) chevron.classList.remove('rotate-180');
+  }
+};
+
 window.toggleHeaderFooterMenu = function (forceOpen) {
   const submenu = $('#headerFooterSubmenu');
   const chevron = $('#headerFooterChevron');
@@ -603,6 +620,20 @@ window.switchTab = function (tabName) {
   if (currentNav) {
     currentNav.classList.add('bg-slate-800', 'text-white');
     currentNav.classList.remove('text-slate-300');
+  }
+
+  // Handle Lookbook & Campaigns dropdown grouping
+  const isCampaignTab = ['lookbook', 'brandstory', 'timeless'].includes(tabName);
+  const campGroupBtn = $('#btn-campaigns-group');
+  if (isCampaignTab) {
+    if (typeof toggleCampaignsMenu === 'function') toggleCampaignsMenu(true);
+    if (campGroupBtn) {
+      campGroupBtn.classList.add('bg-slate-800/60', 'text-white');
+    }
+  } else {
+    if (campGroupBtn) {
+      campGroupBtn.classList.remove('bg-slate-800/60', 'text-white');
+    }
   }
 
   // Handle Header & Footer dropdown grouping
