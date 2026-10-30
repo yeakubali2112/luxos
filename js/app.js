@@ -81,6 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderLookbookSection();
   renderBrandStorySection();
   renderTimelessSection();
+  renderFooter();
   if (typeof updateHeaderProfileIcon === 'function') updateHeaderProfileIcon();
 });
 
@@ -188,6 +189,9 @@ window.addEventListener('storage', (e) => {
   }
   if (e.key === 'luxos_topbar_settings') {
     renderTopBar();
+  }
+  if (e.key === 'luxos_footer_settings') {
+    renderFooter();
   }
 });
 
@@ -1891,6 +1895,139 @@ function renderTopBar() {
         if (idbData && typeof idbData === 'object') {
           try { localStorage.setItem('luxos_topbar_settings', JSON.stringify(idbData)); } catch(e){}
           renderTopBar();
+        }
+      }).catch(() => {});
+    } catch (e) {}
+  }
+}
+
+/* ==========================================================================
+   Footer & Bottom Bar Controller
+   ========================================================================== */
+function getDefaultFooterData() {
+  return {
+    enabled: true,
+    brandDesc: "Luxos is Bangladesh's premier destination for luxury bags, smart pop-up wallets, and modern commuter footwear. Designed for effortless grace and unmatched longevity.",
+    address: "📍 Gulshan-1, Dhaka-1212, Bangladesh",
+    hotline: "📞 Hotline: +8801701-800216 (10 AM - 10 PM)",
+    email: "✉️ support@luxosbd.com",
+    newsletter: {
+      enabled: true,
+      heading: "Join the Luxos Club",
+      subheading: "Subscribe to receive private sale invitations and an instant 10% discount coupon."
+    },
+    copyright: "© 2026 Luxos Bangladesh. All rights reserved. Handcrafted with passion.",
+    payments: {
+      bkash: true,
+      nagad: true,
+      visa: true,
+      mastercard: true,
+      cod: true,
+      rocket: false
+    },
+    trustBadges: {
+      enabled: true,
+      badge1: { title: "Fast Delivery", subtitle: "2-4 days inside Dhaka, 3-7 days nationwide." },
+      badge2: { title: "7 Days Return", subtitle: "Hassle-free exchange & money back guaranteed." },
+      badge3: { title: "Premium Quality", subtitle: "Handcrafted with luxury hardware & fabrics." },
+      badge4: { title: "Cash on Delivery", subtitle: "Pay when your parcel arrives at your doorstep." }
+    }
+  };
+}
+
+function getFooterData() {
+  const custom = localStorage.getItem('luxos_footer_settings');
+  if (custom) {
+    try {
+      const parsed = JSON.parse(custom);
+      if (parsed && typeof parsed === 'object') return parsed;
+    } catch (e) {}
+  }
+  return getDefaultFooterData();
+}
+
+function renderFooter() {
+  const data = getFooterData();
+
+  // 1. Footer master visibility
+  const footerEl = $('#footer');
+  if (footerEl) {
+    footerEl.style.display = data.enabled === false ? 'none' : 'block';
+  }
+
+  // 2. Brand & Contact Details
+  if ($('#footerBrandDesc') && data.brandDesc) {
+    $('#footerBrandDesc').textContent = data.brandDesc;
+  }
+  if ($('#footerAddress') && data.address) {
+    $('#footerAddress').textContent = data.address;
+  }
+  if ($('#footerHotline') && data.hotline) {
+    $('#footerHotline').textContent = data.hotline;
+  }
+  if ($('#footerEmail') && data.email) {
+    $('#footerEmail').textContent = data.email;
+  }
+
+  // 3. Newsletter
+  const nlCol = $('#footerNewsletterCol');
+  const nl = data.newsletter || {};
+  if (nlCol) {
+    nlCol.style.display = nl.enabled === false ? 'none' : 'block';
+    if ($('#footerNewsletterHeading') && nl.heading) $('#footerNewsletterHeading').textContent = nl.heading;
+    if ($('#footerNewsletterSub') && nl.subheading) $('#footerNewsletterSub').textContent = nl.subheading;
+  }
+
+  // 4. Copyright
+  if ($('#footerCopyright') && data.copyright) {
+    $('#footerCopyright').innerHTML = data.copyright;
+  }
+
+  // 5. Payment Badges
+  const badgesEl = $('#footerPaymentBadges');
+  if (badgesEl && data.payments) {
+    const p = data.payments;
+    const badges = ['<span class="text-[11px] text-neutral-400 mr-2">Secure Payments:</span>'];
+    if (p.bkash) badges.push('<span class="px-2 py-0.5 bg-neutral-900 border border-neutral-700 rounded text-[10px] text-neutral-300 font-semibold">bKash</span>');
+    if (p.nagad) badges.push('<span class="px-2 py-0.5 bg-neutral-900 border border-neutral-700 rounded text-[10px] text-neutral-300 font-semibold">Nagad</span>');
+    if (p.visa) badges.push('<span class="px-2 py-0.5 bg-neutral-900 border border-neutral-700 rounded text-[10px] text-neutral-300 font-semibold">Visa</span>');
+    if (p.mastercard) badges.push('<span class="px-2 py-0.5 bg-neutral-900 border border-neutral-700 rounded text-[10px] text-neutral-300 font-semibold">Mastercard</span>');
+    if (p.cod) badges.push('<span class="px-2 py-0.5 bg-neutral-900 border border-neutral-700 rounded text-[10px] text-neutral-300 font-semibold">Cash on Delivery</span>');
+    if (p.rocket) badges.push('<span class="px-2 py-0.5 bg-neutral-900 border border-neutral-700 rounded text-[10px] text-neutral-300 font-semibold">Rocket</span>');
+    badgesEl.innerHTML = badges.join('');
+  }
+
+  // 6. Trust Badges / Value Props
+  const trustSection = $('#trustBadgesSection');
+  const tb = data.trustBadges || {};
+  if (trustSection) {
+    trustSection.style.display = tb.enabled === false ? 'none' : 'block';
+    if (tb.badge1) {
+      if ($('#trustBadge1Title')) $('#trustBadge1Title').textContent = tb.badge1.title || 'Fast Delivery';
+      if ($('#trustBadge1Sub')) $('#trustBadge1Sub').textContent = tb.badge1.subtitle || '';
+    }
+    if (tb.badge2) {
+      if ($('#trustBadge2Title')) $('#trustBadge2Title').textContent = tb.badge2.title || '7 Days Return';
+      if ($('#trustBadge2Sub')) $('#trustBadge2Sub').textContent = tb.badge2.subtitle || '';
+    }
+    if (tb.badge3) {
+      if ($('#trustBadge3Title')) $('#trustBadge3Title').textContent = tb.badge3.title || 'Premium Quality';
+      if ($('#trustBadge3Sub')) $('#trustBadge3Sub').textContent = tb.badge3.subtitle || '';
+    }
+    if (tb.badge4) {
+      if ($('#trustBadge4Title')) $('#trustBadge4Title').textContent = tb.badge4.title || 'Cash on Delivery';
+      if ($('#trustBadge4Sub')) $('#trustBadge4Sub').textContent = tb.badge4.subtitle || '';
+    }
+  }
+
+  // Background IndexedDB sync
+  if (!renderFooter.idbSynced) {
+    renderFooter.idbSynced = true;
+    try {
+      getItemIndexedDB('luxos_footer_settings').then(idbData => {
+        if (idbData && typeof idbData === 'object') {
+          try { localStorage.setItem('luxos_footer_settings', JSON.stringify(idbData)); } catch(e){}
+          renderFooter();
         }
       }).catch(() => {});
     } catch (e) {}

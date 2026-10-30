@@ -16,6 +16,7 @@ const AdminState = {
   coupons: [],
   settings: {},
   topbar: null,
+  footer: null,
   orderFilter: 'all',
   productFilter: { query: '', category: 'all' }
 };
@@ -56,6 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (typeof renderBrandStoryManager === 'function') renderBrandStoryManager();
   if (typeof renderTimelessManager === 'function') renderTimelessManager();
   if (typeof renderTopBarManager === 'function') renderTopBarManager();
+  if (typeof renderFooterManager === 'function') renderFooterManager();
   if (typeof syncAdminPersistentData === 'function') syncAdminPersistentData();
 });
 
@@ -148,6 +150,21 @@ async function syncAdminPersistentData() {
     }
   } catch (err) {
     console.warn('Top bar sync error from IndexedDB:', err);
+  }
+
+  try {
+    const idbFooter = await getItemIndexedDB('luxos_footer_settings');
+    if (idbFooter && typeof idbFooter === 'object') {
+      AdminState.footer = idbFooter;
+      if (typeof renderFooterManager === 'function') renderFooterManager();
+      try {
+        localStorage.setItem('luxos_footer_settings', JSON.stringify(idbFooter));
+      } catch (e) {}
+    } else if (AdminState.footer) {
+      await setItemIndexedDB('luxos_footer_settings', AdminState.footer);
+    }
+  } catch (err) {
+    console.warn('Footer sync error from IndexedDB:', err);
   }
 }
 
@@ -314,6 +331,19 @@ function initData() {
   } else {
     AdminState.topbar = getDefaultTopBarData();
     localStorage.setItem('luxos_topbar_settings', JSON.stringify(AdminState.topbar));
+  }
+
+  // Load Footer & Bottom Bar Settings
+  const storedFooter = localStorage.getItem('luxos_footer_settings');
+  if (storedFooter) {
+    try {
+      AdminState.footer = JSON.parse(storedFooter);
+    } catch (e) {
+      AdminState.footer = getDefaultFooterData();
+    }
+  } else {
+    AdminState.footer = getDefaultFooterData();
+    localStorage.setItem('luxos_footer_settings', JSON.stringify(AdminState.footer));
   }
 }
 
@@ -540,6 +570,7 @@ window.switchTab = function (tabName) {
     timeless: 'Campaign Showcase ("TIMELESS. BOLD. UNSTOPPABLE.")',
     ticker: 'Scrolling Marquee Ticker Management',
     topbar: 'Top Header Bar & Social Media Links',
+    footer: 'Footer & Bottom Bar Settings',
     coupons: 'Promo Codes & Offers',
     customers: 'Customer Directory',
     settings: 'Store & Delivery Configuration'
@@ -557,6 +588,7 @@ window.switchTab = function (tabName) {
   if (tabName === 'timeless') renderTimelessManager();
   if (tabName === 'ticker') renderTickerSettings();
   if (tabName === 'topbar') renderTopBarManager();
+  if (tabName === 'footer') renderFooterManager();
   if (tabName === 'coupons') renderCouponsTable();
   if (tabName === 'customers') renderCustomersTable();
 };
@@ -4710,4 +4742,261 @@ window.resetTopBarToDefault = async function () {
   await saveTopBarSafely(AdminState.topbar);
   renderTopBarManager();
   showAdminToast('Top Bar settings have been reset to defaults.');
+};
+
+/* ==========================================================================
+   Footer & Bottom Bar Settings Manager
+   ========================================================================== */
+function getDefaultFooterData() {
+  return {
+    enabled: true,
+    brandDesc: "Luxos is Bangladesh's premier destination for luxury bags, smart pop-up wallets, and modern commuter footwear. Designed for effortless grace and unmatched longevity.",
+    address: "📍 Gulshan-1, Dhaka-1212, Bangladesh",
+    hotline: "📞 Hotline: +8801701-800216 (10 AM - 10 PM)",
+    email: "✉️ support@luxosbd.com",
+    newsletter: {
+      enabled: true,
+      heading: "Join the Luxos Club",
+      subheading: "Subscribe to receive private sale invitations and an instant 10% discount coupon."
+    },
+    copyright: "© 2026 Luxos Bangladesh. All rights reserved. Handcrafted with passion.",
+    payments: {
+      bkash: true,
+      nagad: true,
+      visa: true,
+      mastercard: true,
+      cod: true,
+      rocket: false
+    },
+    trustBadges: {
+      enabled: true,
+      badge1: { title: "Fast Delivery", subtitle: "2-4 days inside Dhaka, 3-7 days nationwide." },
+      badge2: { title: "7 Days Return", subtitle: "Hassle-free exchange & money back guaranteed." },
+      badge3: { title: "Premium Quality", subtitle: "Handcrafted with luxury hardware & fabrics." },
+      badge4: { title: "Cash on Delivery", subtitle: "Pay when your parcel arrives at your doorstep." }
+    }
+  };
+}
+
+async function saveFooterSafely(data) {
+  try {
+    localStorage.setItem('luxos_footer_settings', JSON.stringify(data));
+  } catch (err) {
+    console.warn('LocalStorage error for footer settings; falling back to IndexedDB:', err);
+  }
+
+  try {
+    await setItemIndexedDB('luxos_footer_settings', data);
+  } catch (idbErr) {
+    console.error('Failed to save footer settings in IndexedDB:', idbErr);
+  }
+
+  // Notify active storefront tabs
+  try {
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: 'luxos_footer_settings',
+      newValue: JSON.stringify(data)
+    }));
+  } catch (e) {}
+}
+
+window.renderFooterManager = function () {
+  const data = AdminState.footer || getDefaultFooterData();
+  AdminState.footer = data;
+
+  const isEn = data.enabled !== false;
+  if ($('#footerEnableToggle')) $('#footerEnableToggle').checked = isEn;
+  if ($('#footerStatusBadge')) {
+    $('#footerStatusBadge').textContent = isEn ? 'Active' : 'Hidden';
+    $('#footerStatusBadge').className = isEn
+      ? 'bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200'
+      : 'bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded-full border border-slate-200';
+  }
+  if ($('#sidebarFooterBadge')) {
+    $('#sidebarFooterBadge').textContent = isEn ? 'Active' : 'Hidden';
+    $('#sidebarFooterBadge').className = isEn
+      ? 'bg-teal-500/20 text-teal-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-teal-500/30'
+      : 'bg-slate-700/50 text-slate-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-slate-600';
+  }
+
+  // Contact inputs
+  if ($('#footerAddressInput')) $('#footerAddressInput').value = data.address || '';
+  if ($('#footerHotlineInput')) $('#footerHotlineInput').value = data.hotline || '';
+  if ($('#footerEmailInput')) $('#footerEmailInput').value = data.email || '';
+  if ($('#footerDescInput')) $('#footerDescInput').value = data.brandDesc || '';
+
+  // Newsletter
+  const nl = data.newsletter || {};
+  if ($('#footerNewsletterEnable')) $('#footerNewsletterEnable').checked = nl.enabled !== false;
+  if ($('#footerNewsletterHeadingInput')) $('#footerNewsletterHeadingInput').value = nl.heading || 'Join the Luxos Club';
+  if ($('#footerNewsletterSubInput')) $('#footerNewsletterSubInput').value = nl.subheading || '';
+
+  // Copyright
+  if ($('#footerCopyrightInput')) $('#footerCopyrightInput').value = data.copyright || '';
+
+  // Payments
+  const p = data.payments || {};
+  if ($('#payBkash')) $('#payBkash').checked = p.bkash !== false;
+  if ($('#payNagad')) $('#payNagad').checked = p.nagad !== false;
+  if ($('#payVisa')) $('#payVisa').checked = p.visa !== false;
+  if ($('#payMastercard')) $('#payMastercard').checked = p.mastercard !== false;
+  if ($('#payCod')) $('#payCod').checked = p.cod !== false;
+  if ($('#payRocket')) $('#payRocket').checked = p.rocket === true;
+
+  // Trust Badges
+  const tb = data.trustBadges || {};
+  if ($('#trustBadgesEnableToggle')) $('#trustBadgesEnableToggle').checked = tb.enabled !== false;
+
+  const b1 = tb.badge1 || {};
+  if ($('#trust1TitleInput')) $('#trust1TitleInput').value = b1.title || 'Fast Delivery';
+  if ($('#trust1SubInput')) $('#trust1SubInput').value = b1.subtitle || '2-4 days inside Dhaka, 3-7 days nationwide.';
+
+  const b2 = tb.badge2 || {};
+  if ($('#trust2TitleInput')) $('#trust2TitleInput').value = b2.title || '7 Days Return';
+  if ($('#trust2SubInput')) $('#trust2SubInput').value = b2.subtitle || 'Hassle-free exchange & money back guaranteed.';
+
+  const b3 = tb.badge3 || {};
+  if ($('#trust3TitleInput')) $('#trust3TitleInput').value = b3.title || 'Premium Quality';
+  if ($('#trust3SubInput')) $('#trust3SubInput').value = b3.subtitle || 'Handcrafted with luxury hardware & fabrics.';
+
+  const b4 = tb.badge4 || {};
+  if ($('#trust4TitleInput')) $('#trust4TitleInput').value = b4.title || 'Cash on Delivery';
+  if ($('#trust4SubInput')) $('#trust4SubInput').value = b4.subtitle || 'Pay when your parcel arrives at your doorstep.';
+
+  updateFooterLivePreview();
+};
+
+window.updateFooterLivePreview = function () {
+  const desc = $('#footerDescInput') ? $('#footerDescInput').value.trim() : '';
+  const addr = $('#footerAddressInput') ? $('#footerAddressInput').value.trim() : '';
+  const hot = $('#footerHotlineInput') ? $('#footerHotlineInput').value.trim() : '';
+  const eml = $('#footerEmailInput') ? $('#footerEmailInput').value.trim() : '';
+  const cpy = $('#footerCopyrightInput') ? $('#footerCopyrightInput').value.trim() : '';
+  const nlHead = $('#footerNewsletterHeadingInput') ? $('#footerNewsletterHeadingInput').value.trim() : '';
+  const nlSub = $('#footerNewsletterSubInput') ? $('#footerNewsletterSubInput').value.trim() : '';
+
+  if ($('#adminPreviewFooterDesc')) $('#adminPreviewFooterDesc').textContent = desc || 'Luxos brand description';
+  if ($('#adminPreviewFooterAddress')) $('#adminPreviewFooterAddress').textContent = addr || 'Address not set';
+  if ($('#adminPreviewFooterHotline')) $('#adminPreviewFooterHotline').textContent = hot || 'Hotline not set';
+  if ($('#adminPreviewFooterEmail')) $('#adminPreviewFooterEmail').textContent = eml || 'Email not set';
+  if ($('#adminPreviewFooterCopyright')) $('#adminPreviewFooterCopyright').textContent = cpy || '© 2026 Luxos Bangladesh.';
+  if ($('#adminPreviewNewsletterHeading')) $('#adminPreviewNewsletterHeading').textContent = nlHead || 'Join the Luxos Club';
+  if ($('#adminPreviewNewsletterSub')) $('#adminPreviewNewsletterSub').textContent = nlSub || '';
+
+  // Badges preview
+  const badgesContainer = $('#adminPreviewPaymentBadges');
+  if (badgesContainer) {
+    const list = [];
+    if ($('#payBkash') && $('#payBkash').checked) list.push('<span class="px-2 py-0.5 bg-neutral-900 border border-neutral-700 rounded text-[10px] text-pink-400 font-semibold">bKash</span>');
+    if ($('#payNagad') && $('#payNagad').checked) list.push('<span class="px-2 py-0.5 bg-neutral-900 border border-neutral-700 rounded text-[10px] text-orange-400 font-semibold">Nagad</span>');
+    if ($('#payVisa') && $('#payVisa').checked) list.push('<span class="px-2 py-0.5 bg-neutral-900 border border-neutral-700 rounded text-[10px] text-blue-400 font-semibold">Visa</span>');
+    if ($('#payMastercard') && $('#payMastercard').checked) list.push('<span class="px-2 py-0.5 bg-neutral-900 border border-neutral-700 rounded text-[10px] text-red-400 font-semibold">Mastercard</span>');
+    if ($('#payCod') && $('#payCod').checked) list.push('<span class="px-2 py-0.5 bg-neutral-900 border border-neutral-700 rounded text-[10px] text-emerald-400 font-semibold">COD</span>');
+    if ($('#payRocket') && $('#payRocket').checked) list.push('<span class="px-2 py-0.5 bg-neutral-900 border border-neutral-700 rounded text-[10px] text-purple-400 font-semibold">Rocket</span>');
+    badgesContainer.innerHTML = list.join('');
+  }
+};
+
+window.toggleFooterEnabled = async function () {
+  const isEn = $('#footerEnableToggle') ? $('#footerEnableToggle').checked : true;
+  if (!AdminState.footer) AdminState.footer = getDefaultFooterData();
+  AdminState.footer.enabled = isEn;
+  await saveFooterSafely(AdminState.footer);
+  renderFooterManager();
+  showAdminToast(isEn ? 'Footer is now visible on storefront.' : 'Footer is hidden on storefront.');
+};
+
+window.handleSaveFooter = async function (e) {
+  if (e) e.preventDefault();
+  const saveBtns = Array.from(document.querySelectorAll('.save-footer-btn, #saveFooterBtnBottom'));
+  saveBtns.forEach(btn => {
+    btn.disabled = true;
+    btn.dataset.origHtml = btn.innerHTML;
+    btn.innerHTML = `<svg class="w-4 h-4 animate-spin inline-block mr-1 text-amber-400" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> <span>Saving...</span>`;
+  });
+
+  try {
+    const data = {
+      enabled: $('#footerEnableToggle') ? $('#footerEnableToggle').checked : true,
+      brandDesc: $('#footerDescInput') ? $('#footerDescInput').value.trim() : '',
+      address: $('#footerAddressInput') ? $('#footerAddressInput').value.trim() : '',
+      hotline: $('#footerHotlineInput') ? $('#footerHotlineInput').value.trim() : '',
+      email: $('#footerEmailInput') ? $('#footerEmailInput').value.trim() : '',
+      newsletter: {
+        enabled: $('#footerNewsletterEnable') ? $('#footerNewsletterEnable').checked : true,
+        heading: $('#footerNewsletterHeadingInput') ? $('#footerNewsletterHeadingInput').value.trim() : 'Join the Luxos Club',
+        subheading: $('#footerNewsletterSubInput') ? $('#footerNewsletterSubInput').value.trim() : ''
+      },
+      copyright: $('#footerCopyrightInput') ? $('#footerCopyrightInput').value.trim() : '',
+      payments: {
+        bkash: $('#payBkash') ? $('#payBkash').checked : true,
+        nagad: $('#payNagad') ? $('#payNagad').checked : true,
+        visa: $('#payVisa') ? $('#payVisa').checked : true,
+        mastercard: $('#payMastercard') ? $('#payMastercard').checked : true,
+        cod: $('#payCod') ? $('#payCod').checked : true,
+        rocket: $('#payRocket') ? $('#payRocket').checked : false
+      },
+      trustBadges: {
+        enabled: $('#trustBadgesEnableToggle') ? $('#trustBadgesEnableToggle').checked : true,
+        badge1: {
+          title: $('#trust1TitleInput') ? $('#trust1TitleInput').value.trim() : 'Fast Delivery',
+          subtitle: $('#trust1SubInput') ? $('#trust1SubInput').value.trim() : '2-4 days inside Dhaka, 3-7 days nationwide.'
+        },
+        badge2: {
+          title: $('#trust2TitleInput') ? $('#trust2TitleInput').value.trim() : '7 Days Return',
+          subtitle: $('#trust2SubInput') ? $('#trust2SubInput').value.trim() : 'Hassle-free exchange & money back guaranteed.'
+        },
+        badge3: {
+          title: $('#trust3TitleInput') ? $('#trust3TitleInput').value.trim() : 'Premium Quality',
+          subtitle: $('#trust3SubInput') ? $('#trust3SubInput').value.trim() : 'Handcrafted with luxury hardware & fabrics.'
+        },
+        badge4: {
+          title: $('#trust4TitleInput') ? $('#trust4TitleInput').value.trim() : 'Cash on Delivery',
+          subtitle: $('#trust4SubInput') ? $('#trust4SubInput').value.trim() : 'Pay when your parcel arrives at your doorstep.'
+        }
+      }
+    };
+
+    AdminState.footer = data;
+    await saveFooterSafely(data);
+
+    // Also sync email & hotline to store settings
+    if (data.email) {
+      if (!AdminState.settings) AdminState.settings = {};
+      AdminState.settings.email = data.email.replace(/[^\w@.-]/g, '');
+      if ($('#settingEmail')) $('#settingEmail').value = AdminState.settings.email;
+      try { localStorage.setItem('luxos_settings', JSON.stringify(AdminState.settings)); } catch(e){}
+    }
+
+    saveBtns.forEach(btn => {
+      btn.innerHTML = `<span class="text-emerald-300 font-bold">✓ Saved!</span>`;
+      btn.classList.add('bg-emerald-700');
+    });
+
+    setTimeout(() => {
+      saveBtns.forEach(btn => {
+        btn.disabled = false;
+        btn.classList.remove('bg-emerald-700');
+        if (btn.dataset.origHtml) btn.innerHTML = btn.dataset.origHtml;
+      });
+      renderFooterManager();
+    }, 1200);
+
+    showAdminToast('Footer & Bottom Bar settings saved successfully!');
+  } catch (err) {
+    console.error('Error saving footer settings:', err);
+    saveBtns.forEach(btn => {
+      btn.disabled = false;
+      if (btn.dataset.origHtml) btn.innerHTML = btn.dataset.origHtml;
+    });
+    alert('Failed to save Footer settings: ' + err.message);
+  }
+};
+
+window.resetFooterToDefault = async function () {
+  if (!confirm('Are you sure you want to reset Footer & Bottom Bar settings to default?')) return;
+  AdminState.footer = getDefaultFooterData();
+  await saveFooterSafely(AdminState.footer);
+  renderFooterManager();
+  showAdminToast('Footer settings have been reset to defaults.');
 };

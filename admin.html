@@ -185,6 +185,14 @@
         <span id="sidebarTopBarBadge" class="bg-sky-500/20 text-sky-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-sky-500/30">Active</span>
       </button>
 
+      <button onclick="switchTab('footer')" id="nav-footer" class="nav-item w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition">
+        <div class="flex items-center gap-3">
+          <svg class="w-4 h-4 text-teal-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12" /></svg>
+          <span>Footer &amp; Bottom Bar</span>
+        </div>
+        <span id="sidebarFooterBadge" class="bg-teal-500/20 text-teal-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-teal-500/30">Active</span>
+      </button>
+
       <button onclick="switchTab('coupons')" id="nav-coupons" class="nav-item w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition">
         <div class="flex items-center gap-3">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a2.999 2.999 0 010 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a2.999 2.999 0 010-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375z" /></svg>
@@ -1554,6 +1562,265 @@
           <button type="button" onclick="handleSaveTopBar(event)" id="saveTopBarBtnBottom" class="save-topbar-btn bg-black hover:bg-slate-800 text-white text-xs font-semibold px-6 py-2.5 rounded-lg transition flex items-center gap-2 shadow-sm">
             <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
             <span>Save Top Bar &amp; Social Links</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           TAB: FOOTER & BOTTOM BAR SETTINGS
+           ===================================================================== -->
+      <section id="tab-footer" class="space-y-6 hidden">
+        <!-- Top Banner & Controls -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h3 class="text-sm font-bold text-slate-800 font-heading flex items-center gap-2">
+              <span>Footer &amp; Bottom Bar Settings</span>
+              <span id="footerStatusBadge" class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200">Active</span>
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5">Manage store contact details, hotline, address, newsletter, copyright, and trust value props</p>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <label class="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer bg-slate-50 px-3.5 py-2 rounded-lg border border-slate-200 hover:bg-slate-100 transition">
+              <input id="footerEnableToggle" type="checkbox" checked onchange="toggleFooterEnabled()" class="rounded text-black focus:ring-black h-4 w-4" />
+              <span>Show on Website</span>
+            </label>
+
+            <button onclick="handleSaveFooter(event)" class="save-footer-btn bg-black hover:bg-slate-800 text-white text-xs font-semibold px-4 py-2 rounded-lg transition flex items-center gap-1.5 shadow-sm">
+              <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+              <span>Save &amp; Publish</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Live Footer Preview Widget -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              Live Storefront Footer Preview
+            </span>
+            <span class="text-[11px] text-slate-400">Updates live as you edit values below</span>
+          </div>
+
+          <div class="bg-black text-white p-5 rounded-lg border border-neutral-800 space-y-5 text-xs shadow-inner">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pb-4 border-b border-neutral-800">
+              <!-- Left Brand Preview -->
+              <div class="space-y-2">
+                <img src="images/logo-white.png" alt="LUXOS" class="h-6 w-auto object-contain" />
+                <p id="adminPreviewFooterDesc" class="text-[11px] text-neutral-400 leading-relaxed">
+                  Luxos is Bangladesh's premier destination for luxury bags, smart pop-up wallets, and modern commuter footwear.
+                </p>
+                <div class="text-[11px] text-neutral-300 space-y-0.5">
+                  <p id="adminPreviewFooterAddress">📍 Gulshan-1, Dhaka-1212, Bangladesh</p>
+                  <p id="adminPreviewFooterHotline">📞 Hotline: +8801701-800216 (10 AM - 10 PM)</p>
+                  <p id="adminPreviewFooterEmail">✉️ support@luxosbd.com</p>
+                </div>
+              </div>
+
+              <!-- Middle Links Preview -->
+              <div class="space-y-2">
+                <h5 class="text-[11px] font-bold uppercase tracking-wider text-neutral-300">Quick Links &amp; Policies</h5>
+                <ul class="text-[10px] text-neutral-400 space-y-1">
+                  <li>• Track My Order (Direct Lookup)</li>
+                  <li>• Return &amp; Refund Guarantee</li>
+                  <li>• Shipping &amp; Delivery Information</li>
+                  <li>• Terms of Service &amp; Privacy</li>
+                </ul>
+              </div>
+
+              <!-- Right Newsletter Preview -->
+              <div class="space-y-2">
+                <h5 id="adminPreviewNewsletterHeading" class="text-[11px] font-bold uppercase tracking-wider text-neutral-300">Join the Luxos Club</h5>
+                <p id="adminPreviewNewsletterSub" class="text-[10px] text-neutral-400">Subscribe for private sale invitations and 10% off.</p>
+                <div class="flex gap-1.5">
+                  <span class="bg-neutral-900 border border-neutral-700 text-neutral-500 text-[10px] px-2 py-1.5 rounded flex-1">customer@email.com</span>
+                  <span class="bg-white text-black text-[10px] font-bold uppercase px-3 py-1.5 rounded">Subscribe</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bottom Bar Preview -->
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-neutral-400">
+              <p id="adminPreviewFooterCopyright">© 2026 Luxos Bangladesh. All rights reserved.</p>
+              <div id="adminPreviewPaymentBadges" class="flex items-center gap-1.5 flex-wrap">
+                <!-- Injected live -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Configuration Grid: Brand, Newsletter, Badges -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Col 1: Brand & Contact Info -->
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+            <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider border-b border-slate-100 pb-2 flex items-center gap-2">
+              <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></svg>
+              <span>Store Contact &amp; Brand Details</span>
+            </h4>
+
+            <div>
+              <label class="block font-semibold text-slate-700 text-xs mb-1">Store Address *</label>
+              <input id="footerAddressInput" type="text" value="📍 Gulshan-1, Dhaka-1212, Bangladesh" oninput="updateFooterLivePreview()" placeholder="📍 Gulshan-1, Dhaka-1212, Bangladesh" class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:outline-none focus:border-black font-medium" />
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-700 text-xs mb-1">Customer Support Hotline *</label>
+              <input id="footerHotlineInput" type="text" value="📞 Hotline: +8801701-800216 (10 AM - 10 PM)" oninput="updateFooterLivePreview()" placeholder="📞 Hotline: +8801701-800216 (10 AM - 10 PM)" class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:outline-none focus:border-black font-medium" />
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-700 text-xs mb-1">Official Support Email *</label>
+              <input id="footerEmailInput" type="email" value="✉️ support@luxosbd.com" oninput="updateFooterLivePreview()" placeholder="✉️ support@luxosbd.com" class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:outline-none focus:border-black font-medium" />
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-700 text-xs mb-1">Brand Description / About Text</label>
+              <textarea id="footerDescInput" rows="3" oninput="updateFooterLivePreview()" class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:outline-none focus:border-black leading-relaxed">Luxos is Bangladesh's premier destination for luxury bags, smart pop-up wallets, and modern commuter footwear. Designed for effortless grace and unmatched longevity.</textarea>
+            </div>
+          </div>
+
+          <!-- Col 2: Newsletter & Payment Badges -->
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+              <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" /></svg>
+                <span>Newsletter &amp; Bottom Bar</span>
+              </h4>
+              <label class="flex items-center gap-1.5 text-[11px] font-semibold text-slate-600 cursor-pointer">
+                <input id="footerNewsletterEnable" type="checkbox" checked onchange="updateFooterLivePreview()" class="rounded text-black focus:ring-black h-3.5 w-3.5" />
+                <span>Show Newsletter</span>
+              </label>
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-700 text-xs mb-1">Newsletter Heading</label>
+              <input id="footerNewsletterHeadingInput" type="text" value="Join the Luxos Club" oninput="updateFooterLivePreview()" class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:outline-none focus:border-black font-semibold" />
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-700 text-xs mb-1">Newsletter Subtitle / Coupon Notice</label>
+              <input id="footerNewsletterSubInput" type="text" value="Subscribe to receive private sale invitations and an instant 10% discount coupon." oninput="updateFooterLivePreview()" class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:outline-none focus:border-black" />
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-700 text-xs mb-1">Copyright Line *</label>
+              <input id="footerCopyrightInput" type="text" value="© 2026 Luxos Bangladesh. All rights reserved. Handcrafted with passion." oninput="updateFooterLivePreview()" class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:outline-none focus:border-black font-medium" />
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-700 text-xs mb-2">Supported Payment Badges</label>
+              <div class="grid grid-cols-3 gap-2 text-xs">
+                <label class="flex items-center gap-1.5 p-2 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition">
+                  <input id="payBkash" type="checkbox" checked onchange="updateFooterLivePreview()" class="rounded text-black focus:ring-black h-3.5 w-3.5" />
+                  <span class="font-bold text-pink-600">bKash</span>
+                </label>
+                <label class="flex items-center gap-1.5 p-2 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition">
+                  <input id="payNagad" type="checkbox" checked onchange="updateFooterLivePreview()" class="rounded text-black focus:ring-black h-3.5 w-3.5" />
+                  <span class="font-bold text-orange-600">Nagad</span>
+                </label>
+                <label class="flex items-center gap-1.5 p-2 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition">
+                  <input id="payVisa" type="checkbox" checked onchange="updateFooterLivePreview()" class="rounded text-black focus:ring-black h-3.5 w-3.5" />
+                  <span class="font-bold text-blue-600">Visa</span>
+                </label>
+                <label class="flex items-center gap-1.5 p-2 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition">
+                  <input id="payMastercard" type="checkbox" checked onchange="updateFooterLivePreview()" class="rounded text-black focus:ring-black h-3.5 w-3.5" />
+                  <span class="font-bold text-red-600">Mastercard</span>
+                </label>
+                <label class="flex items-center gap-1.5 p-2 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition">
+                  <input id="payCod" type="checkbox" checked onchange="updateFooterLivePreview()" class="rounded text-black focus:ring-black h-3.5 w-3.5" />
+                  <span class="font-bold text-emerald-600">COD</span>
+                </label>
+                <label class="flex items-center gap-1.5 p-2 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition">
+                  <input id="payRocket" type="checkbox" onchange="updateFooterLivePreview()" class="rounded text-black focus:ring-black h-3.5 w-3.5" />
+                  <span class="font-bold text-purple-600">Rocket</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 3: 4 Trust Badges (Value Props Bar) -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+            <div>
+              <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" /></svg>
+                <span>Trust Badges &amp; Value Propositions (Bar Above Footer)</span>
+              </h4>
+              <p class="text-[11px] text-slate-400 mt-0.5">The 4 reassurance badges highlighting your store's customer benefits</p>
+            </div>
+            <label class="flex items-center gap-1.5 text-[11px] font-semibold text-slate-600 cursor-pointer">
+              <input id="trustBadgesEnableToggle" type="checkbox" checked class="rounded text-black focus:ring-black h-3.5 w-3.5" />
+              <span>Show Badges</span>
+            </label>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+            <!-- Badge 1 -->
+            <div class="p-3 border border-slate-200 rounded-lg space-y-2 bg-slate-50/50">
+              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Badge 1</span>
+              <div>
+                <label class="block font-semibold text-slate-700 text-[11px] mb-1">Title</label>
+                <input id="trust1TitleInput" type="text" value="Fast Delivery" class="w-full border border-slate-300 rounded p-1.5 text-xs font-semibold focus:outline-none focus:border-black bg-white" />
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 text-[11px] mb-1">Subtitle</label>
+                <input id="trust1SubInput" type="text" value="2-4 days inside Dhaka, 3-7 days nationwide." class="w-full border border-slate-300 rounded p-1.5 text-xs focus:outline-none focus:border-black bg-white" />
+              </div>
+            </div>
+
+            <!-- Badge 2 -->
+            <div class="p-3 border border-slate-200 rounded-lg space-y-2 bg-slate-50/50">
+              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Badge 2</span>
+              <div>
+                <label class="block font-semibold text-slate-700 text-[11px] mb-1">Title</label>
+                <input id="trust2TitleInput" type="text" value="7 Days Return" class="w-full border border-slate-300 rounded p-1.5 text-xs font-semibold focus:outline-none focus:border-black bg-white" />
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 text-[11px] mb-1">Subtitle</label>
+                <input id="trust2SubInput" type="text" value="Hassle-free exchange & money back guaranteed." class="w-full border border-slate-300 rounded p-1.5 text-xs focus:outline-none focus:border-black bg-white" />
+              </div>
+            </div>
+
+            <!-- Badge 3 -->
+            <div class="p-3 border border-slate-200 rounded-lg space-y-2 bg-slate-50/50">
+              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Badge 3</span>
+              <div>
+                <label class="block font-semibold text-slate-700 text-[11px] mb-1">Title</label>
+                <input id="trust3TitleInput" type="text" value="Premium Quality" class="w-full border border-slate-300 rounded p-1.5 text-xs font-semibold focus:outline-none focus:border-black bg-white" />
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 text-[11px] mb-1">Subtitle</label>
+                <input id="trust3SubInput" type="text" value="Handcrafted with luxury hardware & fabrics." class="w-full border border-slate-300 rounded p-1.5 text-xs focus:outline-none focus:border-black bg-white" />
+              </div>
+            </div>
+
+            <!-- Badge 4 -->
+            <div class="p-3 border border-slate-200 rounded-lg space-y-2 bg-slate-50/50">
+              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Badge 4</span>
+              <div>
+                <label class="block font-semibold text-slate-700 text-[11px] mb-1">Title</label>
+                <input id="trust4TitleInput" type="text" value="Cash on Delivery" class="w-full border border-slate-300 rounded p-1.5 text-xs font-semibold focus:outline-none focus:border-black bg-white" />
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 text-[11px] mb-1">Subtitle</label>
+                <input id="trust4SubInput" type="text" value="Pay when your parcel arrives at your doorstep." class="w-full border border-slate-300 rounded p-1.5 text-xs focus:outline-none focus:border-black bg-white" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Actions -->
+        <div class="flex items-center justify-between pt-2">
+          <button type="button" onclick="resetFooterToDefault()" class="text-xs text-rose-600 hover:text-rose-800 font-semibold px-3 py-2 rounded-lg hover:bg-rose-50 transition flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>
+            <span>Reset to Default</span>
+          </button>
+
+          <button type="button" onclick="handleSaveFooter(event)" id="saveFooterBtnBottom" class="save-footer-btn bg-black hover:bg-slate-800 text-white text-xs font-semibold px-6 py-2.5 rounded-lg transition flex items-center gap-2 shadow-sm">
+            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+            <span>Save Footer Settings</span>
           </button>
         </div>
       </section>
