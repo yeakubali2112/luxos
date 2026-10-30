@@ -152,13 +152,6 @@
       });
     }
 
-    // Ensure Product #1 always has all 9 high-res studio photos
-    if (currentProduct.id === 1) {
-      DEFAULT_PRODUCT1_GALLERY.forEach(imgUrl => {
-        if (!images.includes(imgUrl)) images.push(imgUrl);
-      });
-    }
-
     currentGalleryImages = images;
     activeImageIndex = 0;
 
