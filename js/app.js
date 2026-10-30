@@ -616,6 +616,47 @@ window.quickAddToCart = function (productId, event) {
   addToCart(product, defaultColor, 1);
 };
 
+window.quickOrderNow = function (productId, event) {
+  if (event) {
+    if (event.stopPropagation) event.stopPropagation();
+    if (event.preventDefault) event.preventDefault();
+  }
+
+  const currentProducts = typeof getStoreProducts === 'function' ? getStoreProducts() : (typeof LUXOS_PRODUCTS !== 'undefined' ? LUXOS_PRODUCTS : []);
+  const product = currentProducts.find(p => p.id === productId) || currentProducts.find(p => p.id == productId);
+  if (!product) return;
+
+  if (typeof product.stock !== 'undefined' && parseInt(product.stock, 10) <= 0) {
+    if (typeof showToast === 'function') {
+      showToast('Sorry, this product is currently out of stock!');
+    } else {
+      alert('Sorry, this product is currently out of stock!');
+    }
+    return;
+  }
+
+  const defaultColor = product.colors && product.colors.length > 0 ? product.colors[0].name : 'Standard';
+  // Add product to cart without popping open cart drawer
+  if (typeof addToCart === 'function') {
+    addToCart(product, defaultColor, 1, true);
+  }
+
+  // Hide the lookbook card popup if open
+  const card1 = $('#hotspotCard1');
+  if (card1) card1.classList.add('hidden');
+
+  // Directly open Checkout Modal for 1-click Cash on Delivery order
+  if (typeof window.openCheckoutModal === 'function') {
+    window.openCheckoutModal();
+  } else {
+    const modal = document.getElementById('checkoutModal');
+    if (modal) {
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+  }
+};
+
 function addToCart(product, colorName, quantity = 1, skipOpenDrawer = false) {
   // If product is passed as an ID (number or numeric string), resolve the product object
   if (typeof product === 'number' || (typeof product === 'string' && /^\d+$/.test(product))) {
@@ -1442,21 +1483,35 @@ function renderLookbookSection() {
   }
 
   // Tagged Product
-  const products = typeof getStoreProducts === 'function' ? getStoreProducts() : LUXOS_PRODUCTS;
+  const products = typeof getStoreProducts === 'function' ? getStoreProducts() : (typeof LUXOS_PRODUCTS !== 'undefined' ? LUXOS_PRODUCTS : []);
   const prod = products.find(p => p.id == data.productId) || products.find(p => p.id == 3) || products[0];
   if (prod) {
+    const pTitle = prod.title || prod.name || 'Croissant Chic Crossbody';
+    const pPrice = String(prod.price || '').startsWith('৳') ? prod.price : `৳ ${Number(prod.price || 0).toLocaleString()}`;
+    const pOrigPrice = prod.originalPrice ? (String(prod.originalPrice).startsWith('৳') ? prod.originalPrice : `৳ ${Number(prod.originalPrice || 0).toLocaleString()}`) : '';
+
     if ($('#hotspotCardImg')) $('#hotspotCardImg').src = prod.image;
-    if ($('#hotspotCardTitle')) $('#hotspotCardTitle').textContent = prod.name;
-    const badge = prod.badge || (prod.originalPrice ? `Save ${Math.round((prod.originalPrice - prod.price) / prod.originalPrice * 100)}%` : '');
+    if ($('#hotspotCardTitle')) $('#hotspotCardTitle').textContent = pTitle;
+
+    let badge = prod.badge || '';
+    if (!badge && prod.originalPrice) {
+      const origNum = parseInt(String(prod.originalPrice).replace(/[^\d]/g, ''), 10);
+      const curNum = parseInt(String(prod.price).replace(/[^\d]/g, ''), 10);
+      if (origNum && curNum && origNum > curNum) {
+        badge = `Save ${Math.round((origNum - curNum) / origNum * 100)}%`;
+      }
+    }
+
     if ($('#hotspotCardBadge')) {
       $('#hotspotCardBadge').textContent = badge;
       $('#hotspotCardBadge').style.display = badge ? 'inline' : 'none';
     }
     if ($('#hotspotCardPrice')) {
-      $('#hotspotCardPrice').innerHTML = `৳ ${prod.price.toLocaleString()} ${prod.originalPrice ? `<span class="text-[10px] text-gray-400 line-through">৳ ${prod.originalPrice.toLocaleString()}</span>` : ''}`;
+      $('#hotspotCardPrice').innerHTML = `${pPrice} ${pOrigPrice ? `<span class="text-[10px] text-gray-400 line-through">${pOrigPrice}</span>` : ''}`;
     }
     if ($('#hotspotCardBtn')) {
-      $('#hotspotCardBtn').onclick = () => quickAddToCart(prod.id);
+      $('#hotspotCardBtn').textContent = 'Order Now';
+      $('#hotspotCardBtn').onclick = (e) => quickOrderNow(prod.id, e);
     }
   }
 

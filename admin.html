@@ -674,7 +674,7 @@
               <span>View Live</span>
             </a>
 
-            <button onclick="handleSaveLookbook(event)" id="saveLookbookBtn" class="bg-black hover:bg-slate-800 text-white text-xs font-semibold px-5 py-2 rounded-lg transition shadow-sm flex items-center gap-1.5 min-w-[130px] justify-center">
+            <button onclick="handleSaveLookbook(event)" id="saveLookbookBtn" class="save-lookbook-btn bg-black hover:bg-slate-800 text-white text-xs font-semibold px-5 py-2 rounded-lg transition shadow-sm flex items-center gap-1.5 min-w-[130px] justify-center">
               <span>Save Lookbook</span>
             </button>
           </div>
@@ -716,7 +716,7 @@
                   </div>
                 </div>
                 <div class="mt-2 w-full bg-black text-white text-[10px] font-bold py-1.5 uppercase tracking-wider rounded text-center">
-                  Add to Bag
+                  Order Now
                 </div>
               </div>
             </div>
@@ -762,9 +762,9 @@
             <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-3">
               <div class="flex items-center justify-between">
                 <label class="block font-semibold text-slate-700 uppercase tracking-wider text-xs">Tagged Product (On Hotspot Pin) *</label>
-                <span class="text-[10.5px] text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">With "Add to Bag"</span>
+                <span class="text-[10.5px] text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">With "Order Now"</span>
               </div>
-              <p class="text-[11px] text-slate-500">When visitors click the '+' pin on the lookbook, this product will be shown with a direct 1-click <b>Add to Bag</b> action.</p>
+              <p class="text-[11px] text-slate-500">When visitors click the '+' pin on the lookbook, this product will be shown with a direct 1-click <b>Order Now</b> action.</p>
               
               <select id="lookbookProductSelect" onchange="handleLookbookProductSelect(this.value)" class="w-full border border-slate-300 rounded-lg p-2.5 text-xs bg-white focus:outline-none focus:border-black font-semibold text-slate-800">
                 <!-- Dynamically populated from AdminState.products -->
@@ -812,7 +812,7 @@
               </div>
 
               <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-[11px] text-slate-500">
-                <strong>Notice:</strong> The generic "Explore Crossbody Line" button has been removed from the storefront. Shoppers interact directly with the photo's <b>Add to Bag</b> pin.
+                <strong>Notice:</strong> The generic "Explore Crossbody Line" button has been removed from the storefront. Shoppers interact directly with the photo's <b>Order Now</b> pin.
               </div>
             </div>
 
@@ -821,7 +821,7 @@
               <button onclick="resetLookbookToDefault()" type="button" class="px-4 py-2.5 border border-slate-300 text-slate-600 hover:text-black hover:bg-slate-50 rounded-lg text-xs font-semibold transition">
                 Reset to Default
               </button>
-              <button onclick="handleSaveLookbook(event)" type="button" class="px-6 py-2.5 bg-black hover:bg-slate-800 text-white rounded-lg text-xs font-semibold shadow transition flex items-center gap-2">
+              <button onclick="handleSaveLookbook(event)" id="saveLookbookBtnBottom" type="button" class="save-lookbook-btn px-6 py-2.5 bg-black hover:bg-slate-800 text-white rounded-lg text-xs font-semibold shadow transition flex items-center gap-2 min-w-[140px] justify-center">
                 <span>Save Lookbook</span>
               </button>
             </div>

@@ -2979,11 +2979,15 @@ window.renderLookbookManager = function () {
   const select = $('#lookbookProductSelect');
   if (select) {
     const products = AdminState.products || [];
-    select.innerHTML = products.map(p => `
-      <option value="${p.id}" ${p.id == lookbook.productId ? 'selected' : ''}>
-        ID ${p.id}: ${p.name} — ৳ ${p.price.toLocaleString()} (${p.stock !== undefined ? p.stock : 10} in stock)
-      </option>
-    `).join('');
+    select.innerHTML = products.map(p => {
+      const pTitle = p.title || p.name || `Product #${p.id}`;
+      const pPrice = String(p.price || '').startsWith('৳') ? p.price : `৳ ${Number(p.price || 0).toLocaleString()}`;
+      return `
+        <option value="${p.id}" ${p.id == lookbook.productId ? 'selected' : ''}>
+          ID ${p.id}: ${pTitle} — ${pPrice} (${p.stock !== undefined ? p.stock : 10} in stock)
+        </option>
+      `;
+    }).join('');
   }
 
   // Update Snapshot Card Preview
@@ -2995,10 +2999,22 @@ function updateLookbookCardPreview(productId) {
   const prod = products.find(p => p.id == productId) || products.find(p => p.id == 3) || products[0];
   if (!prod) return;
 
+  const pTitle = prod.title || prod.name || 'Croissant Chic Crossbody';
+  const pPrice = String(prod.price || '').startsWith('৳') ? prod.price : `৳ ${Number(prod.price || 0).toLocaleString()}`;
+
   if ($('#adminLookbookCardImg')) $('#adminLookbookCardImg').src = prod.image;
-  if ($('#adminLookbookCardTitle')) $('#adminLookbookCardTitle').textContent = prod.name;
-  if ($('#adminLookbookCardPrice')) $('#adminLookbookCardPrice').textContent = `৳ ${prod.price.toLocaleString()}`;
-  const badge = prod.badge || (prod.originalPrice ? `Save ${Math.round((prod.originalPrice - prod.price) / prod.originalPrice * 100)}%` : '');
+  if ($('#adminLookbookCardTitle')) $('#adminLookbookCardTitle').textContent = pTitle;
+  if ($('#adminLookbookCardPrice')) $('#adminLookbookCardPrice').textContent = pPrice;
+
+  let badge = prod.badge || '';
+  if (!badge && prod.originalPrice) {
+    const origNum = parseInt(String(prod.originalPrice).replace(/[^\d]/g, ''), 10);
+    const curNum = parseInt(String(prod.price).replace(/[^\d]/g, ''), 10);
+    if (origNum && curNum && origNum > curNum) {
+      badge = `Save ${Math.round((origNum - curNum) / origNum * 100)}%`;
+    }
+  }
+
   if ($('#adminLookbookCardBadge')) {
     $('#adminLookbookCardBadge').textContent = badge;
     $('#adminLookbookCardBadge').style.display = badge ? 'block' : 'none';
@@ -3122,24 +3138,21 @@ window.toggleLookbookEnabled = async function () {
 window.handleSaveLookbook = async function (e) {
   if (e && e.preventDefault) e.preventDefault();
 
-  const saveBtn = $('#saveLookbookBtn');
-  const resetBtn = () => {
-    if (saveBtn) {
-      saveBtn.disabled = false;
-      saveBtn.innerHTML = '<span>Save Lookbook</span>';
-    }
-  };
+  const saveBtns = Array.from(document.querySelectorAll('.save-lookbook-btn, #saveLookbookBtn, #saveLookbookBtnBottom'));
 
-  if (saveBtn) {
-    saveBtn.disabled = true;
-    saveBtn.innerHTML = `
-      <svg class="animate-spin w-4 h-4 text-amber-400 shrink-0 inline mr-1" fill="none" viewBox="0 0 24 24">
+  // Trigger smooth loading animation on save button
+  saveBtns.forEach(btn => {
+    btn.disabled = true;
+    btn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700', 'bg-red-600', 'hover:bg-red-700', 'scale-105', 'bg-black', 'hover:bg-slate-800');
+    btn.classList.add('bg-slate-800', 'cursor-wait', 'opacity-90');
+    btn.innerHTML = `
+      <svg class="animate-spin w-4 h-4 text-amber-400 shrink-0 inline mr-1.5" fill="none" viewBox="0 0 24 24">
         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
       </svg>
-      <span>Saving...</span>
+      <span class="tracking-wide">Saving...</span>
     `;
-  }
+  });
 
   try {
     let image = ($('#lookbookImageUrlInput') ? $('#lookbookImageUrlInput').value.trim() : '') || (AdminState.lookbook && AdminState.lookbook.image) || '';
@@ -3165,12 +3178,49 @@ window.handleSaveLookbook = async function (e) {
 
     AdminState.lookbook = data;
     await saveLookbookSafely(data);
-    renderLookbookManager();
-    resetBtn();
-    showAdminToast('Street Style Lookbook updated successfully!');
+
+    // Small delay so user clearly perceives the smooth transition
+    await new Promise(resolve => setTimeout(resolve, 350));
+
+    // Animate to success "Saved" state
+    saveBtns.forEach(btn => {
+      btn.disabled = false;
+      btn.classList.remove('bg-slate-800', 'cursor-wait', 'opacity-90', 'bg-black', 'hover:bg-slate-800');
+      btn.classList.add('bg-emerald-600', 'hover:bg-emerald-700', 'text-white', 'scale-105', 'transition-all', 'duration-300', 'shadow-md');
+      btn.innerHTML = `
+        <svg class="w-4 h-4 text-white shrink-0 inline mr-1.5 animate-bounce" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"></path>
+        </svg>
+        <span class="font-bold text-white tracking-wide">Saved!</span>
+      `;
+    });
+
+    showAdminToast('Street Style Lookbook saved successfully!');
+
+    // Smoothly restore default idle state after 2.5s
+    setTimeout(() => {
+      saveBtns.forEach(btn => {
+        btn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700', 'scale-105', 'shadow-md');
+        btn.classList.add('bg-black', 'hover:bg-slate-800');
+        btn.innerHTML = `<span>Save Lookbook</span>`;
+      });
+    }, 2500);
+
   } catch (err) {
     console.error('Error saving lookbook:', err);
-    resetBtn();
+    saveBtns.forEach(btn => {
+      btn.disabled = false;
+      btn.classList.remove('bg-slate-800', 'cursor-wait', 'opacity-90', 'bg-black');
+      btn.classList.add('bg-red-600', 'hover:bg-red-700', 'text-white');
+      btn.innerHTML = `<span>Save Failed</span>`;
+    });
+    setTimeout(() => {
+      saveBtns.forEach(btn => {
+        btn.classList.remove('bg-red-600', 'hover:bg-red-700');
+        btn.classList.add('bg-black', 'hover:bg-slate-800');
+        btn.innerHTML = `<span>Save Lookbook</span>`;
+      });
+    }, 2500);
     showAdminToast(err.message || 'Error saving lookbook. Please try again.');
   }
 };
