@@ -628,7 +628,7 @@ window.switchTab = function (tabName) {
     collections: 'Shop by Collection (Curated Story Circles)',
     lookbook: 'Street Style Lookbook ("Bag The Vibe")',
     brandstory: 'Brand Story ("OWN IT. LEAD IT.")',
-    timeless: 'Campaign Showcase ("TIMELESS. BOLD. UNSTOPPABLE.")',
+    timeless: 'TIMELESS BOLD ("TIMELESS. BOLD. UNSTOPPABLE.")',
     ticker: 'Scrolling Marquee Ticker Management',
     topbar: 'Top Header Bar & Social Media Links',
     trustbadges: 'Trust Badges & Value Props',
