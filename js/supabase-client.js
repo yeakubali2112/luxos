@@ -18,7 +18,7 @@
 
   function mapStorageToConfigKey(storageKey) {
     if (!storageKey) return null;
-    if (storageKey.startsWith('luxos_pdp_extra_')) return storageKey;
+    if (storageKey.startsWith('luxos_pdp_extra_') || storageKey.startsWith('luxos_product_reviews_')) return storageKey;
     const map = {
       'luxos_products_data': 'products',
       'luxos_footer_settings': 'footer',
@@ -43,7 +43,7 @@
 
   function mapConfigKeyToStorage(key) {
     if (!key) return null;
-    if (key.startsWith('luxos_pdp_extra_')) return key;
+    if (key.startsWith('luxos_pdp_extra_') || key.startsWith('luxos_product_reviews_')) return key;
     const map = {
       'products': 'luxos_products_data',
       'footer': 'luxos_footer_settings',

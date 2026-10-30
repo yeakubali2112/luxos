@@ -141,7 +141,11 @@ function renderStorefrontTicker() {
       track.style.animationDuration = `${settings.speed}s`;
     }
 
-    if (Array.isArray(settings.items) && settings.items.length > 0) {
+    if (Array.isArray(settings.items)) {
+      if (settings.items.length === 0) {
+        wrapper.classList.add('hidden');
+        return;
+      }
       const itemsHtml = settings.items.map(txt => `<span>${txt}</span><span>•</span>`).join(' ');
       track.innerHTML = itemsHtml + ' ' + itemsHtml;
     }
@@ -578,10 +582,10 @@ function getDefaultCategories() {
 
 function getStoreCollections() {
   const stored = localStorage.getItem('luxos_curated_collections');
-  if (stored) {
+  if (stored !== null) {
     try {
       const parsed = JSON.parse(stored);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed)) return parsed;
     } catch (e) {
       console.error('Error parsing stored collections', e);
     }
@@ -599,6 +603,13 @@ function renderFeaturedCategories() {
     if (section) section.classList.add('hidden');
     return;
   }
+
+  const collections = getStoreCollections().filter(c => c && c.active !== false);
+
+  if (collections.length === 0) {
+    if (section) section.classList.add('hidden');
+    return;
+  }
   if (section) section.classList.remove('hidden');
 
   if (headerSettings.eyebrow && $('#curatedEyebrowText')) {
@@ -606,13 +617,6 @@ function renderFeaturedCategories() {
   }
   if (headerSettings.heading && $('#curatedHeadingText')) {
     $('#curatedHeadingText').textContent = headerSettings.heading;
-  }
-
-  const collections = getStoreCollections().filter(c => c.active !== false);
-
-  if (collections.length === 0) {
-    if (section) section.classList.add('hidden');
-    return;
   }
 
   container.innerHTML = collections.map(c => `
@@ -1153,20 +1157,30 @@ window.applyCoupon = function () {
   const codeInput = $('#couponInput');
   const code = codeInput.value.trim().toUpperCase();
 
-  // Check stored coupons from admin or defaults
-  const customCoupons = JSON.parse(localStorage.getItem('luxos_coupons')) || [
-    { code: 'LUXOS10', discount: 0.10, type: 'percent', active: true },
-    { code: 'FREESHIP', discount: 1, type: 'freeship', active: true }
-  ];
+  // Check stored coupons from admin
+  let customCoupons = [];
+  try {
+    const stored = localStorage.getItem('luxos_coupons');
+    if (stored !== null) {
+      customCoupons = JSON.parse(stored) || [];
+    } else {
+      customCoupons = [
+        { code: 'LUXOS10', discount: 0.10, type: 'percent', active: true },
+        { code: 'FREESHIP', discount: 1, type: 'freeship', active: true }
+      ];
+    }
+  } catch (e) {
+    customCoupons = [];
+  }
 
-  const matched = customCoupons.find(c => c.code.toUpperCase() === code && c.active);
+  const matched = customCoupons.find(c => c && c.code && c.code.toUpperCase() === code && c.active !== false);
 
   if (matched) {
     AppState.couponCode = matched.code;
     AppState.couponDiscount = matched.type === 'freeship' ? 'FREE_SHIPPING' : matched.discount;
     showToast(`Coupon "${matched.code}" applied!`);
   } else {
-    showToast('Invalid or expired coupon code. Try "LUXOS10"');
+    showToast('Invalid or expired coupon code.');
     return;
   }
   updateCheckoutSummary();
@@ -1538,9 +1552,10 @@ function renderLookbookSection() {
 
   // Tagged Product
   const products = typeof getStoreProducts === 'function' ? getStoreProducts() : (typeof LUXOS_PRODUCTS !== 'undefined' ? LUXOS_PRODUCTS : []);
-  const prod = products.find(p => p.id == data.productId) || products.find(p => p.id == 3) || products[0];
+  const prod = products.find(p => p.id == data.productId) || products[0] || null;
   if (prod) {
-    const pTitle = prod.title || prod.name || 'Croissant Chic Crossbody';
+    if (pin) pin.style.display = '';
+    const pTitle = prod.title || prod.name || '';
     const pPrice = String(prod.price || '').startsWith('৳') ? prod.price : `৳ ${Number(prod.price || 0).toLocaleString()}`;
     const pOrigPrice = prod.originalPrice ? (String(prod.originalPrice).startsWith('৳') ? prod.originalPrice : `৳ ${Number(prod.originalPrice || 0).toLocaleString()}`) : '';
 
@@ -1567,6 +1582,9 @@ function renderLookbookSection() {
       $('#hotspotCardBtn').textContent = 'Order Now';
       $('#hotspotCardBtn').onclick = (e) => quickOrderNow(prod.id, e);
     }
+  } else {
+    if (pin) pin.style.display = 'none';
+    if (card) card.classList.add('hidden');
   }
 
   // Background IndexedDB sync

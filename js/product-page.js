@@ -839,14 +839,18 @@
 
   function getProductReviews(productId) {
     const customKey = `luxos_product_reviews_${productId}`;
-    const storedCustom = JSON.parse(localStorage.getItem(customKey)) || [];
-    const seeds = DEFAULT_REVIEWS.filter(r => r.productId === productId || productId === 1);
-    return [...storedCustom, ...seeds];
+    try {
+      const stored = localStorage.getItem(customKey);
+      if (stored !== null) {
+        return JSON.parse(stored) || [];
+      }
+    } catch (e) {}
+    return [];
   }
 
   function getProductReviewsCount(productId) {
     const revs = getProductReviews(productId);
-    return revs.length > 0 ? revs.length : (currentProduct ? currentProduct.reviewsCount || 65 : 65);
+    return revs.length;
   }
 
   function switchPdpTab(tabName) {
@@ -990,13 +994,13 @@
       counts[r.rating || 5] = (counts[r.rating || 5] || 0) + 1;
     });
 
-    const avg = total > 0 ? (sum / total).toFixed(1) : '4.9';
+    const avg = total > 0 ? (sum / total).toFixed(1) : (currentProduct && currentProduct.rating ? currentProduct.rating : '5.0');
 
     const avgEl = document.getElementById('scorecardAvgRating');
     if (avgEl) avgEl.textContent = avg;
 
     const totalEl = document.getElementById('scorecardTotalReviews');
-    if (totalEl) totalEl.textContent = `Based on ${total} verified reviews`;
+    if (totalEl) totalEl.textContent = total > 0 ? `Based on ${total} verified reviews` : 'No customer reviews yet';
 
     const starsEl = document.getElementById('scorecardStars');
     if (starsEl) starsEl.innerHTML = getStarRatingHTML(Math.round(avg));
@@ -1045,7 +1049,7 @@
     if (reviews.length === 0) {
       listContainer.innerHTML = `
         <div class="text-center py-12 bg-white rounded border border-gray-100">
-          <p class="text-sm text-gray-500">No reviews found under this filter.</p>
+          <p class="text-sm text-gray-500 font-medium">No customer reviews yet. Be the first to share your experience!</p>
         </div>
       `;
       return;

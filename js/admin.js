@@ -338,11 +338,12 @@ function initData() {
 
   // Load Curated Collections (Shop by Collection)
   const storedCollections = localStorage.getItem('luxos_curated_collections');
-  if (storedCollections) {
+  if (storedCollections !== null) {
     try {
-      AdminState.collections = JSON.parse(storedCollections);
+      const parsed = JSON.parse(storedCollections);
+      AdminState.collections = Array.isArray(parsed) ? parsed : [];
     } catch (e) {
-      AdminState.collections = getDefaultCollections();
+      AdminState.collections = [];
     }
   } else {
     AdminState.collections = getDefaultCollections();
@@ -351,7 +352,7 @@ function initData() {
 
   // Load Collections Header Settings
   const storedCollectionsHeader = localStorage.getItem('luxos_collections_header');
-  if (storedCollectionsHeader) {
+  if (storedCollectionsHeader !== null) {
     try {
       AdminState.collectionsHeader = JSON.parse(storedCollectionsHeader);
     } catch (e) {
@@ -364,11 +365,12 @@ function initData() {
 
   // Load coupons
   const storedCoupons = localStorage.getItem('luxos_coupons');
-  if (storedCoupons) {
+  if (storedCoupons !== null) {
     try {
-      AdminState.coupons = JSON.parse(storedCoupons);
+      const parsed = JSON.parse(storedCoupons);
+      AdminState.coupons = Array.isArray(parsed) ? parsed : [];
     } catch (e) {
-      AdminState.coupons = getDefaultCoupons();
+      AdminState.coupons = [];
     }
   } else {
     AdminState.coupons = getDefaultCoupons();
@@ -377,7 +379,7 @@ function initData() {
 
   // Load settings
   const storedSettings = localStorage.getItem('luxos_settings');
-  if (storedSettings) {
+  if (storedSettings !== null) {
     try {
       AdminState.settings = JSON.parse(storedSettings);
     } catch (e) {
@@ -390,7 +392,7 @@ function initData() {
 
   // Load Street Style Lookbook
   const storedLookbook = localStorage.getItem('luxos_lookbook_data');
-  if (storedLookbook) {
+  if (storedLookbook !== null) {
     try {
       AdminState.lookbook = JSON.parse(storedLookbook);
     } catch (e) {
@@ -403,7 +405,7 @@ function initData() {
 
   // Load Brand Story ("OWN IT. LEAD IT.")
   const storedBrandStory = localStorage.getItem('luxos_brandstory_data');
-  if (storedBrandStory) {
+  if (storedBrandStory !== null) {
     try {
       AdminState.brandStory = JSON.parse(storedBrandStory);
     } catch (e) {
@@ -416,7 +418,7 @@ function initData() {
 
   // Load Campaign Showcase ("TIMELESS. BOLD. UNSTOPPABLE.")
   const storedTimeless = localStorage.getItem('luxos_timeless_showcase');
-  if (storedTimeless) {
+  if (storedTimeless !== null) {
     try {
       AdminState.timeless = JSON.parse(storedTimeless);
     } catch (e) {
