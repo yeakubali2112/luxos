@@ -89,9 +89,11 @@ document.addEventListener('DOMContentLoaded', () => {
   if (typeof LuxosCloud !== 'undefined') {
     LuxosCloud.getAllConfigs().then(configs => {
       if (configs && configs.length > 0) {
+        currentHeroSlidesCache = null;
         loadStoreSettings();
         renderTopBar();
         renderStorefrontTicker();
+        initHeroSlideshow();
         renderProducts();
         renderFeaturedCategories();
         renderLookbookSection();
@@ -264,15 +266,15 @@ function getDefaultHeroSlides() {
 let currentHeroSlidesCache = null;
 
 function getHeroSlides() {
-  if (currentHeroSlidesCache && currentHeroSlidesCache.length > 0) {
+  if (currentHeroSlidesCache !== null) {
     return currentHeroSlidesCache;
   }
   const custom = localStorage.getItem('luxos_hero_slides');
-  if (custom) {
+  if (custom !== null) {
     try {
       const parsed = JSON.parse(custom);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed.filter(s => s.active !== false);
+      if (Array.isArray(parsed)) {
+        return parsed.filter(s => s && s.active !== false);
       }
     } catch (e) {
       console.error('Error parsing stored hero slides', e);
@@ -283,10 +285,17 @@ function getHeroSlides() {
 
 function renderHeroSlideshow() {
   const container = $('#heroSlidesContainer');
+  const section = $('#heroSlideshowSection');
   if (!container) return;
 
   const slides = getHeroSlides();
-  if (slides.length === 0) return;
+  if (!slides || slides.length === 0) {
+    container.innerHTML = '';
+    if (section) section.style.display = 'none';
+    return;
+  }
+
+  if (section) section.style.display = '';
 
   container.innerHTML = slides.map((slide, idx) => `
     <div class="hero-slide ${idx === 0 ? 'active' : ''}">
@@ -326,12 +335,10 @@ function initHeroSlideshow() {
   if (!initHeroSlideshow.synced) {
     initHeroSlideshow.synced = true;
     getItemIndexedDB('luxos_hero_slides').then((idbSlides) => {
-      if (Array.isArray(idbSlides) && idbSlides.length > 0) {
-        const active = idbSlides.filter(s => s.active !== false);
-        if (active.length > 0) {
-          currentHeroSlidesCache = active;
-          initHeroSlideshow();
-        }
+      if (Array.isArray(idbSlides)) {
+        const active = idbSlides.filter(s => s && s.active !== false);
+        currentHeroSlidesCache = active;
+        initHeroSlideshow();
       }
     }).catch(() => {});
   }

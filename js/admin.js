@@ -134,8 +134,18 @@ async function syncWithSupabaseCloud() {
 
 async function syncAdminPersistentData() {
   try {
+    const localBanners = localStorage.getItem('luxos_hero_slides');
     const idbBanners = await getItemIndexedDB('luxos_hero_slides');
-    if (Array.isArray(idbBanners) && idbBanners.length > 0) {
+    if (localBanners !== null) {
+      try {
+        const parsed = JSON.parse(localBanners);
+        if (Array.isArray(parsed)) {
+          AdminState.heroSlides = parsed;
+          if (typeof renderBannersTable === 'function') renderBannersTable();
+          await setItemIndexedDB('luxos_hero_slides', parsed);
+        }
+      } catch (e) {}
+    } else if (Array.isArray(idbBanners) && idbBanners.length > 0) {
       AdminState.heroSlides = idbBanners;
       if (typeof renderBannersTable === 'function') renderBannersTable();
       try {
@@ -274,11 +284,12 @@ function initData() {
 
   // Load Hero Banners
   const storedBanners = localStorage.getItem('luxos_hero_slides');
-  if (storedBanners) {
+  if (storedBanners !== null) {
     try {
-      AdminState.heroSlides = JSON.parse(storedBanners);
+      const parsed = JSON.parse(storedBanners);
+      AdminState.heroSlides = Array.isArray(parsed) ? parsed : [];
     } catch (e) {
-      AdminState.heroSlides = getDefaultHeroSlides();
+      AdminState.heroSlides = [];
     }
   } else {
     AdminState.heroSlides = getDefaultHeroSlides();
