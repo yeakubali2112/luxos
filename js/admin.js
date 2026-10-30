@@ -3370,7 +3370,10 @@ function updateLookbookCardPreview(productId) {
   const pTitle = prod.title || prod.name || 'Croissant Chic Crossbody';
   const pPrice = String(prod.price || '').startsWith('৳') ? prod.price : `৳ ${Number(prod.price || 0).toLocaleString()}`;
 
-  if ($('#adminLookbookCardImg')) $('#adminLookbookCardImg').src = prod.image;
+  const lookbookImg = (AdminState.lookbook && AdminState.lookbook.image) ? AdminState.lookbook.image : ($('#adminLookbookImg') ? $('#adminLookbookImg').src : '');
+  const cardImg = lookbookImg || (prod.image || '');
+
+  if ($('#adminLookbookCardImg')) $('#adminLookbookCardImg').src = cardImg;
   if ($('#adminLookbookCardTitle')) $('#adminLookbookCardTitle').textContent = pTitle;
   if ($('#adminLookbookCardPrice')) $('#adminLookbookCardPrice').textContent = pPrice;
 
@@ -3468,6 +3471,7 @@ window.handleLookbookFileUpload = async function (event) {
     if ($('#adminLookbookImg')) $('#adminLookbookImg').src = compressedBase64;
     if (!AdminState.lookbook) AdminState.lookbook = getDefaultLookbook();
     AdminState.lookbook.image = compressedBase64;
+    updateLookbookCardPreview(AdminState.lookbook.productId || 3);
     const sizeKB = Math.round(compressedBase64.length * 0.75 / 1024);
     showAdminToast(`Lookbook photo optimized & loaded (${sizeKB} KB)!`);
   } catch (err) {
@@ -3479,6 +3483,7 @@ window.handleLookbookFileUpload = async function (event) {
       if ($('#adminLookbookImg')) $('#adminLookbookImg').src = base64;
       if (!AdminState.lookbook) AdminState.lookbook = getDefaultLookbook();
       AdminState.lookbook.image = base64;
+      updateLookbookCardPreview(AdminState.lookbook.productId || 3);
       showAdminToast('Lookbook photo loaded!');
     };
     reader.readAsDataURL(file);
@@ -3491,6 +3496,7 @@ window.updateLookbookImgFromUrl = function (url) {
     $('#adminLookbookImg').src = val;
     if (!AdminState.lookbook) AdminState.lookbook = getDefaultLookbook();
     AdminState.lookbook.image = val;
+    updateLookbookCardPreview(AdminState.lookbook.productId || 3);
   }
 };
 

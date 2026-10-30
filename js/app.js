@@ -1628,7 +1628,8 @@ function renderLookbookSection() {
     const pPrice = String(prod.price || '').startsWith('৳') ? prod.price : `৳ ${Number(prod.price || 0).toLocaleString()}`;
     const pOrigPrice = prod.originalPrice ? (String(prod.originalPrice).startsWith('৳') ? prod.originalPrice : `৳ ${Number(prod.originalPrice || 0).toLocaleString()}`) : '';
 
-    if ($('#hotspotCardImg')) $('#hotspotCardImg').src = prod.image;
+    const cardImg = (data && data.image) ? data.image : (prod.image || '');
+    if ($('#hotspotCardImg')) $('#hotspotCardImg').src = cardImg;
     if ($('#hotspotCardTitle')) $('#hotspotCardTitle').textContent = pTitle;
 
     let badge = prod.badge || '';
