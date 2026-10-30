@@ -268,7 +268,7 @@
             <div>
               <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Total Revenue</p>
               <h3 id="statRevenue" class="text-2xl font-bold text-slate-900 mt-1">৳ 0</h3>
-              <p class="text-[11px] text-emerald-600 font-medium mt-1">↑ +18.4% from last week</p>
+              <p class="text-[11px] text-slate-400 font-medium mt-1">Live Store Gross Revenue</p>
             </div>
             <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center">
               <span class="text-lg font-bold">৳</span>
@@ -325,83 +325,52 @@
             </div>
             
             <!-- CSS Bar Chart -->
-            <div class="flex items-end justify-between gap-3 h-44 pt-6 px-2 border-b border-slate-100">
-              <div class="flex-1 flex flex-col items-center gap-2 h-full justify-end">
-                <span class="text-[10px] font-semibold text-slate-500">৳14k</span>
-                <div class="w-full bg-slate-200 hover:bg-slate-300 rounded-t transition-all" style="height: 45%;"></div>
-                <span class="text-[11px] text-slate-400">Sat</span>
-              </div>
-              <div class="flex-1 flex flex-col items-center gap-2 h-full justify-end">
-                <span class="text-[10px] font-semibold text-slate-500">৳21k</span>
-                <div class="w-full bg-slate-200 hover:bg-slate-300 rounded-t transition-all" style="height: 60%;"></div>
-                <span class="text-[11px] text-slate-400">Sun</span>
-              </div>
-              <div class="flex-1 flex flex-col items-center gap-2 h-full justify-end">
-                <span class="text-[10px] font-semibold text-slate-500">৳18k</span>
-                <div class="w-full bg-slate-200 hover:bg-slate-300 rounded-t transition-all" style="height: 52%;"></div>
-                <span class="text-[11px] text-slate-400">Mon</span>
-              </div>
-              <div class="flex-1 flex flex-col items-center gap-2 h-full justify-end">
-                <span class="text-[10px] font-semibold text-slate-500">৳32k</span>
-                <div class="w-full bg-slate-200 hover:bg-slate-300 rounded-t transition-all" style="height: 85%;"></div>
-                <span class="text-[11px] text-slate-400">Tue</span>
-              </div>
-              <div class="flex-1 flex flex-col items-center gap-2 h-full justify-end">
-                <span class="text-[10px] font-semibold text-slate-500">৳26k</span>
-                <div class="w-full bg-slate-200 hover:bg-slate-300 rounded-t transition-all" style="height: 70%;"></div>
-                <span class="text-[11px] text-slate-400">Wed</span>
-              </div>
-              <div class="flex-1 flex flex-col items-center gap-2 h-full justify-end">
-                <span class="text-[10px] font-semibold text-slate-500">৳38k</span>
-                <div class="w-full bg-slate-900 rounded-t transition-all" style="height: 95%;"></div>
-                <span class="text-[11px] font-bold text-slate-800">Thu</span>
-              </div>
-              <div class="flex-1 flex flex-col items-center gap-2 h-full justify-end">
-                <span class="text-[10px] font-semibold text-slate-500">৳29k</span>
-                <div class="w-full bg-amber-500 rounded-t transition-all" style="height: 75%;"></div>
-                <span class="text-[11px] font-bold text-amber-600">Today</span>
-              </div>
+            <div id="weeklyRevenueChart" class="flex items-end justify-between gap-3 h-44 pt-6 px-2 border-b border-slate-100">
+              <!-- Dynamically populated from real orders by renderDashboard() -->
             </div>
           </div>
 
           <!-- Store Performance Insights -->
           <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
-            <h3 class="text-sm font-bold text-slate-800">Store Quick Metrics</h3>
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-bold text-slate-800">Store Quick Metrics</h3>
+              <span class="text-[10px] text-slate-400 font-medium">Real-time sync</span>
+            </div>
             
             <div class="space-y-3 text-xs">
               <div>
                 <div class="flex justify-between font-semibold text-slate-700 mb-1">
                   <span>Cash on Delivery Share</span>
-                  <span>78%</span>
+                  <span id="metricCodPct">0%</span>
                 </div>
                 <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                  <div class="bg-amber-500 h-full rounded-full" style="width: 78%;"></div>
+                  <div id="metricCodBar" class="bg-amber-500 h-full rounded-full transition-all duration-500" style="width: 0%;"></div>
                 </div>
               </div>
 
               <div>
                 <div class="flex justify-between font-semibold text-slate-700 mb-1">
                   <span>bKash / Online Prepayment</span>
-                  <span>22%</span>
+                  <span id="metricOnlinePct">0%</span>
                 </div>
                 <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                  <div class="bg-pink-600 h-full rounded-full" style="width: 22%;"></div>
+                  <div id="metricOnlineBar" class="bg-pink-600 h-full rounded-full transition-all duration-500" style="width: 0%;"></div>
                 </div>
               </div>
 
               <div>
                 <div class="flex justify-between font-semibold text-slate-700 mb-1">
                   <span>Inside Dhaka Shipments</span>
-                  <span>65%</span>
+                  <span id="metricDhakaPct">0%</span>
                 </div>
                 <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                  <div class="bg-blue-600 h-full rounded-full" style="width: 65%;"></div>
+                  <div id="metricDhakaBar" class="bg-blue-600 h-full rounded-full transition-all duration-500" style="width: 0%;"></div>
                 </div>
               </div>
 
               <div class="pt-2 border-t border-slate-100">
                 <p class="text-[11px] text-slate-500 leading-relaxed">
-                  💡 <b>Pro Tip:</b> Orders placed on `index.html` sync immediately to this dashboard. You can update shipment statuses, print invoices, and edit catalog products in real-time.
+                  💡 <b>Real Store Mode:</b> Customer orders placed on the live storefront sync immediately to this dashboard.
                 </p>
               </div>
             </div>
@@ -455,7 +424,7 @@
               class="w-full pl-9 pr-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-black" />
           </div>
 
-          <!-- Status Filter Buttons -->
+          <!-- Status Filter Buttons & Reset Orders -->
           <div class="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
             <button onclick="setOrderStatusFilter('all')" data-status="all" class="order-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-black text-white">All</button>
             <button onclick="setOrderStatusFilter('Pending')" data-status="Pending" class="order-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200">Pending</button>
@@ -463,6 +432,10 @@
             <button onclick="setOrderStatusFilter('Shipped')" data-status="Shipped" class="order-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200">Shipped</button>
             <button onclick="setOrderStatusFilter('Delivered')" data-status="Delivered" class="order-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200">Delivered</button>
             <button onclick="setOrderStatusFilter('Cancelled')" data-status="Cancelled" class="order-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200">Cancelled</button>
+            <button type="button" onclick="clearAllOrders()" class="ml-2 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition flex items-center gap-1 cursor-pointer" title="Reset all test orders to 0">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+              <span>Reset Orders</span>
+            </button>
           </div>
         </div>
 

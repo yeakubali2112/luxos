@@ -233,17 +233,26 @@ function initData() {
   if ($('#bannerSlideInterval')) $('#bannerSlideInterval').value = AdminState.bannerSettings.autoplayDuration || 5;
   if ($('#bannerEnableZoom')) $('#bannerEnableZoom').checked = AdminState.bannerSettings.enableZoom !== false;
 
-  // Load orders (if empty, seed with realistic mock orders)
-  const storedOrders = localStorage.getItem('luxos_orders');
-  if (storedOrders) {
-    try {
-      AdminState.orders = JSON.parse(storedOrders);
-    } catch (e) {
-      AdminState.orders = getSeedOrders();
-    }
+  // Load real orders (Real Store Mode: start clean with 0 orders, no fake seed data)
+  const isRealStoreActive = localStorage.getItem('luxos_real_mode_active');
+  if (!isRealStoreActive) {
+    // Clear legacy fake mock orders on first load of Real Store Mode
+    localStorage.setItem('luxos_orders', JSON.stringify([]));
+    AdminState.orders = [];
+    localStorage.setItem('luxos_real_mode_active', 'true');
   } else {
-    AdminState.orders = getSeedOrders();
-    localStorage.setItem('luxos_orders', JSON.stringify(AdminState.orders));
+    const storedOrders = localStorage.getItem('luxos_orders');
+    if (storedOrders) {
+      try {
+        AdminState.orders = JSON.parse(storedOrders);
+        if (!Array.isArray(AdminState.orders)) AdminState.orders = [];
+      } catch (e) {
+        AdminState.orders = [];
+      }
+    } else {
+      AdminState.orders = [];
+      localStorage.setItem('luxos_orders', JSON.stringify([]));
+    }
   }
 
   // Load Curated Collections (Shop by Collection)
@@ -437,133 +446,8 @@ function getDefaultSettings() {
 }
 
 function getSeedOrders() {
-  return [
-    {
-      id: 'LX-891420',
-      customer: {
-        name: 'Sadia Rahman',
-        phone: '01711223344',
-        address: 'House 42, Road 11, Banani',
-        zone: 'Inside Dhaka'
-      },
-      items: [
-        {
-          id: 3,
-          title: 'Croissant Chic Crossbody Bag',
-          price: '৳ 685',
-          priceNum: 685,
-          color: 'Mocha Tan',
-          quantity: 1,
-          image: 'https://thepatchee.com/cdn/shop/files/c2ee0999-fc06-4942-aa71-6cd41e71d473.png?v=1782728863'
-        },
-        {
-          id: 1,
-          title: 'Mens Rfid Smart Pop Up Wallet',
-          price: '৳ 687',
-          priceNum: 687,
-          color: 'Classic Black',
-          quantity: 1,
-          image: 'https://thepatchee.com/cdn/shop/files/654a7e83-c512-4ec1-8ebf-af44c488e776.png?v=1781362688'
-        }
-      ],
-      subtotal: 1372,
-      shippingFee: 70,
-      discount: 137,
-      couponCode: 'LUXOS10',
-      total: 1305,
-      paymentMethod: 'Cash on Delivery',
-      paymentStatus: 'Unpaid (COD)',
-      orderStatus: 'Pending',
-      createdAt: new Date(Date.now() - 25 * 60000).toISOString()
-    },
-    {
-      id: 'LX-764912',
-      customer: {
-        name: 'Tanzim Hasan',
-        phone: '01899887766',
-        address: 'GEC Circle, Nasirabad, Chattogram',
-        zone: 'Outside Dhaka'
-      },
-      items: [
-        {
-          id: 2,
-          title: 'New Style Large Capacity Shoulder Bag',
-          price: '৳ 1,673',
-          priceNum: 1673,
-          color: 'Noir Black',
-          quantity: 2,
-          image: 'https://thepatchee.com/cdn/shop/files/d0783770-4668-4b3e-a3b5-2bbc89c2869f.jpg?v=1776151580'
-        }
-      ],
-      subtotal: 3346,
-      shippingFee: 0,
-      discount: 0,
-      couponCode: null,
-      total: 3346,
-      paymentMethod: 'bKash / Nagad',
-      paymentStatus: 'Paid Online (bKash)',
-      orderStatus: 'Processing',
-      createdAt: new Date(Date.now() - 140 * 60000).toISOString()
-    },
-    {
-      id: 'LX-652391',
-      customer: {
-        name: 'Ayesha Siddiqua',
-        phone: '01622334455',
-        address: 'Sector 4, Uttara, Dhaka',
-        zone: 'Inside Dhaka'
-      },
-      items: [
-        {
-          id: 4,
-          title: 'High-End Retro Commuter Shoulder Bag',
-          price: '৳ 1,909',
-          priceNum: 1909,
-          color: 'Cognac',
-          quantity: 1,
-          image: 'https://thepatchee.com/cdn/shop/files/Untitled_20design_20_2875_29_ojw3jt.png?v=1777968337'
-        }
-      ],
-      subtotal: 1909,
-      shippingFee: 70,
-      discount: 0,
-      couponCode: null,
-      total: 1979,
-      paymentMethod: 'Cash on Delivery',
-      paymentStatus: 'Unpaid (COD)',
-      orderStatus: 'Shipped',
-      createdAt: new Date(Date.now() - 360 * 60000).toISOString()
-    },
-    {
-      id: 'LX-541908',
-      customer: {
-        name: 'Mahmudul Karim',
-        phone: '01511002233',
-        address: 'Dhanmondi 27, Dhaka',
-        zone: 'Inside Dhaka'
-      },
-      items: [
-        {
-          id: 8,
-          title: 'Trend Flex Waterproof Nylon Backpack',
-          price: '৳ 2,259',
-          priceNum: 2259,
-          color: 'Matte Black',
-          quantity: 1,
-          image: 'https://thepatchee.com/cdn/shop/files/6d8a6d9b-495a-4d68-ba90-1f87aa300435.jpg?v=1755610521'
-        }
-      ],
-      subtotal: 2259,
-      shippingFee: 70,
-      discount: 0,
-      couponCode: null,
-      total: 2329,
-      paymentMethod: 'Cash on Delivery',
-      paymentStatus: 'Paid (Cash on Delivery)',
-      orderStatus: 'Delivered',
-      createdAt: new Date(Date.now() - 1440 * 60000).toISOString()
-    }
-  ];
+  // Real Store Mode: no fake seed orders
+  return [];
 }
 
 /* ==========================================================================
@@ -729,8 +613,8 @@ window.switchTab = function (tabName) {
    3. Dashboard Overview & Analytics
    ========================================================================== */
 function renderDashboard() {
-  const orders = AdminState.orders;
-  const products = AdminState.products;
+  const orders = AdminState.orders || [];
+  const products = AdminState.products || [];
 
   const totalRevenue = orders
     .filter(o => o.orderStatus !== 'Cancelled')
@@ -739,26 +623,115 @@ function renderDashboard() {
   const pendingCount = orders.filter(o => o.orderStatus === 'Pending' || o.orderStatus === 'Processing').length;
   const completedCount = orders.filter(o => o.orderStatus === 'Delivered').length;
 
-  $('#statRevenue').textContent = formatPrice(totalRevenue);
-  $('#statOrders').textContent = orders.length;
-  $('#statCompletedOrders').textContent = completedCount;
-  $('#statProducts').textContent = products.length;
-  $('#statPending').textContent = pendingCount;
+  if ($('#statRevenue')) $('#statRevenue').textContent = formatPrice(totalRevenue);
+  if ($('#statOrders')) $('#statOrders').textContent = orders.length;
+  if ($('#statCompletedOrders')) $('#statCompletedOrders').textContent = completedCount;
+  if ($('#statProducts')) $('#statProducts').textContent = products.length;
+  if ($('#statPending')) $('#statPending').textContent = pendingCount;
   if ($('#sidebarPendingCount')) $('#sidebarPendingCount').textContent = pendingCount;
   if ($('#sidebarProductsCount')) $('#sidebarProductsCount').textContent = products.length;
 
-  // Render Recent Orders (Top 5)
-  const recentTbody = $('#recentOrdersTbody');
-  if (!recentTbody) return;
+  // Render Dynamic 7-day Weekly Revenue Chart from REAL orders
+  const chartEl = $('#weeklyRevenueChart');
+  if (chartEl) {
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const now = new Date();
+    const days = [];
 
-  const recent = orders.slice(0, 5);
-  if (recent.length === 0) {
-    recentTbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-slate-400">No orders placed yet.</td></tr>`;
-    return;
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(now.getDate() - i);
+      const dateStr = d.toISOString().split('T')[0];
+      const dayLabel = (i === 0) ? 'Today' : dayNames[d.getDay()];
+
+      const dayRevenue = orders
+        .filter(o => o.orderStatus !== 'Cancelled')
+        .filter(o => o.createdAt && o.createdAt.startsWith(dateStr))
+        .reduce((sum, o) => sum + (o.total || 0), 0);
+
+      days.push({ label: dayLabel, revenue: dayRevenue, isToday: i === 0 });
+    }
+
+    const maxRev = Math.max(...days.map(d => d.revenue), 100);
+
+    chartEl.innerHTML = days.map(d => {
+      const pct = d.revenue > 0 ? Math.max(14, Math.round((d.revenue / maxRev) * 100)) : 8;
+      const barColor = d.isToday
+        ? 'bg-amber-500'
+        : (d.revenue > 0 ? 'bg-slate-800 hover:bg-slate-700' : 'bg-slate-200');
+      const textClass = d.isToday ? 'font-bold text-amber-600' : 'text-slate-400';
+      const revText = d.revenue > 0 ? (d.revenue >= 1000 ? `৳${Math.round(d.revenue / 1000)}k` : `৳${d.revenue}`) : '৳0';
+
+      return `
+        <div class="flex-1 flex flex-col items-center gap-2 h-full justify-end">
+          <span class="text-[10px] font-semibold ${d.revenue > 0 ? 'text-slate-700' : 'text-slate-400'}">${revText}</span>
+          <div class="w-full ${barColor} rounded-t transition-all duration-500" style="height: ${pct}%;" title="${d.label}: ৳${d.revenue}"></div>
+          <span class="text-[11px] ${textClass}">${d.label}</span>
+        </div>
+      `;
+    }).join('');
   }
 
-  recentTbody.innerHTML = recent.map(o => createOrderRowHtml(o, true)).join('');
+  // Store Quick Metrics calculation from REAL orders
+  const totalOrdersCount = orders.length;
+  if (totalOrdersCount === 0) {
+    if ($('#metricCodPct')) $('#metricCodPct').textContent = '0%';
+    if ($('#metricCodBar')) $('#metricCodBar').style.width = '0%';
+    if ($('#metricOnlinePct')) $('#metricOnlinePct').textContent = '0%';
+    if ($('#metricOnlineBar')) $('#metricOnlineBar').style.width = '0%';
+    if ($('#metricDhakaPct')) $('#metricDhakaPct').textContent = '0%';
+    if ($('#metricDhakaBar')) $('#metricDhakaBar').style.width = '0%';
+  } else {
+    const codCount = orders.filter(o => (o.paymentMethod || '').toLowerCase().includes('cash') || (o.paymentMethod || '').toLowerCase().includes('cod')).length;
+    const onlineCount = orders.filter(o => (o.paymentMethod || '').toLowerCase().includes('bkash') || (o.paymentMethod || '').toLowerCase().includes('nagad') || (o.paymentMethod || '').toLowerCase().includes('online')).length;
+    const dhakaCount = orders.filter(o => (o.customer?.zone || '').toLowerCase().includes('inside')).length;
+
+    const codPct = Math.round((codCount / totalOrdersCount) * 100);
+    const onlinePct = Math.round((onlineCount / totalOrdersCount) * 100);
+    const dhakaPct = Math.round((dhakaCount / totalOrdersCount) * 100);
+
+    if ($('#metricCodPct')) $('#metricCodPct').textContent = `${codPct}%`;
+    if ($('#metricCodBar')) $('#metricCodBar').style.width = `${codPct}%`;
+    if ($('#metricOnlinePct')) $('#metricOnlinePct').textContent = `${onlinePct}%`;
+    if ($('#metricOnlineBar')) $('#metricOnlineBar').style.width = `${onlinePct}%`;
+    if ($('#metricDhakaPct')) $('#metricDhakaPct').textContent = `${dhakaPct}%`;
+    if ($('#metricDhakaBar')) $('#metricDhakaBar').style.width = `${dhakaPct}%`;
+  }
+
+  // Render Recent Orders (Top 5)
+  const recentTbody = $('#recentOrdersTbody');
+  if (recentTbody) {
+    const recent = orders.slice(0, 5);
+    if (recent.length === 0) {
+      recentTbody.innerHTML = `
+        <tr>
+          <td colspan="8" class="text-center py-10">
+            <div class="flex flex-col items-center justify-center text-slate-400 py-3">
+              <svg class="w-8 h-8 mb-2 text-slate-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007z"/></svg>
+              <p class="font-semibold text-slate-600 text-xs">No orders yet</p>
+              <p class="text-[11px] text-slate-400 mt-0.5">Real customer orders will automatically appear here once placed on the storefront.</p>
+            </div>
+          </td>
+        </tr>
+      `;
+    } else {
+      recentTbody.innerHTML = recent.map(o => createOrderRowHtml(o, true)).join('');
+    }
+  }
 }
+
+window.clearAllOrders = function () {
+  if (!confirm('Are you sure you want to reset all orders? This will clear test orders and reset revenue and metrics to zero for your live store.')) return;
+  AdminState.orders = [];
+  localStorage.setItem('luxos_orders', JSON.stringify([]));
+  try {
+    setItemIndexedDB('luxos_orders', []).catch(() => {});
+  } catch(e) {}
+  renderDashboard();
+  renderOrdersTable();
+  renderCustomersTable();
+  showAdminToast('All orders cleared! Real data mode is active.');
+};
 
 /* ==========================================================================
    4. Orders Management
