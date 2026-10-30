@@ -3563,14 +3563,14 @@ function getDefaultTimelessData() {
       },
       {
         title: 'Trending Now',
-        badgeText: 'Shop Trending',
+        badgeText: '',
         targetTab: 'Best Sellers',
         customUrl: '',
         image: 'images/timeless-trending-now.png'
       },
       {
         title: 'Back in Demand',
-        badgeText: 'Shop Restocked',
+        badgeText: '',
         targetTab: 'Just Landed',
         customUrl: '',
         image: 'images/timeless-back-in-demand.png'
@@ -3643,7 +3643,6 @@ window.renderTimelessManager = function () {
   // Populate Card 2 Inputs
   if (cards[1]) {
     if ($('#timelessCard2TitleInput')) $('#timelessCard2TitleInput').value = cards[1].title || '';
-    if ($('#timelessCard2BadgeInput')) $('#timelessCard2BadgeInput').value = cards[1].badgeText || '';
     if ($('#timelessCard2ImageUrlInput')) $('#timelessCard2ImageUrlInput').value = cards[1].image || '';
     if ($('#timelessCard2TargetSelect')) {
       const isCustom = cards[1].customUrl && cards[1].customUrl.trim() !== '';
@@ -3658,7 +3657,6 @@ window.renderTimelessManager = function () {
   // Populate Card 3 Inputs
   if (cards[2]) {
     if ($('#timelessCard3TitleInput')) $('#timelessCard3TitleInput').value = cards[2].title || '';
-    if ($('#timelessCard3BadgeInput')) $('#timelessCard3BadgeInput').value = cards[2].badgeText || '';
     if ($('#timelessCard3ImageUrlInput')) $('#timelessCard3ImageUrlInput').value = cards[2].image || '';
     if ($('#timelessCard3TargetSelect')) {
       const isCustom = cards[2].customUrl && cards[2].customUrl.trim() !== '';
@@ -3686,25 +3684,13 @@ window.updateTimelessLivePreview = function () {
   const c1Img = ($('#timelessCard1ImageUrlInput') ? $('#timelessCard1ImageUrlInput').value.trim() : '') || (data.cards && data.cards[0] && data.cards[0].image) || 'images/timeless-viral-bag.png';
   if ($('#adminTimelessCard1Img')) $('#adminTimelessCard1Img').src = c1Img;
 
-  // Card 2
+  // Card 2 (No hover badge)
   const c2Img = ($('#timelessCard2ImageUrlInput') ? $('#timelessCard2ImageUrlInput').value.trim() : '') || (data.cards && data.cards[1] && data.cards[1].image) || 'images/timeless-trending-now.png';
-  const c2Badge = $('#timelessCard2BadgeInput') ? $('#timelessCard2BadgeInput').value.trim() : '';
   if ($('#adminTimelessCard2Img')) $('#adminTimelessCard2Img').src = c2Img;
-  if ($('#adminTimelessCard2Badge')) {
-    $('#adminTimelessCard2Badge').textContent = c2Badge;
-    const p = $('#adminTimelessCard2Badge').closest('.absolute');
-    if (p) p.style.display = c2Badge ? 'block' : 'none';
-  }
 
-  // Card 3
+  // Card 3 (No hover badge)
   const c3Img = ($('#timelessCard3ImageUrlInput') ? $('#timelessCard3ImageUrlInput').value.trim() : '') || (data.cards && data.cards[2] && data.cards[2].image) || 'images/timeless-back-in-demand.png';
-  const c3Badge = $('#timelessCard3BadgeInput') ? $('#timelessCard3BadgeInput').value.trim() : '';
   if ($('#adminTimelessCard3Img')) $('#adminTimelessCard3Img').src = c3Img;
-  if ($('#adminTimelessCard3Badge')) {
-    $('#adminTimelessCard3Badge').textContent = c3Badge;
-    const p = $('#adminTimelessCard3Badge').closest('.absolute');
-    if (p) p.style.display = c3Badge ? 'block' : 'none';
-  }
 };
 
 window.handleTimelessCardTargetChange = function (cardIdx, val) {
@@ -3820,7 +3806,7 @@ window.handleSaveTimeless = async function (e) {
 
       return {
         title: $(`#timelessCard${num}TitleInput`) ? $(`#timelessCard${num}TitleInput`).value.trim() : defaultData.cards[idx].title,
-        badgeText: idx === 0 ? '' : ($(`#timelessCard${num}BadgeInput`) ? $(`#timelessCard${num}BadgeInput`).value.trim() : defaultData.cards[idx].badgeText),
+        badgeText: '',
         targetTab: targetVal === 'CUSTOM' ? 'All Bags' : targetVal,
         customUrl: customUrl,
         image: img

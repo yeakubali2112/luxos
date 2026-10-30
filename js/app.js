@@ -1645,14 +1645,14 @@ function getDefaultTimelessData() {
       },
       {
         title: 'Trending Now',
-        badgeText: 'Shop Trending',
+        badgeText: '',
         targetTab: 'Best Sellers',
         customUrl: '',
         image: 'images/timeless-trending-now.png'
       },
       {
         title: 'Back in Demand',
-        badgeText: 'Shop Restocked',
+        badgeText: '',
         targetTab: 'Just Landed',
         customUrl: '',
         image: 'images/timeless-back-in-demand.png'
@@ -1689,35 +1689,31 @@ function renderTimelessSection() {
 
   const cards = Array.isArray(data.cards) ? data.cards : getDefaultTimelessData().cards;
 
-  // Card 1 (Badge removed as requested)
-  if (cards[0]) {
-    if ($('#timelessCard1Img') && cards[0].image) $('#timelessCard1Img').src = cards[0].image;
-    if ($('#timelessCard1Badge')) {
-      const b1 = $('#timelessCard1Badge').closest('.absolute');
-      if (b1) b1.style.display = 'none';
-    }
+  // Card 1
+  if (cards[0] && $('#timelessCard1Img') && cards[0].image) {
+    $('#timelessCard1Img').src = cards[0].image;
+  }
+  if ($('#timelessCard1Badge')) {
+    const b1 = $('#timelessCard1Badge').closest('.absolute');
+    if (b1) b1.style.display = 'none';
   }
 
   // Card 2
-  if (cards[1]) {
-    if ($('#timelessCard2Img') && cards[1].image) $('#timelessCard2Img').src = cards[1].image;
-    if ($('#timelessCard2Badge')) {
-      const b2Text = cards[1].badgeText || '';
-      $('#timelessCard2Badge').textContent = b2Text;
-      const b2 = $('#timelessCard2Badge').closest('.absolute');
-      if (b2) b2.style.display = b2Text ? 'block' : 'none';
-    }
+  if (cards[1] && $('#timelessCard2Img') && cards[1].image) {
+    $('#timelessCard2Img').src = cards[1].image;
+  }
+  if ($('#timelessCard2Badge')) {
+    const b2 = $('#timelessCard2Badge').closest('.absolute');
+    if (b2) b2.style.display = 'none';
   }
 
   // Card 3
-  if (cards[2]) {
-    if ($('#timelessCard3Img') && cards[2].image) $('#timelessCard3Img').src = cards[2].image;
-    if ($('#timelessCard3Badge')) {
-      const b3Text = cards[2].badgeText || '';
-      $('#timelessCard3Badge').textContent = b3Text;
-      const b3 = $('#timelessCard3Badge').closest('.absolute');
-      if (b3) b3.style.display = b3Text ? 'block' : 'none';
-    }
+  if (cards[2] && $('#timelessCard3Img') && cards[2].image) {
+    $('#timelessCard3Img').src = cards[2].image;
+  }
+  if ($('#timelessCard3Badge')) {
+    const b3 = $('#timelessCard3Badge').closest('.absolute');
+    if (b3) b3.style.display = 'none';
   }
 
   // Background IndexedDB sync
