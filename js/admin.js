@@ -3556,7 +3556,7 @@ function getDefaultTimelessData() {
     cards: [
       {
         title: 'The Viral Shoulder Bag',
-        badgeText: 'Explore Shoulder Bags',
+        badgeText: '',
         targetTab: 'Shoulder Bags',
         customUrl: '',
         image: 'images/timeless-viral-bag.png'
@@ -3629,7 +3629,6 @@ window.renderTimelessManager = function () {
   // Populate Card 1 Inputs
   if (cards[0]) {
     if ($('#timelessCard1TitleInput')) $('#timelessCard1TitleInput').value = cards[0].title || '';
-    if ($('#timelessCard1BadgeInput')) $('#timelessCard1BadgeInput').value = cards[0].badgeText || '';
     if ($('#timelessCard1ImageUrlInput')) $('#timelessCard1ImageUrlInput').value = cards[0].image || '';
     if ($('#timelessCard1TargetSelect')) {
       const isCustom = cards[0].customUrl && cards[0].customUrl.trim() !== '';
@@ -3683,23 +3682,29 @@ window.updateTimelessLivePreview = function () {
     $('#adminTimelessPreviewHeadline').textContent = headline || 'TIMELESS. BOLD. UNSTOPPABLE.';
   }
 
-  // Card 1
+  // Card 1 (No hover badge)
   const c1Img = ($('#timelessCard1ImageUrlInput') ? $('#timelessCard1ImageUrlInput').value.trim() : '') || (data.cards && data.cards[0] && data.cards[0].image) || 'images/timeless-viral-bag.png';
-  const c1Badge = $('#timelessCard1BadgeInput') ? $('#timelessCard1BadgeInput').value.trim() : 'Explore Shoulder Bags';
   if ($('#adminTimelessCard1Img')) $('#adminTimelessCard1Img').src = c1Img;
-  if ($('#adminTimelessCard1Badge')) $('#adminTimelessCard1Badge').textContent = c1Badge;
 
   // Card 2
   const c2Img = ($('#timelessCard2ImageUrlInput') ? $('#timelessCard2ImageUrlInput').value.trim() : '') || (data.cards && data.cards[1] && data.cards[1].image) || 'images/timeless-trending-now.png';
-  const c2Badge = $('#timelessCard2BadgeInput') ? $('#timelessCard2BadgeInput').value.trim() : 'Shop Trending';
+  const c2Badge = $('#timelessCard2BadgeInput') ? $('#timelessCard2BadgeInput').value.trim() : '';
   if ($('#adminTimelessCard2Img')) $('#adminTimelessCard2Img').src = c2Img;
-  if ($('#adminTimelessCard2Badge')) $('#adminTimelessCard2Badge').textContent = c2Badge;
+  if ($('#adminTimelessCard2Badge')) {
+    $('#adminTimelessCard2Badge').textContent = c2Badge;
+    const p = $('#adminTimelessCard2Badge').closest('.absolute');
+    if (p) p.style.display = c2Badge ? 'block' : 'none';
+  }
 
   // Card 3
   const c3Img = ($('#timelessCard3ImageUrlInput') ? $('#timelessCard3ImageUrlInput').value.trim() : '') || (data.cards && data.cards[2] && data.cards[2].image) || 'images/timeless-back-in-demand.png';
-  const c3Badge = $('#timelessCard3BadgeInput') ? $('#timelessCard3BadgeInput').value.trim() : 'Shop Restocked';
+  const c3Badge = $('#timelessCard3BadgeInput') ? $('#timelessCard3BadgeInput').value.trim() : '';
   if ($('#adminTimelessCard3Img')) $('#adminTimelessCard3Img').src = c3Img;
-  if ($('#adminTimelessCard3Badge')) $('#adminTimelessCard3Badge').textContent = c3Badge;
+  if ($('#adminTimelessCard3Badge')) {
+    $('#adminTimelessCard3Badge').textContent = c3Badge;
+    const p = $('#adminTimelessCard3Badge').closest('.absolute');
+    if (p) p.style.display = c3Badge ? 'block' : 'none';
+  }
 };
 
 window.handleTimelessCardTargetChange = function (cardIdx, val) {
@@ -3815,7 +3820,7 @@ window.handleSaveTimeless = async function (e) {
 
       return {
         title: $(`#timelessCard${num}TitleInput`) ? $(`#timelessCard${num}TitleInput`).value.trim() : defaultData.cards[idx].title,
-        badgeText: $(`#timelessCard${num}BadgeInput`) ? $(`#timelessCard${num}BadgeInput`).value.trim() : defaultData.cards[idx].badgeText,
+        badgeText: idx === 0 ? '' : ($(`#timelessCard${num}BadgeInput`) ? $(`#timelessCard${num}BadgeInput`).value.trim() : defaultData.cards[idx].badgeText),
         targetTab: targetVal === 'CUSTOM' ? 'All Bags' : targetVal,
         customUrl: customUrl,
         image: img
