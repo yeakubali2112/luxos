@@ -1040,7 +1040,11 @@ function compressImageFile(file, maxWidth = 900, maxHeight = 900, quality = 0.82
 }
 
 function compressDataUrl(dataUrl, maxWidth = 900, maxHeight = 900, quality = 0.82) {
-  if (!dataUrl || typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image/') || dataUrl.length < 150000) {
+  if (!dataUrl || typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image/')) {
+    return Promise.resolve(dataUrl);
+  }
+  const minThreshold = maxWidth <= 450 ? 35000 : 80000;
+  if (dataUrl.length < minThreshold) {
     return Promise.resolve(dataUrl);
   }
   return new Promise((resolve) => {
@@ -1069,6 +1073,29 @@ function compressDataUrl(dataUrl, maxWidth = 900, maxHeight = 900, quality = 0.8
     img.onerror = () => resolve(dataUrl);
     img.src = dataUrl;
   });
+}
+
+async function saveCollectionsSafely(collections) {
+  try {
+    localStorage.setItem('luxos_curated_collections', JSON.stringify(collections));
+    return true;
+  } catch (err) {
+    console.warn('localStorage quota exceeded while saving collections, optimizing...', err);
+    for (const c of collections) {
+      if (c.image && c.image.startsWith('data:image/') && c.image.length > 25000) {
+        try {
+          c.image = await compressDataUrl(c.image, 320, 320, 0.75);
+        } catch (e) {}
+      }
+    }
+    try {
+      localStorage.setItem('luxos_curated_collections', JSON.stringify(collections));
+      return true;
+    } catch (e2) {
+      console.error('Critical quota error saving collections:', e2);
+      throw new Error('Browser storage is full! Please use an image web link (URL) instead.');
+    }
+  }
 }
 
 function saveProductsSafely(products) {
@@ -1819,7 +1846,7 @@ window.closeBannerModal = function () {
   $('#bannerFormModal').classList.remove('active');
 };
 
-window.handleBannerFileUpload = function (event, type) {
+window.handleBannerFileUpload = async function (event, type) {
   const file = event.target.files && event.target.files[0];
   if (!file) return;
 
@@ -1828,31 +1855,41 @@ window.handleBannerFileUpload = function (event, type) {
     return;
   }
 
-  // Size guideline check
-  const maxBytes = 3 * 1024 * 1024; // 3MB limit check
-  const sizeKB = Math.round(file.size / 1024);
-  const sizeStr = sizeKB > 1024 ? (sizeKB / 1024).toFixed(1) + ' MB' : sizeKB + ' KB';
+  showAdminToast(`Optimizing ${type} banner photo...`);
 
-  if (file.size > maxBytes) {
-    showAdminToast(`Warning: File is ${sizeStr}! For fast website loading, under 2 MB is recommended.`);
-  }
+  try {
+    const maxWidth = type === 'desktop' ? 1920 : 900;
+    const maxHeight = type === 'desktop' ? 1080 : 900;
+    const compressedBase64 = await compressImageFile(file, maxWidth, maxHeight, 0.85);
+    const sizeKB = Math.round(compressedBase64.length * 0.75 / 1024);
 
-  const reader = new FileReader();
-  reader.onload = function (e) {
-    const base64 = e.target.result;
     if (type === 'desktop') {
-      $('#bannerDesktopImg').value = base64;
-      previewBannerImg(base64);
+      $('#bannerDesktopImg').value = compressedBase64;
+      previewBannerImg(compressedBase64);
       const info = $('#bannerImgPreviewInfo');
-      if (info) info.textContent = `${file.name} (${sizeStr})`;
-      showAdminToast(`Desktop photo loaded (${sizeStr})!`);
+      if (info) info.textContent = `${file.name} (Optimized: ${sizeKB} KB)`;
+      showAdminToast(`Desktop photo optimized & loaded (${sizeKB} KB)!`);
     } else {
-      $('#bannerMobileImg').value = base64;
-      previewMobileBannerImg(base64);
-      showAdminToast(`Mobile photo loaded (${sizeStr})!`);
+      $('#bannerMobileImg').value = compressedBase64;
+      previewMobileBannerImg(compressedBase64);
+      showAdminToast(`Mobile photo optimized & loaded (${sizeKB} KB)!`);
     }
-  };
-  reader.readAsDataURL(file);
+  } catch (err) {
+    console.error('Banner upload compression error:', err);
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      const base64 = e.target.result;
+      if (type === 'desktop') {
+        $('#bannerDesktopImg').value = base64;
+        previewBannerImg(base64);
+      } else {
+        $('#bannerMobileImg').value = base64;
+        previewMobileBannerImg(base64);
+      }
+      showAdminToast(`${type === 'desktop' ? 'Desktop' : 'Mobile'} photo loaded!`);
+    };
+    reader.readAsDataURL(file);
+  }
 };
 
 window.previewBannerImg = function (url) {
@@ -1913,12 +1950,12 @@ window.editBanner = function (id) {
   $('#bannerFormModal').classList.add('active');
 };
 
-window.handleSaveBanner = function (e) {
+window.handleSaveBanner = async function (e) {
   e.preventDefault();
 
   const id = $('#editBannerId').value;
-  const desktopImage = $('#bannerDesktopImg').value.trim();
-  const mobileImage = $('#bannerMobileImg').value.trim() || desktopImage;
+  let desktopImage = $('#bannerDesktopImg').value.trim();
+  let mobileImage = $('#bannerMobileImg').value.trim() || desktopImage;
   const subheading = $('#bannerSubheading').value.trim();
   const heading = $('#bannerHeading').value.trim();
   const description = $('#bannerDescription').value.trim();
@@ -1930,6 +1967,18 @@ window.handleSaveBanner = function (e) {
   if (!desktopImage) {
     showAdminToast('Please provide a valid Desktop Image URL.');
     return;
+  }
+
+  // Compress oversized base64 data URLs if present
+  if (desktopImage.startsWith('data:image/') && desktopImage.length > 150000) {
+    try {
+      desktopImage = await compressDataUrl(desktopImage, 1920, 1080, 0.85);
+    } catch (e) {}
+  }
+  if (mobileImage.startsWith('data:image/') && mobileImage.length > 100000) {
+    try {
+      mobileImage = await compressDataUrl(mobileImage, 900, 900, 0.85);
+    } catch (e) {}
   }
 
   if (id) {
@@ -1968,8 +2017,13 @@ window.handleSaveBanner = function (e) {
     showAdminToast('New hero banner created.');
   }
 
-  // Persist to localStorage for storefront sync
-  localStorage.setItem('luxos_hero_slides', JSON.stringify(AdminState.heroSlides));
+  // Persist to localStorage safely
+  try {
+    localStorage.setItem('luxos_hero_slides', JSON.stringify(AdminState.heroSlides));
+  } catch (err) {
+    console.error('Storage quota error saving banners:', err);
+    showAdminToast('Warning: Storage full, banner updated in active session.');
+  }
 
   closeBannerModal();
   renderBannersTable();
@@ -2396,8 +2450,14 @@ window.openCollectionModal = function (id) {
 
   if (fileInput) fileInput.value = '';
 
+  const saveBtn = $('#saveCollectionBtn');
+  if (saveBtn) {
+    saveBtn.disabled = false;
+    saveBtn.innerHTML = '<span>Save Item</span>';
+  }
+
   if (id) {
-    const item = AdminState.collections.find(c => c.id === id);
+    const item = AdminState.collections.find(c => c.id == id);
     if (!item) return;
 
     modalTitle.textContent = 'Edit Collection Item';
@@ -2439,7 +2499,7 @@ window.previewCollectionImg = function (url) {
   }
 };
 
-window.handleCollectionFileUpload = function (event) {
+window.handleCollectionFileUpload = async function (event) {
   const file = event.target.files && event.target.files[0];
   if (!file) return;
 
@@ -2448,22 +2508,35 @@ window.handleCollectionFileUpload = function (event) {
     return;
   }
 
-  const reader = new FileReader();
-  reader.onload = function (e) {
-    const base64 = e.target.result;
-    $('#collectionImageUrlInput').value = base64;
-    previewCollectionImg(base64);
-    showAdminToast('Collection image uploaded successfully!');
-  };
-  reader.readAsDataURL(file);
+  showAdminToast('Optimizing collection image...');
+
+  try {
+    const compressedBase64 = await compressImageFile(file, 400, 400, 0.82);
+    $('#collectionImageUrlInput').value = compressedBase64;
+    previewCollectionImg(compressedBase64);
+    const sizeKB = Math.round(compressedBase64.length * 0.75 / 1024);
+    const info = $('#collectionImgInfo');
+    if (info) info.textContent = `${file.name} (Optimized: ${sizeKB} KB)`;
+    showAdminToast(`Collection image optimized & loaded (${sizeKB} KB)!`);
+  } catch (err) {
+    console.error('Error compressing collection image:', err);
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      const base64 = e.target.result;
+      $('#collectionImageUrlInput').value = base64;
+      previewCollectionImg(base64);
+      showAdminToast('Collection image uploaded.');
+    };
+    reader.readAsDataURL(file);
+  }
 };
 
-window.handleSaveCollectionItem = function (e) {
+window.handleSaveCollectionItem = async function (e) {
   e.preventDefault();
 
   const id = $('#editCollectionId').value;
   const title = $('#collectionTitleInput').value.trim();
-  const image = $('#collectionImageUrlInput').value.trim();
+  let image = $('#collectionImageUrlInput').value.trim();
   const filter = $('#collectionFilterSelect').value;
   const active = $('#collectionStatusSelect').value === 'true';
 
@@ -2473,6 +2546,13 @@ window.handleSaveCollectionItem = function (e) {
   }
 
   const saveBtn = $('#saveCollectionBtn');
+  const resetSaveBtn = () => {
+    if (saveBtn) {
+      saveBtn.disabled = false;
+      saveBtn.innerHTML = '<span>Save Item</span>';
+    }
+  };
+
   if (saveBtn) {
     saveBtn.disabled = true;
     saveBtn.innerHTML = `
@@ -2484,42 +2564,55 @@ window.handleSaveCollectionItem = function (e) {
     `;
   }
 
-  if (id) {
-    const existingIndex = AdminState.collections.findIndex(c => c.id == id);
-    if (existingIndex > -1) {
-      AdminState.collections[existingIndex] = {
-        ...AdminState.collections[existingIndex],
+  try {
+    // If the image is an uncompressed base64 data URL, optimize it to 400x400
+    if (image.startsWith('data:image/') && image.length > 35000) {
+      try {
+        image = await compressDataUrl(image, 400, 400, 0.82);
+        if ($('#collectionImageUrlInput')) {
+          $('#collectionImageUrlInput').value = image;
+        }
+      } catch (cErr) {
+        console.warn('Image auto-compression failed, proceeding with original:', cErr);
+      }
+    }
+
+    if (id) {
+      const existingIndex = AdminState.collections.findIndex(c => c.id == id);
+      if (existingIndex > -1) {
+        AdminState.collections[existingIndex] = {
+          ...AdminState.collections[existingIndex],
+          title,
+          image,
+          filter,
+          active
+        };
+      }
+    } else {
+      const newId = Math.max(0, ...AdminState.collections.map(c => c.id || 0)) + 1;
+      AdminState.collections.push({
+        id: newId,
         title,
         image,
         filter,
         active
-      };
+      });
     }
-  } else {
-    const newId = Math.max(0, ...AdminState.collections.map(c => c.id || 0)) + 1;
-    AdminState.collections.push({
-      id: newId,
-      title,
-      image,
-      filter,
-      active
-    });
-  }
 
-  localStorage.setItem('luxos_curated_collections', JSON.stringify(AdminState.collections));
+    await saveCollectionsSafely(AdminState.collections);
 
-  setTimeout(() => {
     closeCollectionModal();
-    if (saveBtn) {
-      saveBtn.disabled = false;
-      saveBtn.innerHTML = '<span>Save Item</span>';
-    }
+    resetSaveBtn();
     renderCollectionsManager();
     showAdminToast(id ? `Updated "${title}"!` : `Added new collection "${title}"!`);
-  }, 400);
+  } catch (err) {
+    console.error('Error saving collection item:', err);
+    resetSaveBtn();
+    showAdminToast(err.message || 'Error saving collection item. Please try again.');
+  }
 };
 
-window.moveCollectionItem = function (index, direction) {
+window.moveCollectionItem = async function (index, direction) {
   const newIndex = index + direction;
   if (newIndex < 0 || newIndex >= AdminState.collections.length) return;
 
@@ -2527,17 +2620,17 @@ window.moveCollectionItem = function (index, direction) {
   AdminState.collections[index] = AdminState.collections[newIndex];
   AdminState.collections[newIndex] = temp;
 
-  localStorage.setItem('luxos_curated_collections', JSON.stringify(AdminState.collections));
+  await saveCollectionsSafely(AdminState.collections);
   renderCollectionsManager();
   showAdminToast('Collection order updated.');
 };
 
-window.toggleCollectionStatus = function (id) {
+window.toggleCollectionStatus = async function (id) {
   const item = AdminState.collections.find(c => c.id === id);
   if (!item) return;
 
   item.active = item.active === false ? true : false;
-  localStorage.setItem('luxos_curated_collections', JSON.stringify(AdminState.collections));
+  await saveCollectionsSafely(AdminState.collections);
   renderCollectionsManager();
   showAdminToast(`Collection "${item.title}" is now ${item.active ? 'Visible' : 'Hidden'}.`);
 };
@@ -2550,9 +2643,9 @@ window.deleteCollectionItem = function (id) {
     title: 'Delete Collection Item?',
     message: `Are you sure you want to delete "${item.title}" from Shop by Collection?`,
     confirmText: 'Delete Item',
-    onConfirm: () => {
+    onConfirm: async () => {
       AdminState.collections = AdminState.collections.filter(c => c.id !== id);
-      localStorage.setItem('luxos_curated_collections', JSON.stringify(AdminState.collections));
+      await saveCollectionsSafely(AdminState.collections);
       renderCollectionsManager();
       showAdminToast(`Collection "${item.title}" deleted.`);
     }
