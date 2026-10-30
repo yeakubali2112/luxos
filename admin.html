@@ -88,19 +88,42 @@
     .animate-marquee:hover {
       animation-play-state: paused;
     }
+
+    /* Ensure desktop sidebar is always in flow and never translated */
+    @media (min-width: 1024px) {
+      #adminSidebar {
+        transform: none !important;
+      }
+    }
+
+    /* Mobile drawer smooth shadow */
+    @media (max-width: 1023px) {
+      #adminSidebar {
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+      }
+    }
   </style>
 </head>
 <body class="bg-[#f8fafc] text-slate-800 font-sans antialiased flex h-screen overflow-hidden">
 
+  <!-- Mobile Drawer Backdrop Overlay -->
+  <div id="adminSidebarBackdrop" onclick="toggleAdminSidebar(false)" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-40 hidden opacity-0 transition-opacity duration-300 lg:hidden cursor-pointer"></div>
+
   <!-- =======================================================================
-       1. Left Sidebar
+       1. Left Sidebar (Responsive Off-Canvas Drawer on Mobile, Static on Desktop)
        ======================================================================= -->
-  <aside class="w-64 bg-slate-900 text-white flex flex-col flex-shrink-0 z-30 transition-all duration-300">
+  <aside id="adminSidebar" class="fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] bg-slate-900 text-white flex flex-col flex-shrink-0 transform -translate-x-full lg:translate-x-0 lg:static lg:inset-auto lg:max-w-none lg:w-64 lg:z-30 shadow-2xl lg:shadow-none transition-transform duration-300 ease-in-out">
     <!-- Brand Header -->
-    <div class="h-16 px-5 border-b border-slate-800 flex items-center justify-between">
+    <div class="h-16 px-4 sm:px-5 border-b border-slate-800 flex items-center justify-between">
       <a href="admin.html" onclick="window.location.reload(); return false;" title="Reload Admin Panel" class="flex items-center gap-2.5 group cursor-pointer">
         <img src="images/logo-white.png" alt="LUXOS" class="h-7 w-auto object-contain transition-transform group-hover:scale-105" />
       </a>
+      <!-- Mobile Close Drawer Button -->
+      <button type="button" onclick="toggleAdminSidebar(false)" class="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition focus:outline-none" aria-label="Close navigation menu">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
     </div>
 
     <!-- Navigation Menu -->
@@ -223,27 +246,34 @@
   <!-- =======================================================================
        2. Main Content Area
        ======================================================================= -->
-  <div class="flex-1 flex flex-col overflow-hidden">
+  <div class="flex-1 flex flex-col overflow-hidden min-w-0">
     <!-- Top Header -->
-    <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 flex-shrink-0">
-      <div class="flex items-center gap-3">
-        <h1 id="pageTitle" class="text-lg font-bold text-slate-800 font-heading">Operations Dashboard</h1>
+    <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-3 sm:px-6 flex-shrink-0">
+      <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+        <!-- Mobile Navigation Drawer Toggle Button -->
+        <button type="button" id="adminSidebarToggleBtn" onclick="toggleAdminSidebar(true)" class="lg:hidden p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition focus:outline-none focus:ring-2 focus:ring-amber-500/20 -ml-1 cursor-pointer" aria-label="Open Navigation Menu">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+          </svg>
+        </button>
+        <h1 id="pageTitle" class="text-base sm:text-lg font-bold text-slate-800 font-heading truncate">Operations Dashboard</h1>
       </div>
 
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
         <!-- Quick Add Product Button -->
-        <button onclick="openProductModal()" class="bg-black hover:bg-slate-800 text-white text-xs font-semibold px-3.5 py-2 rounded-lg transition flex items-center gap-1.5 shadow-sm">
+        <button onclick="openProductModal()" class="bg-black hover:bg-slate-800 text-white text-xs font-semibold px-2.5 sm:px-3.5 py-2 rounded-lg transition flex items-center gap-1.5 shadow-sm whitespace-nowrap">
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-          <span>Add Product</span>
+          <span class="hidden sm:inline">Add Product</span>
+          <span class="sm:hidden">Product</span>
         </button>
 
-        <a href="index.html" target="_blank" title="Open Store" class="p-2 text-slate-500 hover:text-slate-800 rounded-lg hover:bg-slate-100 transition">
+        <a href="index.html" target="_blank" title="Open Store" class="p-1.5 sm:p-2 text-slate-500 hover:text-slate-800 rounded-lg hover:bg-slate-100 transition">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg>
         </a>
 
         <!-- Admin Profile -->
-        <div class="flex items-center gap-2 pl-3 border-l border-slate-200">
-          <div class="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center p-1.5 overflow-hidden">
+        <div class="flex items-center gap-2 pl-2 sm:pl-3 border-l border-slate-200">
+          <div class="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center p-1.5 overflow-hidden flex-shrink-0">
             <img src="images/logo-white.png" alt="LX" class="w-full h-auto object-contain" />
           </div>
           <div class="hidden sm:block text-left">
@@ -255,7 +285,7 @@
     </header>
 
     <!-- Scrollable Workspace Views -->
-    <main class="flex-1 overflow-y-auto p-6 bg-[#f8fafc]">
+    <main class="flex-1 overflow-y-auto p-3 sm:p-6 bg-[#f8fafc]">
       
       <!-- =====================================================================
            TAB 1: DASHBOARD
@@ -325,8 +355,10 @@
             </div>
             
             <!-- CSS Bar Chart -->
-            <div id="weeklyRevenueChart" class="flex items-end justify-between gap-3 h-44 pt-6 px-2 border-b border-slate-100">
-              <!-- Dynamically populated from real orders by renderDashboard() -->
+            <div class="overflow-x-auto pb-1">
+              <div id="weeklyRevenueChart" class="flex items-end justify-between gap-2 sm:gap-3 h-44 pt-6 px-1 sm:px-2 border-b border-slate-100 min-w-[280px]">
+                <!-- Dynamically populated from real orders by renderDashboard() -->
+              </div>
             </div>
           </div>
 
@@ -425,7 +457,7 @@
           </div>
 
           <!-- Status Filter Buttons & Reset Orders -->
-          <div class="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
+          <div class="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0 flex-nowrap whitespace-nowrap">
             <button onclick="setOrderStatusFilter('all')" data-status="all" class="order-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-black text-white">All</button>
             <button onclick="setOrderStatusFilter('Pending')" data-status="Pending" class="order-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200">Pending</button>
             <button onclick="setOrderStatusFilter('Processing')" data-status="Processing" class="order-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200">Processing</button>
@@ -2188,8 +2220,8 @@
   <!-- =======================================================================
        3. Order Details Modal (with status change & invoice)
        ======================================================================= -->
-  <div id="orderDetailsModal" class="modal-overlay fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-    <div class="modal-content bg-white w-full max-w-2xl rounded-xl shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto">
+  <div id="orderDetailsModal" class="modal-overlay fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-3 sm:p-4 backdrop-blur-sm">
+    <div class="modal-content bg-white w-full max-w-2xl rounded-xl shadow-2xl p-4 sm:p-6 relative max-h-[90vh] overflow-y-auto">
       <button onclick="closeOrderModal()" class="absolute top-4 right-4 text-slate-400 hover:text-black p-1">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
       </button>
@@ -2203,8 +2235,8 @@
   <!-- =======================================================================
        4. Add / Edit Product Modal
        ======================================================================= -->
-  <div id="productFormModal" class="modal-overlay fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-    <div class="modal-content bg-white w-full max-w-2xl rounded-xl shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto">
+  <div id="productFormModal" class="modal-overlay fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-3 sm:p-4 backdrop-blur-sm">
+    <div class="modal-content bg-white w-full max-w-2xl rounded-xl shadow-2xl p-4 sm:p-6 relative max-h-[90vh] overflow-y-auto">
       <!-- Animated Success Overlay -->
       <div id="productSaveSuccessOverlay" class="absolute inset-0 bg-white/95 backdrop-blur-xs rounded-xl flex flex-col items-center justify-center z-50 hidden transition-all duration-300">
         <div class="w-16 h-16 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-xl shadow-emerald-500/30 mb-3 animate-success-pop">
@@ -2425,8 +2457,8 @@
   <!-- =======================================================================
        5. Add / Edit Hero Banner Modal
        ======================================================================= -->
-  <div id="bannerFormModal" class="modal-overlay fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-    <div class="modal-content bg-white w-full max-w-xl rounded-xl shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto">
+  <div id="bannerFormModal" class="modal-overlay fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-3 sm:p-4 backdrop-blur-sm">
+    <div class="modal-content bg-white w-full max-w-xl rounded-xl shadow-2xl p-4 sm:p-6 relative max-h-[90vh] overflow-y-auto">
       <button onclick="closeBannerModal()" class="absolute top-4 right-4 text-slate-400 hover:text-black p-1">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
       </button>
@@ -2551,8 +2583,8 @@
   <!-- =======================================================================
        Collection Bubble Add / Edit Modal
        ======================================================================= -->
-  <div id="collectionItemModal" class="modal-overlay fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-    <div class="modal-content bg-white w-full max-w-lg rounded-2xl shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto">
+  <div id="collectionItemModal" class="modal-overlay fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-3 sm:p-4 backdrop-blur-sm">
+    <div class="modal-content bg-white w-full max-w-lg rounded-2xl shadow-2xl p-4 sm:p-6 relative max-h-[90vh] overflow-y-auto">
       <button onclick="closeCollectionModal()" class="absolute top-4 right-4 text-slate-400 hover:text-black p-1">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
       </button>
@@ -2627,8 +2659,8 @@
   <!-- =======================================================================
        Delete Confirmation Center Modal
        ======================================================================= -->
-  <div id="deleteConfirmModal" class="modal-overlay fixed inset-0 bg-black/60 z-[70] flex items-center justify-center p-4 backdrop-blur-sm">
-    <div class="modal-content bg-white w-full max-w-sm rounded-2xl shadow-2xl p-6 relative text-center">
+  <div id="deleteConfirmModal" class="modal-overlay fixed inset-0 bg-black/60 z-[70] flex items-center justify-center p-3 sm:p-4 backdrop-blur-sm">
+    <div class="modal-content bg-white w-full max-w-sm rounded-2xl shadow-2xl p-4 sm:p-6 relative text-center">
       <!-- Icon with soft red background -->
       <div class="w-14 h-14 rounded-full bg-red-50 text-red-600 border border-red-100 flex items-center justify-center mx-auto mb-3 shadow-xs">
         <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">

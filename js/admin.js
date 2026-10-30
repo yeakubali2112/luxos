@@ -534,8 +534,54 @@ function getSeedOrders() {
 }
 
 /* ==========================================================================
-   2. Tab Switching Controller & Sidebar Dropdowns
+   2. Tab Switching Controller, Mobile Sidebar & Sidebar Dropdowns
    ========================================================================== */
+window.toggleAdminSidebar = function (forceOpen) {
+  const sidebar = $('#adminSidebar');
+  const backdrop = $('#adminSidebarBackdrop');
+  if (!sidebar) return;
+
+  const isClosed = sidebar.classList.contains('-translate-x-full');
+  const shouldOpen = forceOpen !== undefined ? forceOpen : isClosed;
+
+  if (shouldOpen) {
+    sidebar.classList.remove('-translate-x-full');
+    if (backdrop) {
+      backdrop.classList.remove('hidden');
+      requestAnimationFrame(() => {
+        backdrop.classList.remove('opacity-0');
+        backdrop.classList.add('opacity-100');
+      });
+    }
+  } else {
+    sidebar.classList.add('-translate-x-full');
+    if (backdrop) {
+      backdrop.classList.remove('opacity-100');
+      backdrop.classList.add('opacity-0');
+      setTimeout(() => {
+        if (sidebar && sidebar.classList.contains('-translate-x-full')) {
+          backdrop.classList.add('hidden');
+        }
+      }, 300);
+    }
+  }
+};
+
+window.closeAdminSidebar = function () {
+  window.toggleAdminSidebar(false);
+};
+
+// Auto-hide backdrop if user resizes back to desktop window width
+window.addEventListener('resize', () => {
+  if (window.innerWidth >= 1024) {
+    const backdrop = $('#adminSidebarBackdrop');
+    if (backdrop && !backdrop.classList.contains('hidden')) {
+      backdrop.classList.add('hidden', 'opacity-0');
+      backdrop.classList.remove('opacity-100');
+    }
+  }
+});
+
 window.toggleCampaignsMenu = function (forceOpen) {
   const submenu = $('#campaignsSubmenu');
   const chevron = $('#campaignsChevron');
@@ -608,6 +654,11 @@ document.addEventListener('click', (e) => {
 
 window.switchTab = function (tabName) {
   AdminState.currentTab = tabName;
+
+  // Auto-close sidebar drawer on mobile/tablet when navigating
+  if (window.innerWidth < 1024 && typeof toggleAdminSidebar === 'function') {
+    toggleAdminSidebar(false);
+  }
 
   // Hide all sections
   $$('main > section').forEach(sec => sec.classList.add('hidden'));
