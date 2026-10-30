@@ -61,7 +61,76 @@ document.addEventListener('DOMContentLoaded', () => {
   if (typeof renderTrustBadgesManager === 'function') renderTrustBadgesManager();
   if (typeof renderFooterManager === 'function') renderFooterManager();
   if (typeof syncAdminPersistentData === 'function') syncAdminPersistentData();
+  if (typeof syncWithSupabaseCloud === 'function') syncWithSupabaseCloud();
 });
+
+async function syncWithSupabaseCloud() {
+  if (typeof LuxosCloud === 'undefined') return;
+
+  try {
+    // 1. Fetch latest cloud configuration
+    const cloudConfigs = await LuxosCloud.getAllConfigs();
+    if (!cloudConfigs || cloudConfigs.length === 0) {
+      // If cloud has no configs yet, seed it with our current settings
+      await LuxosCloud.seedCloudIfEmpty({
+        products: AdminState.products,
+        footer: AdminState.footer,
+        trustBadges: AdminState.trustbadges,
+        topBar: AdminState.topbar,
+        scrollingTicker: AdminState.scrollingTicker,
+        lookbook: AdminState.lookbook,
+        brandStory: AdminState.brandStory,
+        timelessBold: AdminState.timeless,
+        heroBanners: AdminState.heroSlides,
+        curatedCollections: AdminState.collections,
+        coupons: AdminState.coupons,
+        storeSettings: AdminState.settings
+      });
+      console.log('[LuxosCloud] Seeded default store configuration to Supabase.');
+    } else {
+      // Re-read local state updated by cloud fetch
+      initData();
+      renderDashboard();
+      renderProductsTable();
+      renderBannersTable();
+      renderCouponsTable();
+      if (typeof renderTickerSettings === 'function') renderTickerSettings();
+      if (typeof renderCollectionsManager === 'function') renderCollectionsManager();
+      if (typeof renderLookbookManager === 'function') renderLookbookManager();
+      if (typeof renderBrandStoryManager === 'function') renderBrandStoryManager();
+      if (typeof renderTimelessManager === 'function') renderTimelessManager();
+      if (typeof renderTopBarManager === 'function') renderTopBarManager();
+      if (typeof renderTrustBadgesManager === 'function') renderTrustBadgesManager();
+      if (typeof renderFooterManager === 'function') renderFooterManager();
+    }
+
+    // 2. Fetch real cloud orders
+    const cloudOrders = await LuxosCloud.getOrders();
+    if (Array.isArray(cloudOrders)) {
+      AdminState.orders = cloudOrders;
+      renderDashboard();
+      renderOrdersTable();
+      renderCustomersTable();
+    }
+
+    // 3. Periodic cloud polling every 8 seconds for live customer orders across all devices
+    if (!window._cloudOrderPolling) {
+      window._cloudOrderPolling = setInterval(async () => {
+        try {
+          const fresh = await LuxosCloud.getOrders();
+          if (Array.isArray(fresh) && JSON.stringify(fresh) !== JSON.stringify(AdminState.orders)) {
+            AdminState.orders = fresh;
+            renderDashboard();
+            renderOrdersTable();
+            renderCustomersTable();
+          }
+        } catch (err) {}
+      }, 8000);
+    }
+  } catch (err) {
+    console.warn('[LuxosCloud] Cloud sync error:', err);
+  }
+}
 
 async function syncAdminPersistentData() {
   try {
@@ -720,17 +789,20 @@ function renderDashboard() {
   }
 }
 
-window.clearAllOrders = function () {
+window.clearAllOrders = async function () {
   if (!confirm('Are you sure you want to reset all orders? This will clear test orders and reset revenue and metrics to zero for your live store.')) return;
   AdminState.orders = [];
   localStorage.setItem('luxos_orders', JSON.stringify([]));
+  if (typeof LuxosCloud !== 'undefined') {
+    await LuxosCloud.clearAllOrders();
+  }
   try {
     setItemIndexedDB('luxos_orders', []).catch(() => {});
   } catch(e) {}
   renderDashboard();
   renderOrdersTable();
   renderCustomersTable();
-  showAdminToast('All orders cleared! Real data mode is active.');
+  showAdminToast('All orders cleared from cloud & local! Real data mode is active.');
 };
 
 /* ==========================================================================
@@ -934,6 +1006,9 @@ window.updateOrderStatus = function (orderId, newStatus) {
 
   order.orderStatus = newStatus;
   localStorage.setItem('luxos_orders', JSON.stringify(AdminState.orders));
+  if (typeof LuxosCloud !== 'undefined') {
+    LuxosCloud.updateOrderStatus(orderId, newStatus).catch(() => {});
+  }
 
   renderDashboard();
   renderOrdersTable();

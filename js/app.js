@@ -84,6 +84,24 @@ document.addEventListener('DOMContentLoaded', () => {
   renderTrustBadges();
   renderFooter();
   if (typeof updateHeaderProfileIcon === 'function') updateHeaderProfileIcon();
+
+  // Cross-device Cloud Sync via Supabase
+  if (typeof LuxosCloud !== 'undefined') {
+    LuxosCloud.getAllConfigs().then(configs => {
+      if (configs && configs.length > 0) {
+        loadStoreSettings();
+        renderTopBar();
+        renderStorefrontTicker();
+        renderProducts();
+        renderFeaturedCategories();
+        renderLookbookSection();
+        renderBrandStorySection();
+        renderTimelessSection();
+        renderTrustBadges();
+        renderFooter();
+      }
+    }).catch(err => console.warn('[LuxosCloud] Storefront sync error:', err));
+  }
 });
 
 function loadStoreSettings() {
@@ -1370,6 +1388,11 @@ window.placeOrder = function (e) {
     existingOrders.unshift(newOrder);
     if (existingOrders.length > 50) existingOrders.length = 50;
     localStorage.setItem('luxos_orders', JSON.stringify(existingOrders));
+
+    // Push order directly to Supabase Cloud so Admin receives it instantly on any device!
+    if (typeof LuxosCloud !== 'undefined') {
+      LuxosCloud.saveOrder(newOrder).catch(e => console.warn('[LuxosCloud] Order save error:', e));
+    }
 
     // Save profile for fast checkout
     const profile = { name, phone, address, zone: AppState.deliveryZone, updatedAt: new Date().toISOString() };

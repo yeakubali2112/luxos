@@ -49,6 +49,17 @@
         initProductPage();
       }
     });
+
+    // Cross-device Cloud Sync via Supabase
+    if (typeof LuxosCloud !== 'undefined') {
+      LuxosCloud.getAllConfigs().then(configs => {
+        if (configs && configs.length > 0) {
+          initProductPage();
+        }
+      }).catch(function (err) {
+        console.warn('[LuxosCloud] Product page sync error:', err);
+      });
+    }
   }
 
   /**
