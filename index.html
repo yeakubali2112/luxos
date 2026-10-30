@@ -323,18 +323,14 @@
   <!-- =======================================================================
        8. Brand Story: "OWN IT. LEAD IT."
        ======================================================================= -->
-  <section class="w-full bg-[#F5EFE6] border-y border-[#E5DFD5] overflow-hidden">
+  <section id="brandStorySection" class="w-full bg-[#F5EFE6] border-y border-[#E5DFD5] overflow-hidden">
     <div class="w-full grid grid-cols-1 md:grid-cols-2 items-stretch">
       
       <!-- Left Column: Editorial Studio Photo -->
       <div class="relative w-full bg-white flex items-center justify-center overflow-hidden min-h-[360px] sm:min-h-[440px] md:min-h-[500px] lg:min-h-[560px]">
         <img 
+          id="brandStoryImage"
           src="https://thepatchee.com/cdn/shop/files/about_us.jpg?v=1744978769&width=1600" 
-          srcset="https://thepatchee.com/cdn/shop/files/about_us.jpg?v=1744978769&width=600 600w,
-                  https://thepatchee.com/cdn/shop/files/about_us.jpg?v=1744978769&width=1000 1000w,
-                  https://thepatchee.com/cdn/shop/files/about_us.jpg?v=1744978769&width=1600 1600w,
-                  https://thepatchee.com/cdn/shop/files/about_us.jpg?v=1744978769&width=2000 2000w"
-          sizes="(max-width: 768px) 100vw, 50vw"
           alt="Luxos - Own It. Lead It." 
           loading="lazy"
           class="w-full h-full object-cover object-center block select-none" />
@@ -345,18 +341,18 @@
         <div class="w-full max-w-[430px] text-center sm:text-left">
           
           <!-- Heading -->
-          <h2 class="text-2xl sm:text-3xl lg:text-[32px] font-bold text-[#1c1c1c] tracking-[0.16em] uppercase font-sans leading-tight mb-4 sm:mb-5">
+          <h2 id="brandStoryTitle" class="text-2xl sm:text-3xl lg:text-[32px] font-bold text-[#1c1c1c] tracking-[0.16em] uppercase font-sans leading-tight mb-4 sm:mb-5">
             OWN IT. LEAD IT.
           </h2>
 
           <!-- Narrative Text -->
-          <p class="text-[13px] sm:text-[14px] text-[#2c2c2c] leading-[1.75] font-normal font-sans mb-7 sm:mb-8">
+          <p id="brandStoryDesc" class="text-[13px] sm:text-[14px] text-[#2c2c2c] leading-[1.75] font-normal font-sans mb-7 sm:mb-8">
             At Luxos, we're driven by the belief that your bag is not just an accessory—it's a statement. We design bags that empower you to take on the world with confidence, style, and ease. We're constantly ahead of the curve, delivering the latest trends with unparalleled quality.
           </p>
 
           <!-- Call To Action -->
           <div>
-            <button onclick="openStoryModal()" 
+            <button id="brandStoryBtn" onclick="handleBrandStoryBtnClick()" 
                     class="inline-block bg-[#1c1c1c] hover:bg-black text-white text-[11px] sm:text-xs font-semibold uppercase tracking-[0.18em] px-8 py-3.5 transition-all duration-200 shadow-sm cursor-pointer">
               OUR STORY
             </button>
@@ -760,16 +756,16 @@
       </button>
 
       <div class="space-y-4">
-        <span class="text-[11px] font-bold uppercase tracking-[0.2em] text-neutral-400">Our Heritage &amp; Craft</span>
-        <h3 class="text-xl sm:text-2xl font-bold uppercase tracking-[0.14em] text-[#1c1c1c]">Own It. Lead It.</h3>
+        <span id="storyModalTag" class="text-[11px] font-bold uppercase tracking-[0.2em] text-neutral-400">Our Heritage &amp; Craft</span>
+        <h3 id="storyModalTitle" class="text-xl sm:text-2xl font-bold uppercase tracking-[0.14em] text-[#1c1c1c]">Own It. Lead It.</h3>
         
         <div class="w-12 h-0.5 bg-black"></div>
 
-        <p class="text-xs sm:text-sm text-gray-700 leading-relaxed">
+        <p id="storyModalPara1" class="text-xs sm:text-sm text-gray-700 leading-relaxed">
           At <b>Luxos</b>, we're driven by the belief that your bag is not just an accessory—it's a statement. We design bags that empower you to take on the world with confidence, style, and ease. We're constantly ahead of the curve, delivering the latest trends with unparalleled quality.
         </p>
 
-        <p class="text-xs sm:text-sm text-gray-600 leading-relaxed">
+        <p id="storyModalPara2" class="text-xs sm:text-sm text-gray-600 leading-relaxed">
           From executive smart RFID wallets to spacious commuter totes and evening statement bags, our Dhaka studio harmonizes international runway silhouettes with everyday resilience. Every stitch, zipper, and lining is meticulously crafted to accompany you on your journey.
         </p>
 

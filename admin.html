@@ -153,6 +153,14 @@
         <span id="sidebarLookbookBadge" class="bg-pink-500/20 text-pink-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-pink-500/30">Active</span>
       </button>
 
+      <button onclick="switchTab('brandstory')" id="nav-brandstory" class="nav-item w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition">
+        <div class="flex items-center gap-3">
+          <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" /></svg>
+          <span>Brand Story (OWN IT)</span>
+        </div>
+        <span id="sidebarBrandStoryBadge" class="bg-amber-500/20 text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-amber-500/30">Active</span>
+      </button>
+
       <button onclick="switchTab('ticker')" id="nav-ticker" class="nav-item w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition">
         <div class="flex items-center gap-3">
           <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.34 15.84c-.688-.06-1.386-.09-2.09-.09H7.5a4.5 4.5 0 110-9h.75c.704 0 1.402-.03 2.09-.09m0 9.18c.253.962.584 1.892.985 2.783.247.55.06 1.21-.463 1.511l-.657.38c-.551.318-1.26.117-1.527-.455a20.89 20.89 0 01-1.637-4.22m3.292-9.18a20.89 20.89 0 00-3.292-9.18c.267-.572.976-.773 1.527-.455l.657.38c.523.301.71.961.463 1.511a19.014 19.014 0 01-.985 2.783m1.02 4.18H18.75a3 3 0 013 3v0a3 3 0 01-3 3H11.36" /></svg>
@@ -823,6 +831,164 @@
               </button>
               <button onclick="handleSaveLookbook(event)" id="saveLookbookBtnBottom" type="button" class="save-lookbook-btn px-6 py-2.5 bg-black hover:bg-slate-800 text-white rounded-lg text-xs font-semibold shadow transition flex items-center gap-2 min-w-[140px] justify-center">
                 <span>Save Lookbook</span>
+              </button>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      <!-- =====================================================================
+           TAB: BRAND STORY ("OWN IT. LEAD IT.") MANAGEMENT
+           ===================================================================== -->
+      <section id="tab-brandstory" class="space-y-6 hidden">
+        <!-- Top Toolbar & Settings -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h3 class="text-sm font-bold text-slate-800 font-heading flex items-center gap-2">
+              <span>Brand Story ("OWN IT. LEAD IT.")</span>
+              <span id="brandStoryStatusBadge" class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200">Active</span>
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5">Customize the editorial studio model photo, headline, narrative story, and button action</p>
+          </div>
+
+          <div class="flex items-center gap-3 w-full sm:w-auto flex-wrap">
+            <label class="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer bg-slate-50 px-3.5 py-2 rounded-lg border border-slate-200 hover:bg-slate-100 transition">
+              <input id="brandStoryEnableToggle" type="checkbox" checked onchange="toggleBrandStoryEnabled()" class="rounded text-black focus:ring-black h-4 w-4" />
+              <span>Show on Website</span>
+            </label>
+
+            <a href="/#brandStorySection" target="_blank" class="px-3 py-2 text-xs font-semibold text-slate-600 hover:text-black border border-slate-200 rounded-lg bg-white hover:bg-slate-50 transition flex items-center gap-1.5 shadow-2xs">
+              <svg class="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
+              <span>View Live</span>
+            </a>
+
+            <button onclick="handleSaveBrandStory(event)" id="saveBrandStoryBtn" class="save-brandstory-btn bg-black hover:bg-slate-800 text-white text-xs font-semibold px-5 py-2 rounded-lg transition shadow-sm flex items-center gap-1.5 min-w-[130px] justify-center">
+              <span>Save Brand Story</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Main Studio Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          
+          <!-- Left Column: Live Visual Preview -->
+          <div class="lg:col-span-5 space-y-4 lg:sticky lg:top-24">
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                  <svg class="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                  <span>Live Storefront Preview</span>
+                </span>
+                <span class="text-[10px] text-slate-400 font-mono">Real-time sync</span>
+              </div>
+
+              <!-- Storefront Lookalike Card Preview -->
+              <div class="border border-[#E5DFD5] rounded-lg overflow-hidden shadow-sm bg-[#F5EFE6]">
+                <div class="bg-white flex items-center justify-center overflow-hidden h-52 border-b border-[#E5DFD5]">
+                  <img id="adminBrandStoryImg" src="https://thepatchee.com/cdn/shop/files/about_us.jpg?v=1744978769&width=1600" alt="Brand Story Preview" class="w-full h-full object-cover" />
+                </div>
+                <div class="p-5 text-center sm:text-left bg-[#F5EFE6]">
+                  <h4 id="adminBrandStoryPreviewTitle" class="text-base font-bold text-[#1c1c1c] tracking-[0.16em] uppercase font-sans leading-tight mb-2">
+                    OWN IT. LEAD IT.
+                  </h4>
+                  <p id="adminBrandStoryPreviewDesc" class="text-xs text-[#2c2c2c] leading-relaxed font-sans mb-4 line-clamp-4">
+                    At Luxos, we're driven by the belief that your bag is not just an accessory—it's a statement. We design bags that empower you to take on the world with confidence, style, and ease. We're constantly ahead of the curve, delivering the latest trends with unparalleled quality.
+                  </p>
+                  <div>
+                    <button id="adminBrandStoryPreviewBtn" class="inline-block bg-[#1c1c1c] text-white text-[10px] font-semibold uppercase tracking-[0.18em] px-5 py-2.5 shadow-xs pointer-events-none">
+                      OUR STORY
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg text-[11px] text-slate-500 space-y-1">
+                <p class="font-semibold text-slate-700">Photo Sizing Guideline:</p>
+                <p>High-resolution portrait or studio lifestyle photo. Recommended: <strong>1600 x 1200 px</strong> or <strong>1200 x 1200 px</strong> (JPG / WebP).</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Form Controls -->
+          <div class="lg:col-span-7 space-y-4">
+            
+            <!-- 1. Editorial Photo Upload / URL -->
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-3">
+              <label class="block font-semibold text-slate-700 uppercase tracking-wider text-xs">Editorial Studio Photo *</label>
+              
+              <div class="flex flex-col sm:flex-row gap-2.5">
+                <input id="brandStoryFileInput" type="file" accept="image/*" class="hidden" onchange="handleBrandStoryFileUpload(event)" />
+                <button type="button" onclick="document.getElementById('brandStoryFileInput').click()" class="bg-black hover:bg-slate-800 text-white px-4 py-2.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition shadow-sm whitespace-nowrap">
+                  <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" /></svg>
+                  <span>Upload Photo</span>
+                </button>
+                <input id="brandStoryImageUrlInput" type="text" placeholder="Or paste image URL (https://...)" oninput="updateBrandStoryImgFromUrl(this.value)" class="flex-1 border border-slate-300 rounded-lg p-2.5 text-xs focus:outline-none focus:border-black bg-white" />
+              </div>
+              <p class="text-[11px] text-slate-400">High quality editorial lifestyle photo of model with luxury bags.</p>
+            </div>
+
+            <!-- 2. Section Heading & Narrative Text -->
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-3">
+              <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Brand Story Content</h4>
+
+              <div>
+                <label class="block font-semibold text-slate-600 text-[11px] uppercase mb-1">Headline Text *</label>
+                <input id="brandStoryTitleInput" type="text" value="OWN IT. LEAD IT." oninput="updateBrandStoryLivePreview()" class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:outline-none focus:border-black font-bold uppercase tracking-wider" />
+              </div>
+
+              <div>
+                <label class="block font-semibold text-slate-600 text-[11px] uppercase mb-1">Story Narrative / Description *</label>
+                <textarea id="brandStoryDescInput" rows="4" oninput="updateBrandStoryLivePreview()" class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:outline-none focus:border-black leading-relaxed">At Luxos, we're driven by the belief that your bag is not just an accessory—it's a statement. We design bags that empower you to take on the world with confidence, style, and ease. We're constantly ahead of the curve, delivering the latest trends with unparalleled quality.</textarea>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                <div>
+                  <label class="block font-semibold text-slate-600 text-[11px] uppercase mb-1">Button Text</label>
+                  <input id="brandStoryBtnTextInput" type="text" value="OUR STORY" oninput="updateBrandStoryLivePreview()" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:outline-none focus:border-black font-semibold uppercase" />
+                </div>
+                <div>
+                  <label class="block font-semibold text-slate-600 text-[11px] uppercase mb-1">Button Action Link (Optional)</label>
+                  <input id="brandStoryBtnLinkInput" type="text" placeholder="Leave empty for story modal, or #link" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:outline-none focus:border-black" />
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. Extended Modal Story Content -->
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-3">
+              <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Extended "Our Story" Popup Modal</h4>
+              <p class="text-[11px] text-slate-500">When visitors click the <b>OUR STORY</b> button, this modal popup opens on the storefront.</p>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block font-semibold text-slate-600 text-[11px] uppercase mb-1">Modal Eyebrow Tag</label>
+                  <input id="brandStoryModalTagInput" type="text" value="Our Heritage & Craft" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:outline-none focus:border-black" />
+                </div>
+                <div>
+                  <label class="block font-semibold text-slate-600 text-[11px] uppercase mb-1">Modal Heading</label>
+                  <input id="brandStoryModalTitleInput" type="text" value="Own It. Lead It." class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:outline-none focus:border-black font-bold" />
+                </div>
+              </div>
+
+              <div>
+                <label class="block font-semibold text-slate-600 text-[11px] uppercase mb-1">Modal Story Paragraph 1</label>
+                <textarea id="brandStoryModalPara1Input" rows="2" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:outline-none focus:border-black">At Luxos, we're driven by the belief that your bag is not just an accessory—it's a statement. We design bags that empower you to take on the world with confidence, style, and ease. We're constantly ahead of the curve, delivering the latest trends with unparalleled quality.</textarea>
+              </div>
+
+              <div>
+                <label class="block font-semibold text-slate-600 text-[11px] uppercase mb-1">Modal Story Paragraph 2</label>
+                <textarea id="brandStoryModalPara2Input" rows="2" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:outline-none focus:border-black">From executive smart RFID wallets to spacious commuter totes and evening statement bags, our Dhaka studio harmonizes international runway silhouettes with everyday resilience. Every stitch, zipper, and lining is meticulously crafted to accompany you on your journey.</textarea>
+              </div>
+            </div>
+
+            <!-- Bottom Action Buttons -->
+            <div class="flex justify-end gap-3 pt-2">
+              <button onclick="resetBrandStoryToDefault()" type="button" class="px-4 py-2.5 border border-slate-300 text-slate-600 hover:text-black hover:bg-slate-50 rounded-lg text-xs font-semibold transition">
+                Reset to Default
+              </button>
+              <button onclick="handleSaveBrandStory(event)" id="saveBrandStoryBtnBottom" type="button" class="save-brandstory-btn px-6 py-2.5 bg-black hover:bg-slate-800 text-white rounded-lg text-xs font-semibold shadow transition flex items-center gap-2 min-w-[150px] justify-center">
+                <span>Save Brand Story</span>
               </button>
             </div>
 

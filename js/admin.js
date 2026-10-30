@@ -52,6 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (typeof renderTickerSettings === 'function') renderTickerSettings();
   if (typeof renderCollectionsManager === 'function') renderCollectionsManager();
   if (typeof renderLookbookManager === 'function') renderLookbookManager();
+  if (typeof renderBrandStoryManager === 'function') renderBrandStoryManager();
   if (typeof syncAdminPersistentData === 'function') syncAdminPersistentData();
 });
 
@@ -99,6 +100,21 @@ async function syncAdminPersistentData() {
     }
   } catch (err) {
     console.warn('Lookbook sync error from IndexedDB:', err);
+  }
+
+  try {
+    const idbBrandStory = await getItemIndexedDB('luxos_brandstory_data');
+    if (idbBrandStory && typeof idbBrandStory === 'object') {
+      AdminState.brandStory = idbBrandStory;
+      if (typeof renderBrandStoryManager === 'function') renderBrandStoryManager();
+      try {
+        localStorage.setItem('luxos_brandstory_data', JSON.stringify(idbBrandStory));
+      } catch (e) {}
+    } else if (AdminState.brandStory) {
+      await setItemIndexedDB('luxos_brandstory_data', AdminState.brandStory);
+    }
+  } catch (err) {
+    console.warn('Brand Story sync error from IndexedDB:', err);
   }
 }
 
@@ -226,6 +242,19 @@ function initData() {
   } else {
     AdminState.lookbook = getDefaultLookbook();
     localStorage.setItem('luxos_lookbook_data', JSON.stringify(AdminState.lookbook));
+  }
+
+  // Load Brand Story ("OWN IT. LEAD IT.")
+  const storedBrandStory = localStorage.getItem('luxos_brandstory_data');
+  if (storedBrandStory) {
+    try {
+      AdminState.brandStory = JSON.parse(storedBrandStory);
+    } catch (e) {
+      AdminState.brandStory = getDefaultBrandStory();
+    }
+  } else {
+    AdminState.brandStory = getDefaultBrandStory();
+    localStorage.setItem('luxos_brandstory_data', JSON.stringify(AdminState.brandStory));
   }
 }
 
@@ -448,6 +477,7 @@ window.switchTab = function (tabName) {
     banners: 'Hero Banners & Slideshow',
     collections: 'Shop by Collection (Curated Story Circles)',
     lookbook: 'Street Style Lookbook ("Bag The Vibe")',
+    brandstory: 'Brand Story ("OWN IT. LEAD IT.")',
     ticker: 'Scrolling Marquee Ticker Management',
     coupons: 'Promo Codes & Offers',
     customers: 'Customer Directory',
@@ -462,6 +492,7 @@ window.switchTab = function (tabName) {
   if (tabName === 'banners') renderBannersTable();
   if (tabName === 'collections') renderCollectionsManager();
   if (tabName === 'lookbook') renderLookbookManager();
+  if (tabName === 'brandstory') renderBrandStoryManager();
   if (tabName === 'ticker') renderTickerSettings();
   if (tabName === 'coupons') renderCouponsTable();
   if (tabName === 'customers') renderCustomersTable();
@@ -3235,6 +3266,251 @@ window.resetLookbookToDefault = function () {
       await saveLookbookSafely(AdminState.lookbook);
       renderLookbookManager();
       showAdminToast('Lookbook reset to default.');
+    }
+  });
+};
+
+/* ==========================================================================
+   Brand Story ("OWN IT. LEAD IT.") Manager
+   ========================================================================== */
+function getDefaultBrandStory() {
+  return {
+    enabled: true,
+    image: 'https://thepatchee.com/cdn/shop/files/about_us.jpg?v=1744978769&width=1600',
+    title: 'OWN IT. LEAD IT.',
+    desc: "At Luxos, we're driven by the belief that your bag is not just an accessory—it's a statement. We design bags that empower you to take on the world with confidence, style, and ease. We're constantly ahead of the curve, delivering the latest trends with unparalleled quality.",
+    btnText: 'OUR STORY',
+    btnLink: '',
+    modalTag: 'Our Heritage & Craft',
+    modalTitle: 'Own It. Lead It.',
+    modalPara1: "At Luxos, we're driven by the belief that your bag is not just an accessory—it's a statement. We design bags that empower you to take on the world with confidence, style, and ease. We're constantly ahead of the curve, delivering the latest trends with unparalleled quality.",
+    modalPara2: 'From executive smart RFID wallets to spacious commuter totes and evening statement bags, our Dhaka studio harmonizes international runway silhouettes with everyday resilience. Every stitch, zipper, and lining is meticulously crafted to accompany you on your journey.'
+  };
+}
+
+async function saveBrandStorySafely(data) {
+  try {
+    localStorage.setItem('luxos_brandstory_data', JSON.stringify(data));
+  } catch (err) {
+    console.warn('LocalStorage quota exceeded for Brand Story; falling back to IndexedDB:', err);
+  }
+
+  try {
+    await setItemIndexedDB('luxos_brandstory_data', data);
+  } catch (idbErr) {
+    console.error('Failed to save Brand Story in IndexedDB:', idbErr);
+  }
+
+  // Notify any active storefront tabs
+  try {
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: 'luxos_brandstory_data',
+      newValue: JSON.stringify(data)
+    }));
+  } catch (e) {}
+}
+
+window.renderBrandStoryManager = function () {
+  const story = AdminState.brandStory || getDefaultBrandStory();
+  AdminState.brandStory = story;
+
+  // Toggle & Status
+  const isEn = story.enabled !== false;
+  if ($('#brandStoryEnableToggle')) $('#brandStoryEnableToggle').checked = isEn;
+  if ($('#brandStoryStatusBadge')) {
+    $('#brandStoryStatusBadge').textContent = isEn ? 'Active' : 'Hidden';
+    $('#brandStoryStatusBadge').className = isEn
+      ? 'bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200'
+      : 'bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded-full border border-slate-200';
+  }
+  if ($('#sidebarBrandStoryBadge')) {
+    $('#sidebarBrandStoryBadge').textContent = isEn ? 'Active' : 'Hidden';
+    $('#sidebarBrandStoryBadge').className = isEn
+      ? 'bg-amber-500/20 text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-amber-500/30'
+      : 'bg-slate-700/50 text-slate-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-slate-600';
+  }
+
+  // Inputs
+  if ($('#brandStoryImageUrlInput')) $('#brandStoryImageUrlInput').value = story.image || '';
+  if ($('#brandStoryTitleInput')) $('#brandStoryTitleInput').value = story.title || 'OWN IT. LEAD IT.';
+  if ($('#brandStoryDescInput')) $('#brandStoryDescInput').value = story.desc || '';
+  if ($('#brandStoryBtnTextInput')) $('#brandStoryBtnTextInput').value = story.btnText || 'OUR STORY';
+  if ($('#brandStoryBtnLinkInput')) $('#brandStoryBtnLinkInput').value = story.btnLink || '';
+
+  if ($('#brandStoryModalTagInput')) $('#brandStoryModalTagInput').value = story.modalTag || 'Our Heritage & Craft';
+  if ($('#brandStoryModalTitleInput')) $('#brandStoryModalTitleInput').value = story.modalTitle || 'Own It. Lead It.';
+  if ($('#brandStoryModalPara1Input')) $('#brandStoryModalPara1Input').value = story.modalPara1 || '';
+  if ($('#brandStoryModalPara2Input')) $('#brandStoryModalPara2Input').value = story.modalPara2 || '';
+
+  // Update Live Preview Card
+  updateBrandStoryLivePreview();
+};
+
+window.updateBrandStoryLivePreview = function () {
+  const story = AdminState.brandStory || getDefaultBrandStory();
+
+  const title = $('#brandStoryTitleInput') ? $('#brandStoryTitleInput').value.trim() : (story.title || 'OWN IT. LEAD IT.');
+  const desc = $('#brandStoryDescInput') ? $('#brandStoryDescInput').value.trim() : (story.desc || '');
+  const btnText = $('#brandStoryBtnTextInput') ? $('#brandStoryBtnTextInput').value.trim() : (story.btnText || 'OUR STORY');
+  const image = ($('#brandStoryImageUrlInput') ? $('#brandStoryImageUrlInput').value.trim() : '') || story.image;
+
+  if ($('#adminBrandStoryImg') && image) $('#adminBrandStoryImg').src = image;
+  if ($('#adminBrandStoryPreviewTitle')) $('#adminBrandStoryPreviewTitle').textContent = title || 'OWN IT. LEAD IT.';
+  if ($('#adminBrandStoryPreviewDesc')) $('#adminBrandStoryPreviewDesc').textContent = desc || '';
+  if ($('#adminBrandStoryPreviewBtn')) $('#adminBrandStoryPreviewBtn').textContent = btnText || 'OUR STORY';
+};
+
+window.handleBrandStoryFileUpload = async function (event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+
+  if (!file.type.startsWith('image/')) {
+    showAdminToast('Please select a valid image file (JPG, PNG, or WebP).');
+    return;
+  }
+
+  showAdminToast('Optimizing brand story photo...');
+
+  try {
+    const compressedBase64 = await compressImageFile(file, 1600, 1200, 0.85);
+    if ($('#brandStoryImageUrlInput')) $('#brandStoryImageUrlInput').value = compressedBase64;
+    if ($('#adminBrandStoryImg')) $('#adminBrandStoryImg').src = compressedBase64;
+    if (!AdminState.brandStory) AdminState.brandStory = getDefaultBrandStory();
+    AdminState.brandStory.image = compressedBase64;
+    const sizeKB = Math.round(compressedBase64.length * 0.75 / 1024);
+    showAdminToast(`Photo optimized & loaded (${sizeKB} KB)!`);
+  } catch (err) {
+    console.error('Brand story photo compression error:', err);
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      const base64 = e.target.result;
+      if ($('#brandStoryImageUrlInput')) $('#brandStoryImageUrlInput').value = base64;
+      if ($('#adminBrandStoryImg')) $('#adminBrandStoryImg').src = base64;
+      if (!AdminState.brandStory) AdminState.brandStory = getDefaultBrandStory();
+      AdminState.brandStory.image = base64;
+      showAdminToast('Photo loaded!');
+    };
+    reader.readAsDataURL(file);
+  }
+};
+
+window.updateBrandStoryImgFromUrl = function (url) {
+  const val = url.trim();
+  if (val && $('#adminBrandStoryImg')) {
+    $('#adminBrandStoryImg').src = val;
+    if (!AdminState.brandStory) AdminState.brandStory = getDefaultBrandStory();
+    AdminState.brandStory.image = val;
+  }
+};
+
+window.toggleBrandStoryEnabled = async function () {
+  const isEn = $('#brandStoryEnableToggle') ? $('#brandStoryEnableToggle').checked : true;
+  if (!AdminState.brandStory) AdminState.brandStory = getDefaultBrandStory();
+  AdminState.brandStory.enabled = isEn;
+  await saveBrandStorySafely(AdminState.brandStory);
+  renderBrandStoryManager();
+  showAdminToast(isEn ? 'Brand Story ("OWN IT. LEAD IT.") is now visible on storefront.' : 'Brand Story is now hidden on storefront.');
+};
+
+window.handleSaveBrandStory = async function (e) {
+  if (e && e.preventDefault) e.preventDefault();
+
+  const saveBtns = Array.from(document.querySelectorAll('.save-brandstory-btn, #saveBrandStoryBtn, #saveBrandStoryBtnBottom'));
+
+  // Trigger smooth loading animation on save button
+  saveBtns.forEach(btn => {
+    btn.disabled = true;
+    btn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700', 'bg-red-600', 'hover:bg-red-700', 'scale-105', 'bg-black', 'hover:bg-slate-800');
+    btn.classList.add('bg-slate-800', 'cursor-wait', 'opacity-90');
+    btn.innerHTML = `
+      <svg class="animate-spin w-4 h-4 text-amber-400 shrink-0 inline mr-1.5" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+      </svg>
+      <span class="tracking-wide">Saving...</span>
+    `;
+  });
+
+  try {
+    let image = ($('#brandStoryImageUrlInput') ? $('#brandStoryImageUrlInput').value.trim() : '') || (AdminState.brandStory && AdminState.brandStory.image) || '';
+    if (image.startsWith('data:image/') && image.length > 50000) {
+      try {
+        image = await compressDataUrl(image, 1600, 1200, 0.82);
+      } catch (cErr) {}
+    }
+
+    const data = {
+      enabled: $('#brandStoryEnableToggle') ? $('#brandStoryEnableToggle').checked : true,
+      image,
+      title: $('#brandStoryTitleInput') ? $('#brandStoryTitleInput').value.trim() : 'OWN IT. LEAD IT.',
+      desc: $('#brandStoryDescInput') ? $('#brandStoryDescInput').value.trim() : '',
+      btnText: $('#brandStoryBtnTextInput') ? $('#brandStoryBtnTextInput').value.trim() : 'OUR STORY',
+      btnLink: $('#brandStoryBtnLinkInput') ? $('#brandStoryBtnLinkInput').value.trim() : '',
+      modalTag: $('#brandStoryModalTagInput') ? $('#brandStoryModalTagInput').value.trim() : 'Our Heritage & Craft',
+      modalTitle: $('#brandStoryModalTitleInput') ? $('#brandStoryModalTitleInput').value.trim() : 'Own It. Lead It.',
+      modalPara1: $('#brandStoryModalPara1Input') ? $('#brandStoryModalPara1Input').value.trim() : '',
+      modalPara2: $('#brandStoryModalPara2Input') ? $('#brandStoryModalPara2Input').value.trim() : ''
+    };
+
+    AdminState.brandStory = data;
+    await saveBrandStorySafely(data);
+
+    // Small delay so user clearly perceives the smooth transition
+    await new Promise(resolve => setTimeout(resolve, 350));
+
+    // Animate to success "Saved" state
+    saveBtns.forEach(btn => {
+      btn.disabled = false;
+      btn.classList.remove('bg-slate-800', 'cursor-wait', 'opacity-90', 'bg-black', 'hover:bg-slate-800');
+      btn.classList.add('bg-emerald-600', 'hover:bg-emerald-700', 'text-white', 'scale-105', 'transition-all', 'duration-300', 'shadow-md');
+      btn.innerHTML = `
+        <svg class="w-4 h-4 text-white shrink-0 inline mr-1.5 animate-bounce" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"></path>
+        </svg>
+        <span class="font-bold text-white tracking-wide">Saved!</span>
+      `;
+    });
+
+    showAdminToast('Brand Story ("OWN IT. LEAD IT.") saved successfully!');
+
+    // Smoothly restore default idle state after 2.5s
+    setTimeout(() => {
+      saveBtns.forEach(btn => {
+        btn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700', 'scale-105', 'shadow-md');
+        btn.classList.add('bg-black', 'hover:bg-slate-800');
+        btn.innerHTML = `<span>Save Brand Story</span>`;
+      });
+    }, 2500);
+
+  } catch (err) {
+    console.error('Error saving brand story:', err);
+    saveBtns.forEach(btn => {
+      btn.disabled = false;
+      btn.classList.remove('bg-slate-800', 'cursor-wait', 'opacity-90', 'bg-black');
+      btn.classList.add('bg-red-600', 'hover:bg-red-700', 'text-white');
+      btn.innerHTML = `<span>Save Failed</span>`;
+    });
+    setTimeout(() => {
+      saveBtns.forEach(btn => {
+        btn.classList.remove('bg-red-600', 'hover:bg-red-700');
+        btn.classList.add('bg-black', 'hover:bg-slate-800');
+        btn.innerHTML = `<span>Save Brand Story</span>`;
+      });
+    }, 2500);
+    showAdminToast(err.message || 'Error saving brand story. Please try again.');
+  }
+};
+
+window.resetBrandStoryToDefault = function () {
+  showConfirmDialog({
+    title: 'Reset Brand Story?',
+    message: 'Are you sure you want to restore the default photo, headline, and story narrative?',
+    confirmText: 'Reset to Default',
+    onConfirm: async () => {
+      AdminState.brandStory = getDefaultBrandStory();
+      await saveBrandStorySafely(AdminState.brandStory);
+      renderBrandStoryManager();
+      showAdminToast('Brand Story reset to default.');
     }
   });
 };

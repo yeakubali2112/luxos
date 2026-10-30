@@ -78,6 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updateWishlistBadge();
   initHotspots();
   renderLookbookSection();
+  renderBrandStorySection();
   if (typeof updateHeaderProfileIcon === 'function') updateHeaderProfileIcon();
 });
 
@@ -176,6 +177,9 @@ window.addEventListener('storage', (e) => {
   }
   if (e.key === 'luxos_lookbook_data') {
     renderLookbookSection();
+  }
+  if (e.key === 'luxos_brandstory_data') {
+    renderBrandStorySection();
   }
 });
 
@@ -1528,6 +1532,97 @@ function renderLookbookSection() {
     } catch (e) {}
   }
 }
+
+/* ==========================================================================
+   Brand Story: "OWN IT. LEAD IT."
+   ========================================================================== */
+function getBrandStoryData() {
+  const custom = localStorage.getItem('luxos_brandstory_data');
+  if (custom) {
+    try {
+      const parsed = JSON.parse(custom);
+      if (parsed && typeof parsed === 'object') return parsed;
+    } catch (e) {}
+  }
+  return {
+    enabled: true,
+    image: 'https://thepatchee.com/cdn/shop/files/about_us.jpg?v=1744978769&width=1600',
+    title: 'OWN IT. LEAD IT.',
+    desc: "At Luxos, we're driven by the belief that your bag is not just an accessory—it's a statement. We design bags that empower you to take on the world with confidence, style, and ease. We're constantly ahead of the curve, delivering the latest trends with unparalleled quality.",
+    btnText: 'OUR STORY',
+    btnLink: '',
+    modalTag: 'Our Heritage & Craft',
+    modalTitle: 'Own It. Lead It.',
+    modalPara1: "At Luxos, we're driven by the belief that your bag is not just an accessory—it's a statement. We design bags that empower you to take on the world with confidence, style, and ease. We're constantly ahead of the curve, delivering the latest trends with unparalleled quality.",
+    modalPara2: 'From executive smart RFID wallets to spacious commuter totes and evening statement bags, our Dhaka studio harmonizes international runway silhouettes with everyday resilience. Every stitch, zipper, and lining is meticulously crafted to accompany you on your journey.'
+  };
+}
+
+function renderBrandStorySection() {
+  const section = $('#brandStorySection');
+  if (!section) return;
+
+  const data = getBrandStoryData();
+  if (data.enabled === false) {
+    section.style.display = 'none';
+    return;
+  }
+  section.style.display = 'block';
+
+  if ($('#brandStoryImage') && data.image) {
+    $('#brandStoryImage').src = data.image;
+  }
+  if ($('#brandStoryTitle')) {
+    $('#brandStoryTitle').textContent = data.title || 'OWN IT. LEAD IT.';
+  }
+  if ($('#brandStoryDesc')) {
+    $('#brandStoryDesc').textContent = data.desc || '';
+  }
+  if ($('#brandStoryBtn')) {
+    $('#brandStoryBtn').textContent = data.btnText || 'OUR STORY';
+  }
+
+  // Update modal contents if present
+  if ($('#storyModalTag')) $('#storyModalTag').textContent = data.modalTag || 'Our Heritage & Craft';
+  if ($('#storyModalTitle')) $('#storyModalTitle').textContent = data.modalTitle || data.title || 'Own It. Lead It.';
+  if ($('#storyModalPara1')) $('#storyModalPara1').textContent = data.modalPara1 || data.desc || '';
+  if ($('#storyModalPara2')) {
+    $('#storyModalPara2').textContent = data.modalPara2 || '';
+    $('#storyModalPara2').style.display = data.modalPara2 ? 'block' : 'none';
+  }
+
+  // Background IndexedDB sync
+  if (!renderBrandStorySection.idbSynced) {
+    renderBrandStorySection.idbSynced = true;
+    try {
+      getItemIndexedDB('luxos_brandstory_data').then(idbData => {
+        if (idbData && typeof idbData === 'object') {
+          try { localStorage.setItem('luxos_brandstory_data', JSON.stringify(idbData)); } catch(e){}
+          renderBrandStorySection();
+        }
+      }).catch(() => {});
+    } catch (e) {}
+  }
+}
+
+window.handleBrandStoryBtnClick = function () {
+  const data = getBrandStoryData();
+  if (data.btnLink && data.btnLink.trim()) {
+    const link = data.btnLink.trim();
+    if (link.startsWith('#')) {
+      const target = document.querySelector(link);
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth' });
+        return;
+      }
+    }
+    window.location.href = link;
+  } else {
+    if (typeof openStoryModal === 'function') {
+      openStoryModal();
+    }
+  }
+};
 
 function initHotspots() {
   const pin1 = $('#hotspotPin1');
