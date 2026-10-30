@@ -1927,7 +1927,15 @@ function getDefaultFooterData() {
       visa: true,
       mastercard: true,
       cod: true,
-      rocket: false
+      rocket: false,
+      items: [
+        { id: 'bkash', name: 'bKash', enabled: true, logo: 'images/payments/bkash.svg', isCustom: false },
+        { id: 'nagad', name: 'Nagad', enabled: true, logo: 'images/payments/nagad.svg', isCustom: false },
+        { id: 'visa', name: 'Visa', enabled: true, logo: 'images/payments/visa.svg', isCustom: false },
+        { id: 'mastercard', name: 'Mastercard', enabled: true, logo: 'images/payments/mastercard.svg', isCustom: false },
+        { id: 'cod', name: 'Cash on Delivery', enabled: true, logo: 'images/payments/cod.svg', isCustom: false },
+        { id: 'rocket', name: 'Rocket', enabled: false, logo: 'images/payments/rocket.svg', isCustom: false }
+      ]
     },
     trustBadges: {
       enabled: true,
@@ -1937,6 +1945,49 @@ function getDefaultFooterData() {
       badge4: { title: "Cash on Delivery", subtitle: "Pay when your parcel arrives at your doorstep." }
     }
   };
+}
+
+function getDefaultPaymentBadges() {
+  return [
+    { id: 'bkash', name: 'bKash', enabled: true, logo: 'images/payments/bkash.svg', isCustom: false },
+    { id: 'nagad', name: 'Nagad', enabled: true, logo: 'images/payments/nagad.svg', isCustom: false },
+    { id: 'visa', name: 'Visa', enabled: true, logo: 'images/payments/visa.svg', isCustom: false },
+    { id: 'mastercard', name: 'Mastercard', enabled: true, logo: 'images/payments/mastercard.svg', isCustom: false },
+    { id: 'cod', name: 'Cash on Delivery', enabled: true, logo: 'images/payments/cod.svg', isCustom: false },
+    { id: 'rocket', name: 'Rocket', enabled: false, logo: 'images/payments/rocket.svg', isCustom: false }
+  ];
+}
+
+function normalizePaymentBadges(paymentsData) {
+  const defaults = getDefaultPaymentBadges();
+  if (!paymentsData) return defaults;
+  if (Array.isArray(paymentsData.items) && paymentsData.items.length > 0) {
+    return paymentsData.items.map(item => {
+      const def = defaults.find(d => d.id === item.id);
+      return {
+        id: item.id || 'pm_' + Math.random().toString(36).substr(2, 6),
+        name: item.name || (def ? def.name : 'Payment'),
+        enabled: item.enabled !== false,
+        logo: item.logo !== undefined ? item.logo : (def ? def.logo : ''),
+        isCustom: item.isCustom !== undefined ? item.isCustom : !def
+      };
+    });
+  }
+  return defaults.map(d => ({
+    ...d,
+    enabled: paymentsData[d.id] !== undefined ? !!paymentsData[d.id] : d.enabled
+  }));
+}
+
+function safeEscape(str) {
+  if (!str) return '';
+  return String(str).replace(/[&<>"']/g, m => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  })[m]);
 }
 
 function getFooterData() {
@@ -1987,18 +2038,26 @@ function renderFooter() {
     $('#footerCopyright').innerHTML = data.copyright;
   }
 
-  // 5. Payment Badges
+  // 5. Payment Badges with Logos
   const badgesEl = $('#footerPaymentBadges');
-  if (badgesEl && data.payments) {
-    const p = data.payments;
-    const badges = ['<span class="text-[11px] text-neutral-400 mr-2">Secure Payments:</span>'];
-    if (p.bkash) badges.push('<span class="px-2 py-0.5 bg-neutral-900 border border-neutral-700 rounded text-[10px] text-neutral-300 font-semibold">bKash</span>');
-    if (p.nagad) badges.push('<span class="px-2 py-0.5 bg-neutral-900 border border-neutral-700 rounded text-[10px] text-neutral-300 font-semibold">Nagad</span>');
-    if (p.visa) badges.push('<span class="px-2 py-0.5 bg-neutral-900 border border-neutral-700 rounded text-[10px] text-neutral-300 font-semibold">Visa</span>');
-    if (p.mastercard) badges.push('<span class="px-2 py-0.5 bg-neutral-900 border border-neutral-700 rounded text-[10px] text-neutral-300 font-semibold">Mastercard</span>');
-    if (p.cod) badges.push('<span class="px-2 py-0.5 bg-neutral-900 border border-neutral-700 rounded text-[10px] text-neutral-300 font-semibold">Cash on Delivery</span>');
-    if (p.rocket) badges.push('<span class="px-2 py-0.5 bg-neutral-900 border border-neutral-700 rounded text-[10px] text-neutral-300 font-semibold">Rocket</span>');
-    badgesEl.innerHTML = badges.join('');
+  if (badgesEl) {
+    const badges = normalizePaymentBadges(data.payments);
+    const activeBadges = badges.filter(b => b.enabled !== false);
+    if (activeBadges.length === 0) {
+      badgesEl.innerHTML = '';
+    } else {
+      badgesEl.innerHTML = `
+        <span class="text-[11px] text-neutral-400 mr-2">Secure Payments:</span>
+        <div class="flex items-center gap-2 flex-wrap">
+          ${activeBadges.map(b => `
+            <div class="h-7 px-2.5 py-1 bg-white rounded flex items-center justify-center shadow-xs border border-neutral-200/20 hover:scale-105 transition-transform" title="${safeEscape(b.name)}">
+              ${b.logo ? `<img src="${safeEscape(b.logo)}" alt="${safeEscape(b.name)}" class="h-4.5 max-h-5 w-auto max-w-[54px] object-contain" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline';" />` : ''}
+              <span ${b.logo ? 'style="display:none;"' : ''} class="text-[10px] font-bold text-slate-800 tracking-wider">${safeEscape(b.name)}</span>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
   }
 
   // 6. Trust Badges / Value Props

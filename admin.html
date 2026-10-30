@@ -1963,33 +1963,27 @@
               <input id="footerCopyrightInput" type="text" value="© 2026 Luxos Bangladesh. All rights reserved. Handcrafted with passion." oninput="updateFooterLivePreview()" class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:outline-none focus:border-black font-medium" />
             </div>
 
-            <div>
-              <label class="block font-semibold text-slate-700 text-xs mb-2">Supported Payment Badges</label>
-              <div class="grid grid-cols-3 gap-2 text-xs">
-                <label class="flex items-center gap-1.5 p-2 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition">
-                  <input id="payBkash" type="checkbox" checked onchange="updateFooterLivePreview()" class="rounded text-black focus:ring-black h-3.5 w-3.5" />
-                  <span class="font-bold text-pink-600">bKash</span>
-                </label>
-                <label class="flex items-center gap-1.5 p-2 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition">
-                  <input id="payNagad" type="checkbox" checked onchange="updateFooterLivePreview()" class="rounded text-black focus:ring-black h-3.5 w-3.5" />
-                  <span class="font-bold text-orange-600">Nagad</span>
-                </label>
-                <label class="flex items-center gap-1.5 p-2 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition">
-                  <input id="payVisa" type="checkbox" checked onchange="updateFooterLivePreview()" class="rounded text-black focus:ring-black h-3.5 w-3.5" />
-                  <span class="font-bold text-blue-600">Visa</span>
-                </label>
-                <label class="flex items-center gap-1.5 p-2 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition">
-                  <input id="payMastercard" type="checkbox" checked onchange="updateFooterLivePreview()" class="rounded text-black focus:ring-black h-3.5 w-3.5" />
-                  <span class="font-bold text-red-600">Mastercard</span>
-                </label>
-                <label class="flex items-center gap-1.5 p-2 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition">
-                  <input id="payCod" type="checkbox" checked onchange="updateFooterLivePreview()" class="rounded text-black focus:ring-black h-3.5 w-3.5" />
-                  <span class="font-bold text-emerald-600">COD</span>
-                </label>
-                <label class="flex items-center gap-1.5 p-2 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition">
-                  <input id="payRocket" type="checkbox" onchange="updateFooterLivePreview()" class="rounded text-black focus:ring-black h-3.5 w-3.5" />
-                  <span class="font-bold text-purple-600">Rocket</span>
-                </label>
+            <!-- Supported Payment Badges & Logos -->
+            <div class="pt-3 border-t border-slate-100">
+              <div class="flex items-center justify-between mb-2">
+                <div>
+                  <label class="block font-bold text-slate-800 text-xs">Supported Payment Badges &amp; Logos</label>
+                  <p class="text-[10px] text-slate-400">Upload logos, enter URLs, or toggle payment methods</p>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <button type="button" onclick="addNewPaymentBadge()" class="px-2 py-1 bg-slate-900 hover:bg-slate-800 text-white rounded text-[10px] font-semibold flex items-center gap-1 transition cursor-pointer">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                    <span>Add Badge</span>
+                  </button>
+                  <button type="button" onclick="resetAllPaymentBadges()" title="Reset All to Default SVGs" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded text-[10px] font-semibold transition cursor-pointer">
+                    <span>Reset All</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- List of payment badges container -->
+              <div id="paymentBadgesListContainer" class="space-y-2 mt-2">
+                <!-- Dynamically populated by renderPaymentBadgesManager() -->
               </div>
             </div>
           </div>

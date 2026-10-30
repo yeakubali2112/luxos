@@ -4898,7 +4898,15 @@ function getDefaultFooterData() {
       visa: true,
       mastercard: true,
       cod: true,
-      rocket: false
+      rocket: false,
+      items: [
+        { id: 'bkash', name: 'bKash', enabled: true, logo: 'images/payments/bkash.svg', isCustom: false },
+        { id: 'nagad', name: 'Nagad', enabled: true, logo: 'images/payments/nagad.svg', isCustom: false },
+        { id: 'visa', name: 'Visa', enabled: true, logo: 'images/payments/visa.svg', isCustom: false },
+        { id: 'mastercard', name: 'Mastercard', enabled: true, logo: 'images/payments/mastercard.svg', isCustom: false },
+        { id: 'cod', name: 'Cash on Delivery', enabled: true, logo: 'images/payments/cod.svg', isCustom: false },
+        { id: 'rocket', name: 'Rocket', enabled: false, logo: 'images/payments/rocket.svg', isCustom: false }
+      ]
     },
     trustBadges: {
       enabled: true,
@@ -4908,6 +4916,49 @@ function getDefaultFooterData() {
       badge4: { title: "Cash on Delivery", subtitle: "Pay when your parcel arrives at your doorstep." }
     }
   };
+}
+
+function getDefaultPaymentBadges() {
+  return [
+    { id: 'bkash', name: 'bKash', enabled: true, logo: 'images/payments/bkash.svg', isCustom: false },
+    { id: 'nagad', name: 'Nagad', enabled: true, logo: 'images/payments/nagad.svg', isCustom: false },
+    { id: 'visa', name: 'Visa', enabled: true, logo: 'images/payments/visa.svg', isCustom: false },
+    { id: 'mastercard', name: 'Mastercard', enabled: true, logo: 'images/payments/mastercard.svg', isCustom: false },
+    { id: 'cod', name: 'Cash on Delivery', enabled: true, logo: 'images/payments/cod.svg', isCustom: false },
+    { id: 'rocket', name: 'Rocket', enabled: false, logo: 'images/payments/rocket.svg', isCustom: false }
+  ];
+}
+
+function normalizePaymentBadges(paymentsData) {
+  const defaults = getDefaultPaymentBadges();
+  if (!paymentsData) return defaults;
+  if (Array.isArray(paymentsData.items) && paymentsData.items.length > 0) {
+    return paymentsData.items.map(item => {
+      const def = defaults.find(d => d.id === item.id);
+      return {
+        id: item.id || 'pm_' + Math.random().toString(36).substr(2, 6),
+        name: item.name || (def ? def.name : 'Payment'),
+        enabled: item.enabled !== false,
+        logo: item.logo !== undefined ? item.logo : (def ? def.logo : ''),
+        isCustom: item.isCustom !== undefined ? item.isCustom : !def
+      };
+    });
+  }
+  return defaults.map(d => ({
+    ...d,
+    enabled: paymentsData[d.id] !== undefined ? !!paymentsData[d.id] : d.enabled
+  }));
+}
+
+function safeEscape(str) {
+  if (!str) return '';
+  return String(str).replace(/[&<>"']/g, m => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  })[m]);
 }
 
 async function saveFooterSafely(data) {
@@ -4966,14 +5017,8 @@ window.renderFooterManager = function () {
   // Copyright
   if ($('#footerCopyrightInput')) $('#footerCopyrightInput').value = data.copyright || '';
 
-  // Payments
-  const p = data.payments || {};
-  if ($('#payBkash')) $('#payBkash').checked = p.bkash !== false;
-  if ($('#payNagad')) $('#payNagad').checked = p.nagad !== false;
-  if ($('#payVisa')) $('#payVisa').checked = p.visa !== false;
-  if ($('#payMastercard')) $('#payMastercard').checked = p.mastercard !== false;
-  if ($('#payCod')) $('#payCod').checked = p.cod !== false;
-  if ($('#payRocket')) $('#payRocket').checked = p.rocket === true;
+  // Payments Manager
+  renderPaymentBadgesManager();
 
   // Trust Badges
   const tb = data.trustBadges || {};
@@ -4998,6 +5043,194 @@ window.renderFooterManager = function () {
   updateFooterLivePreview();
 };
 
+window.renderPaymentBadgesManager = function () {
+  const container = $('#paymentBadgesListContainer');
+  if (!container) return;
+
+  if (!AdminState.footer) AdminState.footer = getDefaultFooterData();
+  if (!AdminState.footer.payments) AdminState.footer.payments = {};
+
+  const items = normalizePaymentBadges(AdminState.footer.payments);
+  AdminState.footer.payments.items = items;
+
+  container.innerHTML = items.map(badge => `
+    <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 transition hover:border-slate-300">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <label class="flex items-center cursor-pointer p-0.5" title="Toggle visible">
+          <input type="checkbox" ${badge.enabled ? 'checked' : ''} onchange="togglePaymentBadgeEnabled('${badge.id}', this.checked)" class="rounded text-black focus:ring-black h-4 w-4 cursor-pointer" />
+        </label>
+        
+        <!-- Logo Preview Card -->
+        <div class="w-14 h-8 bg-white border border-slate-200 rounded p-1 flex items-center justify-center overflow-hidden flex-shrink-0 shadow-2xs">
+          ${badge.logo ? `<img src="${safeEscape(badge.logo)}" alt="${safeEscape(badge.name)}" class="h-full w-auto max-w-full object-contain" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline';" /><span style="display:none;" class="text-[9px] font-bold text-slate-400">NO LOGO</span>` : `<span class="text-[9px] font-bold text-slate-400">NO LOGO</span>`}
+        </div>
+
+        <!-- Badge Name input -->
+        <div class="min-w-0">
+          <input type="text" value="${safeEscape(badge.name)}" oninput="updatePaymentBadgeName('${badge.id}', this.value)" class="text-xs font-bold text-slate-800 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-black focus:outline-none w-24 sm:w-28 truncate" placeholder="Method Name" />
+          <span class="text-[9px] ${badge.enabled ? 'text-emerald-600 font-semibold' : 'text-slate-400'} block">${badge.enabled ? '● Active' : '○ Hidden'}</span>
+        </div>
+      </div>
+
+      <!-- Actions: Upload, URL, Reset, Delete -->
+      <div class="flex items-center gap-1.5 flex-shrink-0">
+        <!-- Hidden file input -->
+        <input type="file" id="payLogoFile_${badge.id}" accept="image/*" class="hidden" onchange="handlePaymentBadgeFileUpload('${badge.id}', this)" />
+        
+        <!-- Upload Button -->
+        <button type="button" onclick="document.getElementById('payLogoFile_${badge.id}').click()" title="Upload Image Logo" class="px-2 py-1 bg-white border border-slate-300 hover:bg-slate-100 rounded text-[10px] font-semibold text-slate-700 flex items-center gap-1 shadow-2xs transition cursor-pointer">
+          <svg class="w-3 h-3 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
+          <span>Upload</span>
+        </button>
+
+        <!-- URL Button -->
+        <button type="button" onclick="promptPaymentBadgeUrl('${badge.id}')" title="Enter Image URL" class="px-2 py-1 bg-white border border-slate-300 hover:bg-slate-100 rounded text-[10px] font-semibold text-slate-700 shadow-2xs transition cursor-pointer">
+          <span>URL</span>
+        </button>
+
+        <!-- Reset to Default SVG -->
+        <button type="button" onclick="resetPaymentBadgeSingle('${badge.id}')" title="Reset to default logo" class="p-1 text-slate-400 hover:text-slate-700 rounded transition cursor-pointer">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+        </button>
+
+        ${badge.isCustom ? `
+        <!-- Delete Custom Badge -->
+        <button type="button" onclick="deleteCustomPaymentBadge('${badge.id}')" title="Delete custom badge" class="p-1 text-red-400 hover:text-red-600 rounded transition cursor-pointer">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+        ` : ''}
+      </div>
+    </div>
+  `).join('');
+};
+
+window.togglePaymentBadgeEnabled = function (id, checked) {
+  if (!AdminState.footer) AdminState.footer = getDefaultFooterData();
+  const items = normalizePaymentBadges(AdminState.footer.payments);
+  const item = items.find(b => b.id === id);
+  if (item) item.enabled = !!checked;
+  AdminState.footer.payments.items = items;
+  if (AdminState.footer.payments[id] !== undefined) {
+    AdminState.footer.payments[id] = !!checked;
+  }
+  renderPaymentBadgesManager();
+  updateFooterLivePreview();
+};
+
+window.updatePaymentBadgeName = function (id, name) {
+  if (!AdminState.footer) AdminState.footer = getDefaultFooterData();
+  const items = normalizePaymentBadges(AdminState.footer.payments);
+  const item = items.find(b => b.id === id);
+  if (item) item.name = name.trim();
+  AdminState.footer.payments.items = items;
+  updateFooterLivePreview();
+};
+
+window.handlePaymentBadgeFileUpload = async function (id, input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+
+  try {
+    let base64 = '';
+    try {
+      base64 = await compressImageFile(file, 400, 200, 0.9);
+    } catch(err) {
+      const reader = new FileReader();
+      base64 = await new Promise(resolve => {
+        reader.onload = e => resolve(e.target.result);
+        reader.readAsDataURL(file);
+      });
+    }
+
+    if (!AdminState.footer) AdminState.footer = getDefaultFooterData();
+    const items = normalizePaymentBadges(AdminState.footer.payments);
+    const item = items.find(b => b.id === id);
+    if (item) {
+      item.logo = base64;
+      AdminState.footer.payments.items = items;
+      renderPaymentBadgesManager();
+      updateFooterLivePreview();
+      showAdminToast(`${item.name} logo uploaded!`);
+    }
+  } catch(e) {
+    console.error('Failed to process payment logo:', e);
+    showAdminToast('Could not load logo image.');
+  } finally {
+    input.value = '';
+  }
+};
+
+window.promptPaymentBadgeUrl = function (id) {
+  if (!AdminState.footer) AdminState.footer = getDefaultFooterData();
+  const items = normalizePaymentBadges(AdminState.footer.payments);
+  const item = items.find(b => b.id === id);
+  if (!item) return;
+
+  const current = item.logo || '';
+  const url = prompt(`Enter logo image URL for ${item.name}:`, current.startsWith('data:') ? '' : current);
+  if (url !== null) {
+    item.logo = url.trim();
+    AdminState.footer.payments.items = items;
+    renderPaymentBadgesManager();
+    updateFooterLivePreview();
+    showAdminToast(`${item.name} logo URL updated!`);
+  }
+};
+
+window.resetPaymentBadgeSingle = function (id) {
+  const defaults = getDefaultPaymentBadges();
+  const def = defaults.find(d => d.id === id);
+  if (!AdminState.footer) AdminState.footer = getDefaultFooterData();
+  const items = normalizePaymentBadges(AdminState.footer.payments);
+  const item = items.find(b => b.id === id);
+  if (item) {
+    item.logo = def ? def.logo : '';
+    if (def) item.name = def.name;
+    AdminState.footer.payments.items = items;
+    renderPaymentBadgesManager();
+    updateFooterLivePreview();
+    showAdminToast(`${item.name} logo reset to default!`);
+  }
+};
+
+window.resetAllPaymentBadges = function () {
+  if (!confirm('Reset all payment badges and logos to defaults?')) return;
+  if (!AdminState.footer) AdminState.footer = getDefaultFooterData();
+  AdminState.footer.payments.items = getDefaultPaymentBadges();
+  renderPaymentBadgesManager();
+  updateFooterLivePreview();
+  showAdminToast('All payment badges reset to defaults!');
+};
+
+window.addNewPaymentBadge = function () {
+  const name = prompt('Enter payment badge name (e.g. Amex, Upay, Apple Pay):', '');
+  if (!name || !name.trim()) return;
+
+  if (!AdminState.footer) AdminState.footer = getDefaultFooterData();
+  const items = normalizePaymentBadges(AdminState.footer.payments);
+  const newId = 'pm_' + Date.now();
+  items.push({
+    id: newId,
+    name: name.trim(),
+    enabled: true,
+    logo: '',
+    isCustom: true
+  });
+  AdminState.footer.payments.items = items;
+  renderPaymentBadgesManager();
+  updateFooterLivePreview();
+  showAdminToast(`Added "${name.trim()}". Now click "Upload" or "URL" to add its logo!`);
+};
+
+window.deleteCustomPaymentBadge = function (id) {
+  if (!AdminState.footer) AdminState.footer = getDefaultFooterData();
+  const items = normalizePaymentBadges(AdminState.footer.payments);
+  AdminState.footer.payments.items = items.filter(b => b.id !== id);
+  renderPaymentBadgesManager();
+  updateFooterLivePreview();
+  showAdminToast('Custom badge removed.');
+};
+
 window.updateFooterLivePreview = function () {
   const desc = $('#footerDescInput') ? $('#footerDescInput').value.trim() : '';
   const addr = $('#footerAddressInput') ? $('#footerAddressInput').value.trim() : '';
@@ -5018,14 +5251,18 @@ window.updateFooterLivePreview = function () {
   // Badges preview
   const badgesContainer = $('#adminPreviewPaymentBadges');
   if (badgesContainer) {
-    const list = [];
-    if ($('#payBkash') && $('#payBkash').checked) list.push('<span class="px-2 py-0.5 bg-neutral-900 border border-neutral-700 rounded text-[10px] text-pink-400 font-semibold">bKash</span>');
-    if ($('#payNagad') && $('#payNagad').checked) list.push('<span class="px-2 py-0.5 bg-neutral-900 border border-neutral-700 rounded text-[10px] text-orange-400 font-semibold">Nagad</span>');
-    if ($('#payVisa') && $('#payVisa').checked) list.push('<span class="px-2 py-0.5 bg-neutral-900 border border-neutral-700 rounded text-[10px] text-blue-400 font-semibold">Visa</span>');
-    if ($('#payMastercard') && $('#payMastercard').checked) list.push('<span class="px-2 py-0.5 bg-neutral-900 border border-neutral-700 rounded text-[10px] text-red-400 font-semibold">Mastercard</span>');
-    if ($('#payCod') && $('#payCod').checked) list.push('<span class="px-2 py-0.5 bg-neutral-900 border border-neutral-700 rounded text-[10px] text-emerald-400 font-semibold">COD</span>');
-    if ($('#payRocket') && $('#payRocket').checked) list.push('<span class="px-2 py-0.5 bg-neutral-900 border border-neutral-700 rounded text-[10px] text-purple-400 font-semibold">Rocket</span>');
-    badgesContainer.innerHTML = list.join('');
+    const badges = normalizePaymentBadges(AdminState.footer ? AdminState.footer.payments : null);
+    const activeBadges = badges.filter(b => b.enabled !== false);
+    if (activeBadges.length === 0) {
+      badgesContainer.innerHTML = '<span class="text-[10px] text-neutral-500 italic">No payment badges visible</span>';
+    } else {
+      badgesContainer.innerHTML = activeBadges.map(b => `
+        <div class="h-6 px-2 py-0.5 bg-white border border-neutral-700/60 rounded flex items-center justify-center shadow-xs" title="${safeEscape(b.name)}">
+          ${b.logo ? `<img src="${safeEscape(b.logo)}" alt="${safeEscape(b.name)}" class="h-4 max-h-4 w-auto max-w-[48px] object-contain" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline';" />` : ''}
+          <span ${b.logo ? 'style="display:none;"' : ''} class="text-[9px] font-bold text-slate-800">${safeEscape(b.name)}</span>
+        </div>
+      `).join('');
+    }
   }
 };
 
@@ -5048,6 +5285,7 @@ window.handleSaveFooter = async function (e) {
   });
 
   try {
+    const pItems = AdminState.footer?.payments?.items || getDefaultPaymentBadges();
     const data = {
       enabled: $('#footerEnableToggle') ? $('#footerEnableToggle').checked : true,
       brandDesc: $('#footerDescInput') ? $('#footerDescInput').value.trim() : '',
@@ -5061,12 +5299,13 @@ window.handleSaveFooter = async function (e) {
       },
       copyright: $('#footerCopyrightInput') ? $('#footerCopyrightInput').value.trim() : '',
       payments: {
-        bkash: $('#payBkash') ? $('#payBkash').checked : true,
-        nagad: $('#payNagad') ? $('#payNagad').checked : true,
-        visa: $('#payVisa') ? $('#payVisa').checked : true,
-        mastercard: $('#payMastercard') ? $('#payMastercard').checked : true,
-        cod: $('#payCod') ? $('#payCod').checked : true,
-        rocket: $('#payRocket') ? $('#payRocket').checked : false
+        bkash: (pItems.find(b => b.id === 'bkash')?.enabled !== false),
+        nagad: (pItems.find(b => b.id === 'nagad')?.enabled !== false),
+        visa: (pItems.find(b => b.id === 'visa')?.enabled !== false),
+        mastercard: (pItems.find(b => b.id === 'mastercard')?.enabled !== false),
+        cod: (pItems.find(b => b.id === 'cod')?.enabled !== false),
+        rocket: (pItems.find(b => b.id === 'rocket')?.enabled === true),
+        items: pItems
       },
       trustBadges: {
         enabled: $('#trustBadgesEnableToggle') ? $('#trustBadgesEnableToggle').checked : true,
