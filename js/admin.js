@@ -67,8 +67,22 @@ document.addEventListener('DOMContentLoaded', () => {
 async function syncWithSupabaseCloud() {
   if (typeof LuxosCloud === 'undefined') return;
 
+  // 1. Priority: Fetch real cloud orders IMMEDIATELY (super-fast ~250ms!)
   try {
-    // 1. Fetch latest cloud configuration
+    const cloudOrders = await LuxosCloud.getOrders();
+    if (Array.isArray(cloudOrders) && cloudOrders.length > 0) {
+      AdminState.orders = cloudOrders;
+      renderDashboard();
+      renderOrdersTable();
+      renderCustomersTable();
+      console.log(`[LuxosCloud] Instantly loaded ${cloudOrders.length} orders from cloud.`);
+    }
+  } catch (err) {
+    console.warn('[LuxosCloud] Quick order fetch error:', err);
+  }
+
+  // 2. Fetch latest cloud configuration in background without blocking orders
+  try {
     const cloudConfigs = await LuxosCloud.getAllConfigs();
     if (!cloudConfigs || cloudConfigs.length === 0) {
       // If cloud has no configs yet, seed it with our current settings
@@ -88,8 +102,12 @@ async function syncWithSupabaseCloud() {
       });
       console.log('[LuxosCloud] Seeded default store configuration to Supabase.');
     } else {
-      // Re-read local state updated by cloud fetch
+      // Re-read local state updated by cloud fetch (preserve live orders!)
+      const currentOrders = AdminState.orders;
       initData();
+      if (currentOrders && currentOrders.length > 0) {
+        AdminState.orders = currentOrders;
+      }
       renderDashboard();
       renderProductsTable();
       renderBannersTable();
@@ -104,10 +122,10 @@ async function syncWithSupabaseCloud() {
       if (typeof renderFooterManager === 'function') renderFooterManager();
     }
 
-    // 2. Fetch real cloud orders
-    const cloudOrders = await LuxosCloud.getOrders();
-    if (Array.isArray(cloudOrders)) {
-      AdminState.orders = cloudOrders;
+    // Double check orders sync
+    const finalOrders = await LuxosCloud.getOrders();
+    if (Array.isArray(finalOrders)) {
+      AdminState.orders = finalOrders;
       renderDashboard();
       renderOrdersTable();
       renderCustomersTable();
@@ -854,6 +872,41 @@ function renderDashboard() {
   }
 }
 
+window.manualSyncOrders = async function () {
+  const btn = $('#manualSyncOrdersBtn');
+  const icon = $('#syncOrdersIcon');
+  if (btn) btn.disabled = true;
+  if (icon) icon.classList.add('animate-spin');
+
+  try {
+    if (typeof LuxosCloud !== 'undefined') {
+      const fresh = await LuxosCloud.getOrders();
+      if (Array.isArray(fresh)) {
+        AdminState.orders = fresh;
+        try {
+          localStorage.setItem('luxos_orders', JSON.stringify(fresh));
+          if (typeof setItemIndexedDB === 'function') setItemIndexedDB('luxos_orders', fresh).catch(() => {});
+        } catch (e) {}
+        renderDashboard();
+        renderOrdersTable();
+        renderCustomersTable();
+        showAdminToast(`Synced ${fresh.length} orders from Supabase cloud!`);
+      } else {
+        showAdminToast('No cloud orders found.');
+      }
+    } else {
+      showAdminToast('Cloud service connecting...');
+    }
+  } catch (err) {
+    showAdminToast('Sync failed: ' + (err.message || 'Network error'));
+  } finally {
+    setTimeout(() => {
+      if (btn) btn.disabled = false;
+      if (icon) icon.classList.remove('animate-spin');
+    }, 500);
+  }
+};
+
 window.clearAllOrders = async function () {
   if (!confirm('Are you sure you want to reset all orders? This will clear test orders and reset revenue and metrics to zero for your live store.')) return;
   AdminState.orders = [];
@@ -889,8 +942,8 @@ function renderOrdersTable() {
   if (query) {
     filtered = filtered.filter(o => 
       o.id.toLowerCase().includes(query) ||
-      o.customer.name.toLowerCase().includes(query) ||
-      o.customer.phone.includes(query)
+      (o.customer?.name || '').toLowerCase().includes(query) ||
+      (o.customer?.phone || '').includes(query)
     );
   }
 
@@ -918,10 +971,10 @@ function createOrderRowHtml(o, isCompact = false) {
     <tr class="hover:bg-slate-50 transition">
       <td class="py-3 px-4 font-bold text-slate-900">${o.id}</td>
       <td class="py-3 px-4">
-        <p class="font-semibold text-slate-800 leading-tight">${o.customer.name}</p>
-        <p class="text-[11px] text-slate-400">${o.customer.phone}</p>
+        <p class="font-semibold text-slate-800 leading-tight">${o.customer?.name || 'Customer'}</p>
+        <p class="text-[11px] text-slate-400">${o.customer?.phone || '-'}</p>
       </td>
-      <td class="py-3 px-4 text-slate-600 font-medium">${o.customer.zone || 'Dhaka'}</td>
+      <td class="py-3 px-4 text-slate-600 font-medium">${o.customer?.zone || 'Dhaka'}</td>
       <td class="py-3 px-4 text-slate-600">${itemCount} items</td>
       <td class="py-3 px-4 font-bold text-slate-900">${formatPrice(o.total)}</td>
       <td class="py-3 px-4">
