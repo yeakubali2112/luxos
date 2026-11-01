@@ -65,6 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (typeof renderFooterManager === 'function') renderFooterManager();
   if (typeof initAdminProfile === 'function') initAdminProfile();
   if (typeof initAdminUsers === 'function') initAdminUsers();
+  if (typeof checkAdminAuthentication === 'function') checkAdminAuthentication();
   if (typeof syncAdminPersistentData === 'function') syncAdminPersistentData();
   if (typeof syncWithSupabaseCloud === 'function') syncWithSupabaseCloud();
 });
@@ -5940,20 +5941,9 @@ window.initAdminProfile = function () {
   AdminState.adminProfile = profile;
   renderAdminProfileUI(profile);
 
-  // Check session lock status
-  const isLocked = sessionStorage.getItem('luxos_admin_locked') === 'true';
-  const lockScreen = $('#adminLockScreen');
-  if (lockScreen) {
-    if (isLocked) {
-      lockScreen.classList.remove('hidden');
-      const pinInput = $('#adminUnlockPinInput');
-      if (pinInput) {
-        pinInput.value = '';
-        setTimeout(() => pinInput.focus(), 150);
-      }
-    } else {
-      lockScreen.classList.add('hidden');
-    }
+  // Check login authentication status
+  if (typeof checkAdminAuthentication === 'function') {
+    checkAdminAuthentication();
   }
 };
 
@@ -5985,11 +5975,9 @@ function renderAdminProfileUI(profile) {
   if (menuEmail) menuEmail.textContent = profile.email || 'admin@luxos.com';
   if (menuRole) menuRole.textContent = profile.roleBadge || profile.role || 'Super Admin';
 
-  // Lock Screen Elements
-  const lockAvatar = $('#lockScreenAvatar');
-  const lockName = $('#lockScreenAdminName');
-  if (lockAvatar && profile.avatar) lockAvatar.src = profile.avatar;
-  if (lockName) lockName.textContent = profile.name || 'Luxos Admin';
+  // Login Page Avatar
+  const portalAvatar = $('#loginPortalAvatar');
+  if (portalAvatar && profile.avatar) portalAvatar.src = profile.avatar;
 }
 
 window.toggleAdminProfileMenu = function (e) {
@@ -6166,69 +6154,145 @@ window.handleSaveAdminProfile = async function (e) {
   }
 };
 
-// Admin Logout & Lock Session
-window.handleAdminLogout = function () {
-  closeAdminProfileMenu();
-  if (!confirm('Are you sure you want to log out of the Admin Portal? Dashboard access will be locked.')) {
+// ==========================================================================
+// Admin Login & Session Authentication Controller
+// ==========================================================================
+
+window.isSessionAuthenticated = function () {
+  return sessionStorage.getItem('luxos_admin_authenticated') === 'true' ||
+         localStorage.getItem('luxos_admin_remember_token') === 'true';
+};
+
+window.checkAdminAuthentication = function () {
+  const isAuth = isSessionAuthenticated();
+  const loginPage = $('#adminLoginPage');
+  if (!loginPage) return;
+
+  if (isAuth) {
+    loginPage.classList.add('hidden');
+  } else {
+    loginPage.classList.remove('hidden');
+    const pinInput = $('#adminLoginPin');
+    if (pinInput) {
+      pinInput.value = '';
+      setTimeout(() => pinInput.focus(), 200);
+    }
+  }
+};
+
+window.toggleLoginPinVisibility = function () {
+  const pinInput = $('#adminLoginPin');
+  if (!pinInput) return;
+  pinInput.type = pinInput.type === 'password' ? 'text' : 'password';
+};
+
+window.handleAdminLoginSubmit = function (e) {
+  if (e && e.preventDefault) e.preventDefault();
+
+  const emailInput = $('#adminLoginEmail');
+  const pinInput = $('#adminLoginPin');
+  const errEl = $('#adminLoginError');
+  const errText = $('#adminLoginErrorText');
+  const rememberCheckbox = $('#adminLoginRememberMe');
+
+  if (!pinInput) return;
+
+  const email = emailInput ? emailInput.value.trim().toLowerCase() : '';
+  const pin = pinInput.value.trim();
+  const remember = rememberCheckbox ? rememberCheckbox.checked : true;
+
+  if (!pin) {
+    if (errEl) {
+      errEl.classList.remove('hidden');
+      if (errText) errText.textContent = 'Please enter your security PIN.';
+    }
+    pinInput.focus();
     return;
   }
 
-  sessionStorage.setItem('luxos_admin_locked', 'true');
-  const lockScreen = $('#adminLockScreen');
-  if (lockScreen) {
-    lockScreen.classList.remove('hidden');
-    const err = $('#adminUnlockError');
-    if (err) err.classList.add('hidden');
-    const pinInput = $('#adminUnlockPinInput');
-    if (pinInput) {
-      pinInput.value = '';
-      setTimeout(() => pinInput.focus(), 150);
-    }
-  }
-  showAdminToast('Admin session locked.');
-};
-
-// PIN Unlock (Multi-User Aware)
-window.handleUnlockAdmin = function (e) {
-  if (e && e.preventDefault) e.preventDefault();
-
-  const pinInput = $('#adminUnlockPinInput');
-  const errEl = $('#adminUnlockError');
-  if (!pinInput) return;
-
-  const enteredPin = pinInput.value.trim();
   const users = AdminState.adminUsers || [];
   const superProfile = AdminState.adminProfile || getDefaultAdminProfile();
+  const defaultPin = (superProfile.pin || '1234').toString().trim();
 
-  // Search matching active user by PIN
-  let matchedUser = users.find(u => u.active !== false && u.pin.toString().trim() === enteredPin);
+  let matchedUser = null;
 
-  // Fallback check against root Super Admin profile or 1234
-  if (!matchedUser && (enteredPin === (superProfile.pin || '1234').toString().trim() || enteredPin === '1234')) {
+  // 1. Match by Email + PIN
+  if (email) {
+    matchedUser = users.find(u => 
+      u.active !== false &&
+      u.email && u.email.toLowerCase().trim() === email &&
+      u.pin.toString().trim() === pin
+    );
+  }
+
+  // 2. Or match directly by PIN across active users
+  if (!matchedUser) {
+    matchedUser = users.find(u => u.active !== false && u.pin.toString().trim() === pin);
+  }
+
+  // 3. Fallback for root Super Admin (matching PIN 1234 or superProfile.pin)
+  if (!matchedUser && (pin === defaultPin || pin === '1234')) {
     matchedUser = users.find(u => u.isSuperAdmin) || getDefaultAdminUsers()[0];
   }
 
   if (matchedUser) {
-    sessionStorage.removeItem('luxos_admin_locked');
+    sessionStorage.setItem('luxos_admin_authenticated', 'true');
     sessionStorage.setItem('luxos_current_user_id', matchedUser.id);
-    AdminState.currentUser = matchedUser;
 
-    const lockScreen = $('#adminLockScreen');
-    if (lockScreen) lockScreen.classList.add('hidden');
+    if (remember) {
+      localStorage.setItem('luxos_admin_remember_token', 'true');
+    } else {
+      localStorage.removeItem('luxos_admin_remember_token');
+    }
+
+    const loginPage = $('#adminLoginPage');
+    if (loginPage) loginPage.classList.add('hidden');
     if (errEl) errEl.classList.add('hidden');
     pinInput.value = '';
 
+    AdminState.currentUser = matchedUser;
     applyUserPermissions(matchedUser);
-    showAdminToast(`Welcome back, ${matchedUser.name} (${matchedUser.role || 'Admin'})!`);
+
+    showAdminToast(`Welcome to Luxos Portal, ${matchedUser.name}!`);
   } else {
     if (errEl) {
       errEl.classList.remove('hidden');
-      errEl.textContent = 'Incorrect PIN. Please try again.';
+      if (errText) errText.textContent = 'Invalid credentials. Default Super Admin PIN is 1234.';
     }
     pinInput.classList.add('border-rose-500');
     setTimeout(() => pinInput.classList.remove('border-rose-500'), 800);
     pinInput.select();
   }
+};
+
+// Admin Logout & Return to Login Screen
+window.handleAdminLogout = function () {
+  closeAdminProfileMenu();
+  if (!confirm('Are you sure you want to log out of the Admin Portal?')) {
+    return;
+  }
+
+  sessionStorage.removeItem('luxos_admin_authenticated');
+  sessionStorage.removeItem('luxos_current_user_id');
+  localStorage.removeItem('luxos_admin_remember_token');
+
+  const loginPage = $('#adminLoginPage');
+  if (loginPage) {
+    loginPage.classList.remove('hidden');
+    const err = $('#adminLoginError');
+    if (err) err.classList.add('hidden');
+    const pinInput = $('#adminLoginPin');
+    if (pinInput) {
+      pinInput.value = '';
+      setTimeout(() => pinInput.focus(), 150);
+    }
+  }
+  showAdminToast('You have been logged out safely.');
+};
+
+// Backward-compatible alias
+window.handleUnlockAdmin = function (e) {
+  handleAdminLoginSubmit(e);
 };
 
 // Modal background click dismiss
