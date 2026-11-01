@@ -5974,10 +5974,6 @@ function renderAdminProfileUI(profile) {
   if (menuName) menuName.textContent = profile.name || 'Luxos Admin';
   if (menuEmail) menuEmail.textContent = profile.email || 'admin@luxos.com';
   if (menuRole) menuRole.textContent = profile.roleBadge || profile.role || 'Super Admin';
-
-  // Login Page Avatar
-  const portalAvatar = $('#loginPortalAvatar');
-  if (portalAvatar && profile.avatar) portalAvatar.src = profile.avatar;
 }
 
 window.toggleAdminProfileMenu = function (e) {
