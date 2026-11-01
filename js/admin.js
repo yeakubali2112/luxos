@@ -48,6 +48,7 @@ function formatDate(dateStr) {
 // Initialize on DOM load
 document.addEventListener('DOMContentLoaded', () => {
   initData();
+  if (typeof initSidebarCollapse === 'function') initSidebarCollapse();
   renderDashboard();
   renderOrdersTable();
   renderProductsTable();
@@ -614,6 +615,66 @@ window.addEventListener('resize', () => {
     }
   }
 });
+
+/* Collapsible Icon-Only Sidebar Mode for Desktop */
+window.toggleSidebarCollapse = function (forceCollapse) {
+  const sidebar = $('#adminSidebar');
+  if (!sidebar) return;
+
+  const isCollapsed = sidebar.classList.contains('collapsed');
+  const shouldCollapse = forceCollapse !== undefined ? forceCollapse : !isCollapsed;
+
+  if (shouldCollapse) {
+    sidebar.classList.add('collapsed');
+    try {
+      localStorage.setItem('luxos_admin_sidebar_collapsed', 'true');
+    } catch (e) {}
+
+    const headerBtn = $('#sidebarCollapseHeaderBtn');
+    if (headerBtn) headerBtn.setAttribute('title', 'Expand sidebar');
+
+    const bottomBtn = $('#bottomCollapseBtn');
+    if (bottomBtn) {
+      bottomBtn.setAttribute('title', 'Expand sidebar');
+      bottomBtn.setAttribute('data-tooltip', 'Expand sidebar');
+    }
+
+    const bottomTooltip = $('#bottomCollapseTooltip');
+    if (bottomTooltip) bottomTooltip.textContent = 'Expand sidebar';
+
+    const desktopToggle = $('#desktopSidebarToggleBtn');
+    if (desktopToggle) desktopToggle.setAttribute('title', 'Expand sidebar');
+  } else {
+    sidebar.classList.remove('collapsed');
+    try {
+      localStorage.setItem('luxos_admin_sidebar_collapsed', 'false');
+    } catch (e) {}
+
+    const headerBtn = $('#sidebarCollapseHeaderBtn');
+    if (headerBtn) headerBtn.setAttribute('title', 'Collapse sidebar');
+
+    const bottomBtn = $('#bottomCollapseBtn');
+    if (bottomBtn) {
+      bottomBtn.setAttribute('title', 'Collapse sidebar');
+      bottomBtn.setAttribute('data-tooltip', 'Collapse sidebar to icon mode');
+    }
+
+    const bottomTooltip = $('#bottomCollapseTooltip');
+    if (bottomTooltip) bottomTooltip.textContent = 'Collapse sidebar';
+
+    const desktopToggle = $('#desktopSidebarToggleBtn');
+    if (desktopToggle) desktopToggle.setAttribute('title', 'Collapse sidebar to icon mode');
+  }
+};
+
+window.initSidebarCollapse = function () {
+  try {
+    const isCollapsed = localStorage.getItem('luxos_admin_sidebar_collapsed') === 'true';
+    if (isCollapsed && window.innerWidth >= 1024) {
+      window.toggleSidebarCollapse(true);
+    }
+  } catch (e) {}
+};
 
 window.toggleCampaignsMenu = function (forceOpen) {
   const submenu = $('#campaignsSubmenu');
