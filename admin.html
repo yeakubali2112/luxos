@@ -239,6 +239,11 @@
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
         <span>Store Settings</span>
       </button>
+
+      <button onclick="switchTab('profilesettings')" id="nav-profilesettings" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition">
+        <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" /></svg>
+        <span>Profile Settings</span>
+      </button>
     </nav>
 
     </aside>
@@ -321,6 +326,17 @@
                   <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
                 </svg>
                 <span>Edit Profile</span>
+              </button>
+
+              <button 
+                type="button" 
+                onclick="switchTab('profilesettings'); closeAdminProfileMenu();" 
+                class="w-full px-4 py-2 text-left font-medium text-slate-700 hover:bg-slate-100 hover:text-black flex items-center gap-2.5 transition cursor-pointer">
+                <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                </svg>
+                <span>Profile Settings</span>
               </button>
 
               <button 
@@ -2296,6 +2312,95 @@
         </div>
       </section>
 
+      <!-- =======================================================================
+           Profile & Admin Users Management Tab (Role-Based Access Control)
+           ======================================================================= -->
+      <section id="tab-profilesettings" class="space-y-6 hidden">
+        <!-- Top Action Header -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+          <div>
+            <h3 class="text-base font-bold text-slate-900 font-heading flex items-center gap-2">
+              <span class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-600 flex items-center justify-center">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" /></svg>
+              </span>
+              <span>Profile &amp; Admin User Settings</span>
+            </h3>
+            <p class="text-xs text-slate-500 mt-1">Manage admin users, create team staff accounts, and configure granular permissions for each user.</p>
+          </div>
+          <div class="flex items-center gap-2.5">
+            <button 
+              type="button" 
+              onclick="openEditAdminProfileModal()" 
+              class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg>
+              <span>Edit Super Admin</span>
+            </button>
+            <button 
+              type="button" 
+              onclick="openAdminUserModal()" 
+              class="px-4 py-2 bg-black hover:bg-slate-800 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow-xs">
+              <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+              <span>+ Add New User</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Active Logged-in Profile Card -->
+        <div id="currentProfileCard" class="bg-gradient-to-r from-slate-900 to-slate-800 text-white p-5 rounded-2xl border border-slate-700 shadow-md">
+          <!-- Rendered dynamically by renderCurrentProfileCard() -->
+        </div>
+
+        <!-- Role-Based Access Control Notice -->
+        <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3">
+          <div class="p-1 rounded-full bg-amber-200 text-amber-800 flex-shrink-0 mt-0.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" /></svg>
+          </div>
+          <div class="text-xs text-amber-900">
+            <span class="font-bold">Role-Based Access Control (RBAC):</span>
+            <span class="text-amber-800"> You can create staff accounts (e.g., Order Manager, Product Specialist) and select exactly which admin sections they can access. When a user logs in with their PIN, options they do not have permission for are automatically hidden.</span>
+          </div>
+        </div>
+
+        <!-- Team Members & Admin Users Table Card -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+          <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div class="flex items-center gap-2.5">
+              <h4 class="text-sm font-bold text-slate-900">Admin Team &amp; User Accounts</h4>
+              <span id="adminUsersCountBadge" class="bg-slate-100 text-slate-700 font-bold text-[11px] px-2.5 py-0.5 rounded-full border border-slate-200">1 User</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="relative w-full sm:w-64">
+                <input 
+                  type="text" 
+                  id="adminUserSearchInput" 
+                  oninput="filterAdminUsersTable()" 
+                  placeholder="Search user name or role..." 
+                  class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-3 py-1.5 text-xs focus:outline-none focus:border-black focus:bg-white" />
+                <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
+              </div>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50/70 text-slate-500 font-semibold uppercase tracking-wider text-[10.5px] border-b border-slate-100">
+                <tr>
+                  <th class="py-3 px-4">Admin User</th>
+                  <th class="py-3 px-4">Role Title</th>
+                  <th class="py-3 px-4">Login PIN</th>
+                  <th class="py-3 px-4">Allowed Admin Modules</th>
+                  <th class="py-3 px-4">Status</th>
+                  <th class="py-3 px-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="adminUsersTableBody" class="divide-y divide-slate-100 text-slate-700">
+                <!-- Rendered dynamically by renderAdminUsersTable() -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
 </main>
   </div>
 
@@ -2829,6 +2934,195 @@
         <div class="pt-3 flex justify-end gap-2.5 border-t border-slate-100">
           <button type="button" onclick="closeEditAdminProfileModal()" class="px-4 py-2.5 border border-slate-300 rounded-xl hover:bg-slate-50 font-semibold text-slate-700 transition">Cancel</button>
           <button id="saveAdminProfileBtn" type="submit" class="px-5 py-2.5 bg-black text-white rounded-xl hover:bg-slate-800 font-semibold shadow-md transition flex items-center justify-center gap-2">Save Profile</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- =======================================================================
+       Admin User & Permissions Modal (Create / Edit User)
+       ======================================================================= -->
+  <div id="adminUserModal" class="modal-overlay fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-3 sm:p-4 backdrop-blur-sm">
+    <div class="modal-content bg-white w-full max-w-2xl rounded-2xl shadow-2xl p-6 relative max-h-[92vh] overflow-y-auto">
+      <button type="button" onclick="closeAdminUserModal()" class="absolute top-4 right-4 text-slate-400 hover:text-black p-1">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+      </button>
+
+      <div class="flex items-center gap-3 mb-5 border-b border-slate-100 pb-4">
+        <div class="w-10 h-10 rounded-full bg-amber-500/10 text-amber-600 flex items-center justify-center p-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" /></svg>
+        </div>
+        <div>
+          <h3 id="adminUserModalTitle" class="text-base font-bold text-slate-900 font-heading">Add New Admin User</h3>
+          <p class="text-xs text-slate-500">Configure login credentials and select which admin features this user can manage.</p>
+        </div>
+      </div>
+
+      <form onsubmit="handleSaveAdminUser(event)" class="space-y-4 text-xs">
+        <input type="hidden" id="adminUserEditId" value="" />
+
+        <!-- User Information Fields -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <div>
+            <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Full Name *</label>
+            <input id="adminUserNameInput" type="text" required placeholder="e.g. Rahim Ahmed" class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:outline-none focus:border-black font-semibold" />
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Email / Username *</label>
+            <input id="adminUserEmailInput" type="email" required placeholder="e.g. rahim@luxos.com" class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:outline-none focus:border-black" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <div>
+            <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Role Title / Designation</label>
+            <input id="adminUserRoleInput" type="text" placeholder="e.g. Order Fulfillment Lead" class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:outline-none focus:border-black" />
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Security PIN (4-Digits) *</label>
+            <input id="adminUserPinInput" type="password" maxlength="6" required placeholder="e.g. 5678" class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:outline-none focus:border-black font-mono tracking-widest" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 items-center">
+          <div>
+            <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Avatar Image URL (Optional)</label>
+            <input id="adminUserAvatarInput" type="text" placeholder="https://..." class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:outline-none focus:border-black bg-white" />
+          </div>
+          <div class="pt-4">
+            <label class="inline-flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" id="adminUserActiveToggle" checked class="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-0" />
+              <span class="font-semibold text-slate-800">Account Active &amp; Allowed to Log In</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Role Presets for 1-Click Setup -->
+        <div class="pt-2 border-t border-slate-100">
+          <div class="flex items-center justify-between mb-2">
+            <label class="block font-bold text-slate-900 uppercase tracking-wider text-[11px]">Quick Role Templates</label>
+            <span class="text-[11px] text-slate-400">Click a template to auto-select permissions:</span>
+          </div>
+          <div class="flex flex-wrap gap-1.5">
+            <button type="button" onclick="applyRoleTemplate('superadmin')" class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-lg font-semibold text-[11px] transition">👑 Super Admin (All)</button>
+            <button type="button" onclick="applyRoleTemplate('orders')" class="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 rounded-lg font-semibold text-[11px] transition">📦 Orders &amp; Customers</button>
+            <button type="button" onclick="applyRoleTemplate('products')" class="px-2.5 py-1 bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200 rounded-lg font-semibold text-[11px] transition">🏷️ Products &amp; Catalog</button>
+            <button type="button" onclick="applyRoleTemplate('marketing')" class="px-2.5 py-1 bg-pink-50 hover:bg-pink-100 text-pink-800 border border-pink-200 rounded-lg font-semibold text-[11px] transition">🎨 Marketing &amp; Layout</button>
+            <button type="button" onclick="applyRoleTemplate('none')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200 rounded-lg font-semibold text-[11px] transition">Clear All</button>
+          </div>
+        </div>
+
+        <!-- Granular Permissions Grid -->
+        <div class="pt-2">
+          <label class="block font-bold text-slate-900 uppercase tracking-wider text-[11px] mb-2">Allowed Admin Modules &amp; Permissions</label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-slate-50 p-3.5 rounded-xl border border-slate-200 max-h-56 overflow-y-auto">
+            
+            <label class="flex items-start gap-2.5 p-2 rounded-lg hover:bg-white border border-transparent hover:border-slate-200 transition cursor-pointer select-none">
+              <input type="checkbox" id="perm_dashboard" class="perm-checkbox w-4 h-4 mt-0.5 rounded text-black border-slate-300 focus:ring-0" />
+              <div>
+                <p class="font-bold text-slate-800 leading-tight">📊 Dashboard</p>
+                <p class="text-[10px] text-slate-500">Sales metrics, order summary &amp; analytics</p>
+              </div>
+            </label>
+
+            <label class="flex items-start gap-2.5 p-2 rounded-lg hover:bg-white border border-transparent hover:border-slate-200 transition cursor-pointer select-none">
+              <input type="checkbox" id="perm_orders" class="perm-checkbox w-4 h-4 mt-0.5 rounded text-black border-slate-300 focus:ring-0" />
+              <div>
+                <p class="font-bold text-slate-800 leading-tight">📦 Orders Management</p>
+                <p class="text-[10px] text-slate-500">View orders, change status, print invoices</p>
+              </div>
+            </label>
+
+            <label class="flex items-start gap-2.5 p-2 rounded-lg hover:bg-white border border-transparent hover:border-slate-200 transition cursor-pointer select-none">
+              <input type="checkbox" id="perm_products" class="perm-checkbox w-4 h-4 mt-0.5 rounded text-black border-slate-300 focus:ring-0" />
+              <div>
+                <p class="font-bold text-slate-800 leading-tight">🏷️ Products Catalog</p>
+                <p class="text-[10px] text-slate-500">Add, edit, price, stock &amp; delete items</p>
+              </div>
+            </label>
+
+            <label class="flex items-start gap-2.5 p-2 rounded-lg hover:bg-white border border-transparent hover:border-slate-200 transition cursor-pointer select-none">
+              <input type="checkbox" id="perm_banners" class="perm-checkbox w-4 h-4 mt-0.5 rounded text-black border-slate-300 focus:ring-0" />
+              <div>
+                <p class="font-bold text-slate-800 leading-tight">🖼️ Hero Banners</p>
+                <p class="text-[10px] text-slate-500">Homepage carousel slides &amp; settings</p>
+              </div>
+            </label>
+
+            <label class="flex items-start gap-2.5 p-2 rounded-lg hover:bg-white border border-transparent hover:border-slate-200 transition cursor-pointer select-none">
+              <input type="checkbox" id="perm_collections" class="perm-checkbox w-4 h-4 mt-0.5 rounded text-black border-slate-300 focus:ring-0" />
+              <div>
+                <p class="font-bold text-slate-800 leading-tight">🛍️ Shop by Collection</p>
+                <p class="text-[10px] text-slate-500">Curated story circle categories</p>
+              </div>
+            </label>
+
+            <label class="flex items-start gap-2.5 p-2 rounded-lg hover:bg-white border border-transparent hover:border-slate-200 transition cursor-pointer select-none">
+              <input type="checkbox" id="perm_lookbook" class="perm-checkbox w-4 h-4 mt-0.5 rounded text-black border-slate-300 focus:ring-0" />
+              <div>
+                <p class="font-bold text-slate-800 leading-tight">📖 Lookbook &amp; Campaigns</p>
+                <p class="text-[10px] text-slate-500">Street Style, Brand Story, Timeless Bold</p>
+              </div>
+            </label>
+
+            <label class="flex items-start gap-2.5 p-2 rounded-lg hover:bg-white border border-transparent hover:border-slate-200 transition cursor-pointer select-none">
+              <input type="checkbox" id="perm_ticker" class="perm-checkbox w-4 h-4 mt-0.5 rounded text-black border-slate-300 focus:ring-0" />
+              <div>
+                <p class="font-bold text-slate-800 leading-tight">📢 Scrolling Ticker</p>
+                <p class="text-[10px] text-slate-500">Announcement bar marquee text</p>
+              </div>
+            </label>
+
+            <label class="flex items-start gap-2.5 p-2 rounded-lg hover:bg-white border border-transparent hover:border-slate-200 transition cursor-pointer select-none">
+              <input type="checkbox" id="perm_headerfooter" class="perm-checkbox w-4 h-4 mt-0.5 rounded text-black border-slate-300 focus:ring-0" />
+              <div>
+                <p class="font-bold text-slate-800 leading-tight">🎨 Header &amp; Footer Layout</p>
+                <p class="text-[10px] text-slate-500">Top bar, trust badges, footer links</p>
+              </div>
+            </label>
+
+            <label class="flex items-start gap-2.5 p-2 rounded-lg hover:bg-white border border-transparent hover:border-slate-200 transition cursor-pointer select-none">
+              <input type="checkbox" id="perm_coupons" class="perm-checkbox w-4 h-4 mt-0.5 rounded text-black border-slate-300 focus:ring-0" />
+              <div>
+                <p class="font-bold text-slate-800 leading-tight">🎟️ Coupons &amp; Offers</p>
+                <p class="text-[10px] text-slate-500">Discount promo codes management</p>
+              </div>
+            </label>
+
+            <label class="flex items-start gap-2.5 p-2 rounded-lg hover:bg-white border border-transparent hover:border-slate-200 transition cursor-pointer select-none">
+              <input type="checkbox" id="perm_customers" class="perm-checkbox w-4 h-4 mt-0.5 rounded text-black border-slate-300 focus:ring-0" />
+              <div>
+                <p class="font-bold text-slate-800 leading-tight">👥 Customer Directory</p>
+                <p class="text-[10px] text-slate-500">Customer directory &amp; purchase history</p>
+              </div>
+            </label>
+
+            <label class="flex items-start gap-2.5 p-2 rounded-lg hover:bg-white border border-transparent hover:border-slate-200 transition cursor-pointer select-none">
+              <input type="checkbox" id="perm_settings" class="perm-checkbox w-4 h-4 mt-0.5 rounded text-black border-slate-300 focus:ring-0" />
+              <div>
+                <p class="font-bold text-slate-800 leading-tight">⚙️ Store Settings</p>
+                <p class="text-[10px] text-slate-500">Delivery fees, thresholds, support email</p>
+              </div>
+            </label>
+
+            <label class="flex items-start gap-2.5 p-2 rounded-lg hover:bg-white border border-transparent hover:border-slate-200 transition cursor-pointer select-none">
+              <input type="checkbox" id="perm_profilesettings" class="perm-checkbox w-4 h-4 mt-0.5 rounded text-black border-slate-300 focus:ring-0" />
+              <div>
+                <p class="font-bold text-slate-800 leading-tight">🔐 Profile &amp; User Access</p>
+                <p class="text-[10px] text-slate-500">Manage admin users and permissions</p>
+              </div>
+            </label>
+
+          </div>
+        </div>
+
+        <div class="pt-3 flex justify-end gap-2.5 border-t border-slate-100">
+          <button type="button" onclick="closeAdminUserModal()" class="px-4 py-2.5 border border-slate-300 rounded-xl hover:bg-slate-50 font-semibold text-slate-700 transition">Cancel</button>
+          <button id="saveAdminUserBtn" type="submit" class="px-5 py-2.5 bg-black text-white rounded-xl hover:bg-slate-800 font-semibold shadow-md transition flex items-center justify-center gap-2">
+            <span>Save Admin User</span>
+          </button>
         </div>
       </form>
     </div>

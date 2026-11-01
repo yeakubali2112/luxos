@@ -37,7 +37,8 @@
       'luxos_collections_header': 'collections_header',
       'luxos_coupons': 'coupons',
       'luxos_settings': 'store_settings',
-      'luxos_admin_profile': 'admin_profile'
+      'luxos_admin_profile': 'admin_profile',
+      'luxos_admin_users': 'admin_users'
     };
     return map[storageKey] || null;
   }
@@ -60,7 +61,8 @@
       'collections_header': 'luxos_collections_header',
       'coupons': 'luxos_coupons',
       'store_settings': 'luxos_settings',
-      'admin_profile': 'luxos_admin_profile'
+      'admin_profile': 'luxos_admin_profile',
+      'admin_users': 'luxos_admin_users'
     };
     return map[key] || null;
   }
@@ -283,7 +285,8 @@
           { id: 'curated_collections', val: localData.curatedCollections },
           { id: 'coupons', val: localData.coupons },
           { id: 'store_settings', val: localData.storeSettings },
-          { id: 'admin_profile', val: localData.adminProfile }
+          { id: 'admin_profile', val: localData.adminProfile },
+          { id: 'admin_users', val: localData.adminUsers }
         ];
 
         for (const item of keysToSeed) {

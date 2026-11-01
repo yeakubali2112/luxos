@@ -19,6 +19,8 @@ const AdminState = {
   footer: null,
   trustbadges: null,
   adminProfile: null,
+  adminUsers: [],
+  currentUser: null,
   orderFilter: 'all',
   productFilter: { query: '', category: 'all' }
 };
@@ -62,6 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (typeof renderTrustBadgesManager === 'function') renderTrustBadgesManager();
   if (typeof renderFooterManager === 'function') renderFooterManager();
   if (typeof initAdminProfile === 'function') initAdminProfile();
+  if (typeof initAdminUsers === 'function') initAdminUsers();
   if (typeof syncAdminPersistentData === 'function') syncAdminPersistentData();
   if (typeof syncWithSupabaseCloud === 'function') syncWithSupabaseCloud();
 });
@@ -101,7 +104,8 @@ async function syncWithSupabaseCloud() {
         curatedCollections: AdminState.collections,
         coupons: AdminState.coupons,
         storeSettings: AdminState.settings,
-        adminProfile: AdminState.adminProfile
+        adminProfile: AdminState.adminProfile,
+        adminUsers: AdminState.adminUsers
       });
       console.log('[LuxosCloud] Seeded default store configuration to Supabase.');
     } else {
@@ -124,6 +128,8 @@ async function syncWithSupabaseCloud() {
       if (typeof renderTrustBadgesManager === 'function') renderTrustBadgesManager();
       if (typeof renderFooterManager === 'function') renderFooterManager();
       if (typeof initAdminProfile === 'function') initAdminProfile();
+      if (typeof initAdminUsers === 'function') initAdminUsers();
+      if (typeof renderProfileSettingsManager === 'function' && AdminState.currentTab === 'profilesettings') renderProfileSettingsManager();
     }
 
     // Double check orders sync
@@ -489,6 +495,10 @@ function initData() {
     AdminState.trustbadges = getDefaultTrustBadgesData();
     localStorage.setItem('luxos_trust_badges', JSON.stringify(AdminState.trustbadges));
   }
+
+  // Load Admin Profile & Users Access Control
+  if (typeof initAdminProfile === 'function') initAdminProfile();
+  if (typeof initAdminUsers === 'function') initAdminUsers();
 }
 
 function getDefaultHeroSlides() {
@@ -675,6 +685,18 @@ document.addEventListener('click', (e) => {
 });
 
 window.switchTab = function (tabName) {
+  // Permission gate check for active user
+  if (typeof canUserAccessTab === 'function' && !canUserAccessTab(tabName)) {
+    if (typeof showAdminToast === 'function') {
+      showAdminToast(`Access Restricted: You do not have permission for ${tabName}.`);
+    }
+    const fallbackTab = typeof getFirstAllowedTab === 'function' ? getFirstAllowedTab() : 'dashboard';
+    if (fallbackTab && fallbackTab !== tabName) {
+      setTimeout(() => window.switchTab(fallbackTab), 50);
+    }
+    return;
+  }
+
   AdminState.currentTab = tabName;
 
   // Auto-close sidebar drawer on mobile/tablet when navigating
@@ -744,7 +766,8 @@ window.switchTab = function (tabName) {
     footer: 'Footer & Bottom Bar Settings',
     coupons: 'Promo Codes & Offers',
     customers: 'Customer Directory',
-    settings: 'Store & Delivery Configuration'
+    settings: 'Store & Delivery Configuration',
+    profilesettings: 'Profile Settings & Admin User Access Control'
   };
   $('#pageTitle').textContent = titles[tabName] || 'Admin Portal';
 
@@ -763,6 +786,7 @@ window.switchTab = function (tabName) {
   if (tabName === 'footer') renderFooterManager();
   if (tabName === 'coupons') renderCouponsTable();
   if (tabName === 'customers') renderCustomersTable();
+  if (tabName === 'profilesettings' && typeof renderProfileSettingsManager === 'function') renderProfileSettingsManager();
 };
 
 /* ==========================================================================
@@ -6164,7 +6188,7 @@ window.handleAdminLogout = function () {
   showAdminToast('Admin session locked.');
 };
 
-// PIN Unlock
+// PIN Unlock (Multi-User Aware)
 window.handleUnlockAdmin = function (e) {
   if (e && e.preventDefault) e.preventDefault();
 
@@ -6173,16 +6197,29 @@ window.handleUnlockAdmin = function (e) {
   if (!pinInput) return;
 
   const enteredPin = pinInput.value.trim();
-  const profile = AdminState.adminProfile || getDefaultAdminProfile();
-  const expectedPin = (profile.pin || '1234').toString().trim();
+  const users = AdminState.adminUsers || [];
+  const superProfile = AdminState.adminProfile || getDefaultAdminProfile();
 
-  if (enteredPin === expectedPin || enteredPin === '1234') {
+  // Search matching active user by PIN
+  let matchedUser = users.find(u => u.active !== false && u.pin.toString().trim() === enteredPin);
+
+  // Fallback check against root Super Admin profile or 1234
+  if (!matchedUser && (enteredPin === (superProfile.pin || '1234').toString().trim() || enteredPin === '1234')) {
+    matchedUser = users.find(u => u.isSuperAdmin) || getDefaultAdminUsers()[0];
+  }
+
+  if (matchedUser) {
     sessionStorage.removeItem('luxos_admin_locked');
+    sessionStorage.setItem('luxos_current_user_id', matchedUser.id);
+    AdminState.currentUser = matchedUser;
+
     const lockScreen = $('#adminLockScreen');
     if (lockScreen) lockScreen.classList.add('hidden');
     if (errEl) errEl.classList.add('hidden');
     pinInput.value = '';
-    showAdminToast('Welcome back, ' + (profile.name || 'Admin') + '!');
+
+    applyUserPermissions(matchedUser);
+    showAdminToast(`Welcome back, ${matchedUser.name} (${matchedUser.role || 'Admin'})!`);
   } else {
     if (errEl) {
       errEl.classList.remove('hidden');
@@ -6204,4 +6241,609 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
+
+  const userModal = $('#adminUserModal');
+  if (userModal) {
+    userModal.addEventListener('click', (e) => {
+      if (e.target === userModal) {
+        closeAdminUserModal();
+      }
+    });
+  }
 });
+
+/* ==========================================================================
+   Admin Users Management & Role-Based Access Control (RBAC)
+   ========================================================================== */
+
+const ALL_ADMIN_MODULES = [
+  { id: 'dashboard', label: 'Dashboard', icon: '📊', navId: 'nav-dashboard', tab: 'dashboard' },
+  { id: 'orders', label: 'Orders', icon: '📦', navId: 'nav-orders', tab: 'orders' },
+  { id: 'products', label: 'Products', icon: '🏷️', navId: 'nav-products', tab: 'products' },
+  { id: 'banners', label: 'Hero Banners', icon: '🖼️', navId: 'nav-banners', tab: 'banners' },
+  { id: 'collections', label: 'Shop by Collection', icon: '🛍️', navId: 'nav-collections', tab: 'collections' },
+  { id: 'lookbook', label: 'Lookbook & Campaigns', icon: '📖', navId: 'btn-campaigns-group', tab: 'lookbook' },
+  { id: 'ticker', label: 'Scrolling Ticker', icon: '📢', navId: 'nav-ticker', tab: 'ticker' },
+  { id: 'headerfooter', label: 'Header & Footer', icon: '🎨', navId: 'btn-headerfooter-group', tab: 'topbar' },
+  { id: 'coupons', label: 'Coupons & Offers', icon: '🎟️', navId: 'nav-coupons', tab: 'coupons' },
+  { id: 'customers', label: 'Customers', icon: '👥', navId: 'nav-customers', tab: 'customers' },
+  { id: 'settings', label: 'Store Settings', icon: '⚙️', navId: 'nav-settings', tab: 'settings' },
+  { id: 'profilesettings', label: 'Profile Settings', icon: '🔐', navId: 'nav-profilesettings', tab: 'profilesettings' }
+];
+
+function getDefaultAdminUsers() {
+  const profile = AdminState.adminProfile || getDefaultAdminProfile();
+  return [
+    {
+      id: 'user_super_admin',
+      name: profile.name || 'Luxos Admin',
+      email: profile.email || 'admin@luxos.com',
+      role: 'Super Admin',
+      pin: (profile.pin || '1234').toString().trim(),
+      avatar: profile.avatar || 'images/logo-white.png',
+      isSuperAdmin: true,
+      active: true,
+      permissions: ALL_ADMIN_MODULES.map(m => m.id),
+      createdAt: new Date().toISOString()
+    }
+  ];
+}
+
+window.initAdminUsers = function () {
+  let users = null;
+  try {
+    const raw = localStorage.getItem('luxos_admin_users');
+    if (raw) {
+      users = JSON.parse(raw);
+    }
+  } catch (err) {
+    console.warn('Could not parse luxos_admin_users:', err);
+  }
+
+  if (!Array.isArray(users) || users.length === 0) {
+    users = getDefaultAdminUsers();
+    try {
+      localStorage.setItem('luxos_admin_users', JSON.stringify(users));
+    } catch (e) {}
+  }
+
+  // Ensure root Super Admin always exists
+  let superAdmin = users.find(u => u.isSuperAdmin);
+  const profile = AdminState.adminProfile || getDefaultAdminProfile();
+  if (!superAdmin) {
+    superAdmin = {
+      id: 'user_super_admin',
+      name: profile.name || 'Luxos Admin',
+      email: profile.email || 'admin@luxos.com',
+      role: 'Super Admin',
+      pin: (profile.pin || '1234').toString().trim(),
+      avatar: profile.avatar || 'images/logo-white.png',
+      isSuperAdmin: true,
+      active: true,
+      permissions: ALL_ADMIN_MODULES.map(m => m.id),
+      createdAt: new Date().toISOString()
+    };
+    users.unshift(superAdmin);
+  } else {
+    // Synchronize Super Admin with profile
+    if (profile.name) superAdmin.name = profile.name;
+    if (profile.email) superAdmin.email = profile.email;
+    if (profile.pin) superAdmin.pin = profile.pin.toString().trim();
+    if (profile.avatar) superAdmin.avatar = profile.avatar;
+    superAdmin.permissions = ALL_ADMIN_MODULES.map(m => m.id);
+    superAdmin.active = true;
+  }
+
+  AdminState.adminUsers = users;
+
+  // Identify active session user
+  const currentUserId = sessionStorage.getItem('luxos_current_user_id');
+  let activeUser = users.find(u => u.id === currentUserId && u.active !== false);
+  if (!activeUser) {
+    activeUser = superAdmin;
+    sessionStorage.setItem('luxos_current_user_id', superAdmin.id);
+  }
+
+  AdminState.currentUser = activeUser;
+  applyUserPermissions(activeUser);
+
+  if (AdminState.currentTab === 'profilesettings') {
+    renderProfileSettingsManager();
+  }
+};
+
+window.getCurrentAdminUser = function () {
+  if (AdminState.currentUser) return AdminState.currentUser;
+  const users = AdminState.adminUsers || [];
+  return users.find(u => u.isSuperAdmin) || users[0] || getDefaultAdminUsers()[0];
+};
+
+window.canUserAccessTab = function (tabName) {
+  const user = getCurrentAdminUser();
+  if (!user || user.isSuperAdmin) return true;
+
+  const perms = Array.isArray(user.permissions) ? user.permissions : [];
+
+  // Grouped Campaign tabs
+  if (['lookbook', 'brandstory', 'timeless'].includes(tabName)) {
+    return perms.includes('lookbook');
+  }
+
+  // Grouped Header/Footer tabs
+  if (['topbar', 'trustbadges', 'footer'].includes(tabName)) {
+    return perms.includes('headerfooter');
+  }
+
+  return perms.includes(tabName);
+};
+
+window.getFirstAllowedTab = function () {
+  const user = getCurrentAdminUser();
+  if (!user || user.isSuperAdmin) return 'dashboard';
+  const perms = Array.isArray(user.permissions) ? user.permissions : [];
+  for (const mod of ALL_ADMIN_MODULES) {
+    if (perms.includes(mod.id)) return mod.tab;
+  }
+  return 'dashboard';
+};
+
+window.applyUserPermissions = function (user) {
+  if (!user) user = getCurrentAdminUser();
+
+  const isSuper = !!user.isSuperAdmin;
+  const perms = Array.isArray(user.permissions) ? user.permissions : [];
+
+  // Update Header UI for this logged in user
+  const headerAvatar = $('#headerAdminAvatar');
+  const headerName = $('#headerAdminName');
+  const headerStatus = $('#headerAdminStatus');
+
+  if (headerAvatar && user.avatar) headerAvatar.src = user.avatar;
+  if (headerName) headerName.textContent = user.name || 'Luxos Admin';
+  if (headerStatus) {
+    headerStatus.innerHTML = `
+      <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+      <span>${user.role || (isSuper ? 'Store Active' : 'Staff')}</span>
+    `;
+  }
+
+  // Dropdown card elements
+  const menuAvatar = $('#menuAdminAvatar');
+  const menuName = $('#menuAdminName');
+  const menuEmail = $('#menuAdminEmail');
+  const menuRole = $('#menuAdminRole');
+
+  if (menuAvatar && user.avatar) menuAvatar.src = user.avatar;
+  if (menuName) menuName.textContent = user.name || 'Luxos Admin';
+  if (menuEmail) menuEmail.textContent = user.email || 'admin@luxos.com';
+  if (menuRole) menuRole.textContent = user.role || (isSuper ? 'Super Admin' : 'Staff');
+
+  // Filter sidebar visibility for restricted users
+  ALL_ADMIN_MODULES.forEach(mod => {
+    const navBtn = $(`#${mod.navId}`);
+    if (!navBtn) return;
+
+    const hasAccess = isSuper || perms.includes(mod.id);
+    if (hasAccess) {
+      navBtn.classList.remove('hidden');
+      navBtn.style.display = '';
+    } else {
+      navBtn.classList.add('hidden');
+      navBtn.style.display = 'none';
+    }
+  });
+
+  // If current tab is restricted, redirect to first allowed
+  if (AdminState.currentTab && !canUserAccessTab(AdminState.currentTab)) {
+    const fallback = getFirstAllowedTab();
+    if (fallback !== AdminState.currentTab) {
+      setTimeout(() => window.switchTab(fallback), 50);
+    }
+  }
+};
+
+window.renderProfileSettingsManager = function () {
+  renderCurrentProfileCard();
+  renderAdminUsersTable();
+};
+
+window.renderCurrentProfileCard = function () {
+  const card = $('#currentProfileCard');
+  if (!card) return;
+
+  const user = getCurrentAdminUser();
+  const isSuper = !!user.isSuperAdmin;
+  const perms = Array.isArray(user.permissions) ? user.permissions : [];
+
+  const allowedBadges = isSuper 
+    ? `<span class="bg-amber-400/20 text-amber-300 font-bold px-2.5 py-1 rounded text-[11px] border border-amber-400/30">👑 Full Super Admin Access (All 12 Modules)</span>`
+    : perms.map(p => {
+        const mod = ALL_ADMIN_MODULES.find(m => m.id === p);
+        return mod ? `<span class="bg-slate-700/80 text-slate-200 px-2 py-0.5 rounded text-[10.5px] border border-slate-600">${mod.icon} ${mod.label}</span>` : '';
+      }).join(' ');
+
+  card.innerHTML = `
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div class="flex items-center gap-4">
+        <div class="w-16 h-16 rounded-full bg-slate-800 text-white flex items-center justify-center p-1 overflow-hidden flex-shrink-0 border-2 border-amber-400 shadow-md">
+          <img src="${user.avatar || 'images/logo-white.png'}" alt="${user.name}" class="w-full h-full object-cover rounded-full" />
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h4 class="text-base font-bold text-white">${user.name}</h4>
+            <span class="bg-amber-400 text-slate-950 font-extrabold text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full">${user.role || 'Super Admin'}</span>
+          </div>
+          <p class="text-xs text-slate-300 mt-0.5">${user.email}</p>
+          <div class="flex items-center gap-3 mt-1.5 text-[11px] text-slate-400">
+            <span>PIN: <strong id="currentPinMasked" class="font-mono text-slate-200 tracking-wider">••••</strong></span>
+            <button type="button" onclick="toggleCurrentPinVisibility('${user.pin}')" class="text-amber-400 hover:underline text-[10.5px] cursor-pointer">Show PIN</button>
+            <span class="text-slate-600">•</span>
+            <span class="text-emerald-400 font-semibold flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Active Session
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="md:max-w-md bg-slate-950/40 p-3.5 rounded-xl border border-slate-700/60">
+        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Your Active Permissions</p>
+        <div class="flex flex-wrap gap-1.5">
+          ${allowedBadges}
+        </div>
+      </div>
+    </div>
+  `;
+};
+
+window.toggleCurrentPinVisibility = function (pin) {
+  const el = $('#currentPinMasked');
+  if (!el) return;
+  if (el.textContent === '••••') {
+    el.textContent = pin;
+  } else {
+    el.textContent = '••••';
+  }
+};
+
+window.renderAdminUsersTable = function (filterQuery = '') {
+  const tbody = $('#adminUsersTableBody');
+  const countBadge = $('#adminUsersCountBadge');
+  if (!tbody) return;
+
+  const users = AdminState.adminUsers || [];
+  const query = filterQuery.toLowerCase().trim();
+
+  const filtered = users.filter(u => {
+    if (!query) return true;
+    return (u.name && u.name.toLowerCase().includes(query)) ||
+           (u.email && u.email.toLowerCase().includes(query)) ||
+           (u.role && u.role.toLowerCase().includes(query));
+  });
+
+  if (countBadge) {
+    countBadge.textContent = `${users.length} ${users.length === 1 ? 'User' : 'Users'}`;
+  }
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" class="text-center py-8 text-slate-400">
+          No admin users found matching "${filterQuery}".
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(u => {
+    const isSuper = !!u.isSuperAdmin;
+    const perms = Array.isArray(u.permissions) ? u.permissions : [];
+
+    const permsHtml = isSuper
+      ? `<span class="bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded text-[10.5px] border border-amber-200">👑 Full Access (All 12 Modules)</span>`
+      : perms.map(p => {
+          const mod = ALL_ADMIN_MODULES.find(m => m.id === p);
+          return mod ? `<span class="inline-block bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-[10px] font-medium mr-1 mb-1 border border-slate-200">${mod.icon} ${mod.label}</span>` : '';
+        }).join('');
+
+    return `
+      <tr class="hover:bg-slate-50/80 transition">
+        <td class="py-3 px-4">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-full bg-slate-900 text-white flex items-center justify-center p-0.5 overflow-hidden flex-shrink-0 border border-slate-200">
+              <img src="${u.avatar || 'images/logo-white.png'}" alt="${u.name}" class="w-full h-full object-cover rounded-full" />
+            </div>
+            <div>
+              <p class="font-bold text-slate-900 leading-tight">${u.name} ${isSuper ? '<span class="text-amber-500" title="Root Super Admin">★</span>' : ''}</p>
+              <p class="text-[11px] text-slate-500">${u.email}</p>
+            </div>
+          </div>
+        </td>
+
+        <td class="py-3 px-4 font-semibold text-slate-800">
+          <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold ${isSuper ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-blue-50 text-blue-800 border border-blue-200'}">
+            ${u.role || 'Staff'}
+          </span>
+        </td>
+
+        <td class="py-3 px-4">
+          <span class="font-mono bg-slate-100 text-slate-800 px-2 py-1 rounded text-xs tracking-widest font-bold border border-slate-200">${u.pin}</span>
+        </td>
+
+        <td class="py-3 px-4 max-w-xs">
+          <div class="flex flex-wrap items-center">
+            ${permsHtml || '<span class="text-slate-400 italic">No modules granted</span>'}
+          </div>
+        </td>
+
+        <td class="py-3 px-4">
+          ${u.active !== false 
+            ? '<span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Active</span>'
+            : '<span class="inline-flex items-center gap-1 text-[11px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">Inactive</span>'
+          }
+        </td>
+
+        <td class="py-3 px-4 text-right">
+          <div class="flex items-center justify-end gap-1.5">
+            <button 
+              type="button" 
+              onclick="openAdminUserModal('${u.id}')" 
+              class="p-1.5 text-slate-600 hover:text-black hover:bg-slate-100 rounded-lg transition cursor-pointer" 
+              title="Edit User & Permissions">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg>
+            </button>
+            ${!isSuper ? `
+              <button 
+                type="button" 
+                onclick="deleteAdminUser('${u.id}')" 
+                class="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition cursor-pointer" 
+                title="Delete User">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+              </button>
+            ` : ''}
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+};
+
+window.filterAdminUsersTable = function () {
+  const input = $('#adminUserSearchInput');
+  const query = input ? input.value : '';
+  renderAdminUsersTable(query);
+};
+
+window.openAdminUserModal = function (userId = '') {
+  const modal = $('#adminUserModal');
+  if (!modal) return;
+
+  const users = AdminState.adminUsers || [];
+  const user = userId ? users.find(u => u.id === userId) : null;
+
+  const titleEl = $('#adminUserModalTitle');
+  const editIdEl = $('#adminUserEditId');
+  const nameInput = $('#adminUserNameInput');
+  const emailInput = $('#adminUserEmailInput');
+  const roleInput = $('#adminUserRoleInput');
+  const pinInput = $('#adminUserPinInput');
+  const avatarInput = $('#adminUserAvatarInput');
+  const activeToggle = $('#adminUserActiveToggle');
+
+  if (user) {
+    if (titleEl) titleEl.textContent = `Edit Admin User: ${user.name}`;
+    if (editIdEl) editIdEl.value = user.id;
+    if (nameInput) nameInput.value = user.name || '';
+    if (emailInput) emailInput.value = user.email || '';
+    if (roleInput) roleInput.value = user.role || '';
+    if (pinInput) pinInput.value = user.pin || '';
+    if (avatarInput) avatarInput.value = (user.avatar && !user.avatar.startsWith('data:')) ? user.avatar : '';
+    if (activeToggle) activeToggle.checked = user.active !== false;
+
+    // Check permissions
+    const perms = Array.isArray(user.permissions) ? user.permissions : [];
+    ALL_ADMIN_MODULES.forEach(mod => {
+      const cb = $(`#perm_${mod.id}`);
+      if (cb) {
+        cb.checked = user.isSuperAdmin || perms.includes(mod.id);
+        cb.disabled = !!user.isSuperAdmin; // Super admin always has full access
+      }
+    });
+  } else {
+    if (titleEl) titleEl.textContent = 'Add New Admin User';
+    if (editIdEl) editIdEl.value = '';
+    if (nameInput) nameInput.value = '';
+    if (emailInput) emailInput.value = '';
+    if (roleInput) roleInput.value = 'Order Specialist';
+    if (pinInput) pinInput.value = '';
+    if (avatarInput) avatarInput.value = '';
+    if (activeToggle) activeToggle.checked = true;
+
+    // Default template: Orders
+    applyRoleTemplate('orders');
+    ALL_ADMIN_MODULES.forEach(mod => {
+      const cb = $(`#perm_${mod.id}`);
+      if (cb) cb.disabled = false;
+    });
+  }
+
+  modal.classList.add('active');
+};
+
+window.closeAdminUserModal = function () {
+  const modal = $('#adminUserModal');
+  if (modal) modal.classList.remove('active');
+};
+
+window.applyRoleTemplate = function (template) {
+  const map = {
+    superadmin: ALL_ADMIN_MODULES.map(m => m.id),
+    orders: ['dashboard', 'orders', 'customers'],
+    products: ['dashboard', 'products', 'collections', 'lookbook'],
+    marketing: ['banners', 'collections', 'lookbook', 'ticker', 'headerfooter', 'coupons'],
+    none: []
+  };
+
+  const allowed = map[template] || [];
+  ALL_ADMIN_MODULES.forEach(mod => {
+    const cb = $(`#perm_${mod.id}`);
+    if (cb && !cb.disabled) {
+      cb.checked = allowed.includes(mod.id);
+    }
+  });
+};
+
+window.handleSaveAdminUser = async function (e) {
+  if (e && e.preventDefault) e.preventDefault();
+
+  const saveBtn = $('#saveAdminUserBtn');
+  const origHtml = saveBtn ? saveBtn.innerHTML : 'Save Admin User';
+  if (saveBtn) {
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = `<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Saving...`;
+  }
+
+  try {
+    const editId = $('#adminUserEditId') ? $('#adminUserEditId').value.trim() : '';
+    const name = $('#adminUserNameInput') ? $('#adminUserNameInput').value.trim() : '';
+    const email = $('#adminUserEmailInput') ? $('#adminUserEmailInput').value.trim() : '';
+    const role = $('#adminUserRoleInput') ? $('#adminUserRoleInput').value.trim() : 'Staff';
+    const pin = $('#adminUserPinInput') ? $('#adminUserPinInput').value.trim() : '';
+    const avatar = $('#adminUserAvatarInput') ? $('#adminUserAvatarInput').value.trim() : '';
+    const active = $('#adminUserActiveToggle') ? $('#adminUserActiveToggle').checked : true;
+
+    if (!name || !email || !pin) {
+      alert('Please fill in all required fields (Name, Email, PIN).');
+      return;
+    }
+
+    if (pin.length < 4) {
+      alert('Security PIN must be at least 4 digits.');
+      return;
+    }
+
+    // Collect permissions
+    const permissions = [];
+    ALL_ADMIN_MODULES.forEach(mod => {
+      const cb = $(`#perm_${mod.id}`);
+      if (cb && cb.checked) {
+        permissions.push(mod.id);
+      }
+    });
+
+    const users = AdminState.adminUsers || [];
+
+    if (editId) {
+      // Editing existing user
+      const userIdx = users.findIndex(u => u.id === editId);
+      if (userIdx > -1) {
+        const existing = users[userIdx];
+        users[userIdx] = {
+          ...existing,
+          name,
+          email,
+          role,
+          pin,
+          avatar: avatar || existing.avatar || 'images/logo-white.png',
+          active,
+          permissions: existing.isSuperAdmin ? ALL_ADMIN_MODULES.map(m => m.id) : permissions,
+          updatedAt: new Date().toISOString()
+        };
+
+        // If Super Admin was updated, also synchronize AdminState.adminProfile
+        if (existing.isSuperAdmin) {
+          AdminState.adminProfile = {
+            ...AdminState.adminProfile,
+            name,
+            email,
+            role,
+            pin,
+            avatar: avatar || existing.avatar
+          };
+          localStorage.setItem('luxos_admin_profile', JSON.stringify(AdminState.adminProfile));
+        }
+
+        // If currently logged-in user was updated
+        if (AdminState.currentUser && AdminState.currentUser.id === editId) {
+          AdminState.currentUser = users[userIdx];
+          applyUserPermissions(users[userIdx]);
+        }
+      }
+    } else {
+      // Check for PIN conflict
+      if (users.some(u => u.pin === pin)) {
+        if (!confirm('Notice: This PIN is already used by another user. Continue anyway?')) {
+          return;
+        }
+      }
+
+      // Create new user
+      const newUser = {
+        id: 'user_' + Date.now(),
+        name,
+        email,
+        role: role || 'Staff',
+        pin,
+        avatar: avatar || 'images/logo-white.png',
+        isSuperAdmin: false,
+        active,
+        permissions,
+        createdAt: new Date().toISOString()
+      };
+      users.push(newUser);
+    }
+
+    AdminState.adminUsers = users;
+    localStorage.setItem('luxos_admin_users', JSON.stringify(users));
+
+    // Supabase Cloud Sync
+    if (typeof LuxosCloud !== 'undefined' && typeof LuxosCloud.saveConfig === 'function') {
+      try {
+        await LuxosCloud.saveConfig('admin_users', users);
+      } catch (err) {
+        console.warn('[LuxosCloud] Users sync warning:', err);
+      }
+    }
+
+    closeAdminUserModal();
+    renderProfileSettingsManager();
+    showAdminToast('Admin user & permissions saved successfully!');
+  } catch (err) {
+    console.error('Error saving user:', err);
+    alert('Failed to save user: ' + err.message);
+  } finally {
+    if (saveBtn) {
+      saveBtn.disabled = false;
+      saveBtn.innerHTML = origHtml;
+    }
+  }
+};
+
+window.deleteAdminUser = async function (userId) {
+  const users = AdminState.adminUsers || [];
+  const user = users.find(u => u.id === userId);
+  if (!user) return;
+
+  if (user.isSuperAdmin) {
+    alert('Super Admin root account cannot be deleted.');
+    return;
+  }
+
+  if (!confirm(`Are you sure you want to delete user "${user.name}" (${user.role})? This user will lose access to the admin portal.`)) {
+    return;
+  }
+
+  AdminState.adminUsers = users.filter(u => u.id !== userId);
+  localStorage.setItem('luxos_admin_users', JSON.stringify(AdminState.adminUsers));
+
+  if (typeof LuxosCloud !== 'undefined' && typeof LuxosCloud.saveConfig === 'function') {
+    try {
+      await LuxosCloud.saveConfig('admin_users', AdminState.adminUsers);
+    } catch (e) {
+      console.warn('Cloud sync error deleting user:', e);
+    }
+  }
+
+  renderProfileSettingsManager();
+  showAdminToast(`User "${user.name}" deleted.`);
+};
