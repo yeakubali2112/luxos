@@ -271,14 +271,92 @@
           <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg>
         </a>
 
-        <!-- Admin Profile -->
-        <div class="flex items-center gap-2 pl-2 sm:pl-3 border-l border-slate-200">
-          <div class="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center p-1.5 overflow-hidden flex-shrink-0">
-            <img src="images/logo-white.png" alt="LX" class="w-full h-auto object-contain" />
-          </div>
-          <div class="hidden sm:block text-left">
-            <p class="text-xs font-semibold text-slate-800 leading-tight">Luxos Admin</p>
-            <p class="text-[10px] text-emerald-600 font-medium">Store Active</p>
+        <!-- Admin Profile with Dropdown -->
+        <div class="relative pl-2 sm:pl-3 border-l border-slate-200" id="adminProfileWrapper">
+          <button 
+            type="button" 
+            id="adminProfileTrigger" 
+            onclick="toggleAdminProfileMenu(event)" 
+            class="flex items-center gap-2 p-1.5 -mr-1.5 rounded-xl hover:bg-slate-100 transition cursor-pointer select-none group focus:outline-none"
+            aria-expanded="false"
+            aria-haspopup="true">
+            <div class="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center p-1 overflow-hidden flex-shrink-0 shadow-2xs border border-slate-200">
+              <img id="headerAdminAvatar" src="images/logo-white.png" alt="LX" class="w-full h-full object-contain" />
+            </div>
+            <div class="hidden sm:block text-left">
+              <p id="headerAdminName" class="text-xs font-semibold text-slate-800 leading-tight">Luxos Admin</p>
+              <p id="headerAdminStatus" class="text-[10px] text-emerald-600 font-medium flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Store Active</span>
+              </p>
+            </div>
+            <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-700 transition ml-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+            </svg>
+          </button>
+
+          <!-- Dropdown Menu -->
+          <div 
+            id="adminProfileDropdown" 
+            class="hidden absolute right-0 top-full mt-2 w-64 bg-white rounded-2xl shadow-2xl border border-slate-200 z-50 py-2 divide-y divide-slate-100 transition-all origin-top-right">
+            <!-- Profile Info Card -->
+            <div class="px-4 py-3 flex items-center gap-3 bg-slate-50/70">
+              <div class="w-10 h-10 rounded-full bg-slate-900 text-white flex items-center justify-center p-1 overflow-hidden flex-shrink-0 border border-slate-200 shadow-2xs">
+                <img id="menuAdminAvatar" src="images/logo-white.png" alt="LX" class="w-full h-full object-contain" />
+              </div>
+              <div class="min-w-0 flex-1">
+                <p id="menuAdminName" class="text-xs font-bold text-slate-900 truncate">Luxos Admin</p>
+                <p id="menuAdminEmail" class="text-[11px] text-slate-500 truncate">admin@luxos.com</p>
+                <span id="menuAdminRole" class="inline-flex items-center gap-1 mt-0.5 text-[9.5px] font-bold uppercase tracking-wider text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded">Super Admin</span>
+              </div>
+            </div>
+
+            <!-- Menu Actions -->
+            <div class="py-1 text-xs">
+              <button 
+                type="button" 
+                onclick="openEditAdminProfileModal()" 
+                class="w-full px-4 py-2 text-left font-medium text-slate-700 hover:bg-slate-100 hover:text-black flex items-center gap-2.5 transition cursor-pointer">
+                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                </svg>
+                <span>Edit Profile</span>
+              </button>
+
+              <button 
+                type="button" 
+                onclick="switchTab('settings'); closeAdminProfileMenu();" 
+                class="w-full px-4 py-2 text-left font-medium text-slate-700 hover:bg-slate-100 hover:text-black flex items-center gap-2.5 transition cursor-pointer">
+                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span>Store Settings</span>
+              </button>
+
+              <a 
+                href="index.html" 
+                target="_blank" 
+                class="w-full px-4 py-2 text-left font-medium text-slate-700 hover:bg-slate-100 hover:text-black flex items-center gap-2.5 transition">
+                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                </svg>
+                <span>View Storefront</span>
+              </a>
+            </div>
+
+            <!-- Logout Option -->
+            <div class="py-1 text-xs">
+              <button 
+                type="button" 
+                onclick="handleAdminLogout()" 
+                class="w-full px-4 py-2 text-left font-semibold text-rose-600 hover:bg-rose-50 flex items-center gap-2.5 transition cursor-pointer">
+                <svg class="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+                </svg>
+                <span>Log Out</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -2685,6 +2763,111 @@
           <span>Delete</span>
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- =======================================================================
+       Edit Admin Profile Modal
+       ======================================================================= -->
+  <div id="editAdminProfileModal" class="modal-overlay fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-3 sm:p-4 backdrop-blur-sm">
+    <div class="modal-content bg-white w-full max-w-md rounded-2xl shadow-2xl p-6 relative max-h-[92vh] overflow-y-auto">
+      <button type="button" onclick="closeEditAdminProfileModal()" class="absolute top-4 right-4 text-slate-400 hover:text-black p-1">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+      </button>
+
+      <div class="flex items-center gap-3 mb-5 border-b border-slate-100 pb-4">
+        <div class="w-10 h-10 rounded-full bg-slate-900 text-white flex items-center justify-center p-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-slate-900 font-heading">Edit Admin Profile</h3>
+          <p class="text-xs text-slate-500">Update your account name, avatar photo, and security PIN</p>
+        </div>
+      </div>
+
+      <form onsubmit="handleSaveAdminProfile(event)" class="space-y-4 text-xs">
+        <!-- Profile Picture Upload & Preview -->
+        <div>
+          <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-2">Profile Avatar Photo</label>
+          <div class="flex items-center gap-4">
+            <div class="w-16 h-16 rounded-full overflow-hidden bg-slate-100 border-2 border-slate-200 p-0.5 relative shadow-xs flex-shrink-0">
+              <img id="adminProfileModalAvatarPreview" src="images/logo-white.png" class="w-full h-full object-cover rounded-full" />
+            </div>
+            <div class="flex-1 space-y-1.5">
+              <input type="file" id="adminProfileFileInput" accept="image/*" class="hidden" onchange="handleAdminAvatarUpload(event)" />
+              <button type="button" onclick="$('#adminProfileFileInput').click()" class="bg-black hover:bg-slate-800 text-white px-3.5 py-2 rounded-lg font-semibold flex items-center gap-1.5 transition shadow-xs text-xs">
+                <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
+                <span>Upload New Photo</span>
+              </button>
+              <input id="adminProfilePhotoUrlInput" type="text" placeholder="Or paste image URL (https://...)" onchange="previewAdminProfileAvatar(this.value)" class="w-full border border-slate-300 rounded-lg p-2 text-xs focus:outline-none focus:border-black bg-white" />
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Admin Display Name *</label>
+          <input id="adminProfileNameInput" type="text" required placeholder="e.g. Luxos Admin or Your Name" class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:outline-none focus:border-black font-semibold" />
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Admin Role Title / Subtitle</label>
+          <input id="adminProfileRoleInput" type="text" placeholder="e.g. Super Admin or Store Active" class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:outline-none focus:border-black" />
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Email Address</label>
+            <input id="adminProfileEmailInput" type="email" placeholder="admin@luxos.com" class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:outline-none focus:border-black" />
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-700 uppercase tracking-wider mb-1">Security PIN (4-digits)</label>
+            <input id="adminProfilePinInput" type="password" maxlength="6" placeholder="1234 (default)" class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:outline-none focus:border-black tracking-widest font-mono" />
+          </div>
+        </div>
+
+        <div class="pt-3 flex justify-end gap-2.5 border-t border-slate-100">
+          <button type="button" onclick="closeEditAdminProfileModal()" class="px-4 py-2.5 border border-slate-300 rounded-xl hover:bg-slate-50 font-semibold text-slate-700 transition">Cancel</button>
+          <button id="saveAdminProfileBtn" type="submit" class="px-5 py-2.5 bg-black text-white rounded-xl hover:bg-slate-800 font-semibold shadow-md transition flex items-center justify-center gap-2">Save Profile</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- =======================================================================
+       Admin Lock Screen / Session Locked Overlay
+       ======================================================================= -->
+  <div id="adminLockScreen" class="fixed inset-0 bg-slate-950/95 z-[999] flex items-center justify-center p-4 backdrop-blur-md hidden animate-in fade-in duration-200">
+    <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl p-7 text-center border border-slate-100 relative">
+      <div class="w-18 h-18 rounded-full bg-slate-900 text-white flex items-center justify-center p-1.5 mx-auto mb-3 shadow-lg border-2 border-amber-400/40">
+        <img id="lockScreenAvatar" src="images/logo-white.png" alt="LX" class="w-full h-full object-contain rounded-full" />
+      </div>
+
+      <h3 id="lockScreenAdminName" class="text-lg font-bold text-slate-900 font-heading">Luxos Admin</h3>
+      <p class="text-xs text-slate-500 mb-5">Admin session locked for security</p>
+
+      <form onsubmit="handleUnlockAdmin(event)" class="space-y-3.5">
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-600 uppercase tracking-wider mb-1">Enter PIN to Unlock</label>
+          <input 
+            id="adminUnlockPinInput" 
+            type="password" 
+            maxlength="6" 
+            required 
+            placeholder="••••" 
+            autofocus 
+            class="w-full text-center text-lg tracking-[0.4em] font-mono border-2 border-slate-300 rounded-xl p-2.5 focus:outline-none focus:border-black" />
+          <p id="adminUnlockError" class="text-[11px] text-rose-600 mt-1 hidden font-medium">Incorrect PIN. Try default: 1234</p>
+        </div>
+
+        <button type="submit" class="w-full py-3 bg-black hover:bg-slate-800 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-lg transition cursor-pointer">
+          Unlock Dashboard
+        </button>
+
+        <a href="index.html" class="inline-block text-xs font-semibold text-slate-500 hover:text-black pt-1">
+          ← Back to Storefront
+        </a>
+      </form>
     </div>
   </div>
 

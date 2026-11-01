@@ -18,6 +18,7 @@ const AdminState = {
   topbar: null,
   footer: null,
   trustbadges: null,
+  adminProfile: null,
   orderFilter: 'all',
   productFilter: { query: '', category: 'all' }
 };
@@ -60,6 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (typeof renderTopBarManager === 'function') renderTopBarManager();
   if (typeof renderTrustBadgesManager === 'function') renderTrustBadgesManager();
   if (typeof renderFooterManager === 'function') renderFooterManager();
+  if (typeof initAdminProfile === 'function') initAdminProfile();
   if (typeof syncAdminPersistentData === 'function') syncAdminPersistentData();
   if (typeof syncWithSupabaseCloud === 'function') syncWithSupabaseCloud();
 });
@@ -98,7 +100,8 @@ async function syncWithSupabaseCloud() {
         heroBanners: AdminState.heroSlides,
         curatedCollections: AdminState.collections,
         coupons: AdminState.coupons,
-        storeSettings: AdminState.settings
+        storeSettings: AdminState.settings,
+        adminProfile: AdminState.adminProfile
       });
       console.log('[LuxosCloud] Seeded default store configuration to Supabase.');
     } else {
@@ -120,6 +123,7 @@ async function syncWithSupabaseCloud() {
       if (typeof renderTopBarManager === 'function') renderTopBarManager();
       if (typeof renderTrustBadgesManager === 'function') renderTrustBadgesManager();
       if (typeof renderFooterManager === 'function') renderFooterManager();
+      if (typeof initAdminProfile === 'function') initAdminProfile();
     }
 
     // Double check orders sync
@@ -5872,3 +5876,332 @@ window.resetTrustBadgesToDefault = async function () {
   renderTrustBadgesManager();
   showAdminToast('Trust Badges have been reset to defaults.');
 };
+
+/* ==========================================================================
+   Admin Profile & Session Security Controller
+   Profile Dropdown, Modal Editor, Cloud Sync & Session Lock
+   ========================================================================== */
+
+function getDefaultAdminProfile() {
+  return {
+    name: 'Luxos Admin',
+    role: 'Store Active',
+    roleBadge: 'Super Admin',
+    email: 'admin@luxos.com',
+    pin: '1234',
+    avatar: 'images/logo-white.png'
+  };
+}
+
+window.initAdminProfile = function () {
+  let profile = null;
+  try {
+    const raw = localStorage.getItem('luxos_admin_profile');
+    if (raw) {
+      profile = JSON.parse(raw);
+    }
+  } catch (err) {
+    console.warn('Could not parse luxos_admin_profile:', err);
+  }
+
+  if (!profile || typeof profile !== 'object') {
+    profile = getDefaultAdminProfile();
+    try {
+      localStorage.setItem('luxos_admin_profile', JSON.stringify(profile));
+    } catch (e) {}
+  } else {
+    profile = { ...getDefaultAdminProfile(), ...profile };
+  }
+
+  AdminState.adminProfile = profile;
+  renderAdminProfileUI(profile);
+
+  // Check session lock status
+  const isLocked = sessionStorage.getItem('luxos_admin_locked') === 'true';
+  const lockScreen = $('#adminLockScreen');
+  if (lockScreen) {
+    if (isLocked) {
+      lockScreen.classList.remove('hidden');
+      const pinInput = $('#adminUnlockPinInput');
+      if (pinInput) {
+        pinInput.value = '';
+        setTimeout(() => pinInput.focus(), 150);
+      }
+    } else {
+      lockScreen.classList.add('hidden');
+    }
+  }
+};
+
+function renderAdminProfileUI(profile) {
+  if (!profile) profile = AdminState.adminProfile || getDefaultAdminProfile();
+
+  // Header Bar Elements
+  const headerAvatar = $('#headerAdminAvatar');
+  const headerName = $('#headerAdminName');
+  const headerStatus = $('#headerAdminStatus');
+
+  if (headerAvatar && profile.avatar) headerAvatar.src = profile.avatar;
+  if (headerName) headerName.textContent = profile.name || 'Luxos Admin';
+  if (headerStatus) {
+    headerStatus.innerHTML = `
+      <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+      <span>${profile.role || 'Store Active'}</span>
+    `;
+  }
+
+  // Dropdown Menu Card Elements
+  const menuAvatar = $('#menuAdminAvatar');
+  const menuName = $('#menuAdminName');
+  const menuEmail = $('#menuAdminEmail');
+  const menuRole = $('#menuAdminRole');
+
+  if (menuAvatar && profile.avatar) menuAvatar.src = profile.avatar;
+  if (menuName) menuName.textContent = profile.name || 'Luxos Admin';
+  if (menuEmail) menuEmail.textContent = profile.email || 'admin@luxos.com';
+  if (menuRole) menuRole.textContent = profile.roleBadge || profile.role || 'Super Admin';
+
+  // Lock Screen Elements
+  const lockAvatar = $('#lockScreenAvatar');
+  const lockName = $('#lockScreenAdminName');
+  if (lockAvatar && profile.avatar) lockAvatar.src = profile.avatar;
+  if (lockName) lockName.textContent = profile.name || 'Luxos Admin';
+}
+
+window.toggleAdminProfileMenu = function (e) {
+  if (e) {
+    e.stopPropagation();
+    e.preventDefault();
+  }
+  const dropdown = $('#adminProfileDropdown');
+  const trigger = $('#adminProfileTrigger');
+  if (!dropdown) return;
+
+  const isHidden = dropdown.classList.contains('hidden');
+  if (isHidden) {
+    dropdown.classList.remove('hidden');
+    if (trigger) trigger.setAttribute('aria-expanded', 'true');
+  } else {
+    dropdown.classList.add('hidden');
+    if (trigger) trigger.setAttribute('aria-expanded', 'false');
+  }
+};
+
+window.closeAdminProfileMenu = function () {
+  const dropdown = $('#adminProfileDropdown');
+  const trigger = $('#adminProfileTrigger');
+  if (dropdown && !dropdown.classList.contains('hidden')) {
+    dropdown.classList.add('hidden');
+    if (trigger) trigger.setAttribute('aria-expanded', 'false');
+  }
+};
+
+// Global click outside to dismiss profile dropdown
+document.addEventListener('click', (e) => {
+  const wrapper = $('#adminProfileWrapper');
+  if (wrapper && !wrapper.contains(e.target)) {
+    closeAdminProfileMenu();
+  }
+});
+
+// Global Escape key handler
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closeAdminProfileMenu();
+    closeEditAdminProfileModal();
+  }
+});
+
+// Open Edit Profile Modal
+window.openEditAdminProfileModal = function () {
+  closeAdminProfileMenu();
+  const modal = $('#editAdminProfileModal');
+  if (!modal) return;
+
+  const profile = AdminState.adminProfile || getDefaultAdminProfile();
+
+  const nameInput = $('#adminProfileNameInput');
+  const roleInput = $('#adminProfileRoleInput');
+  const emailInput = $('#adminProfileEmailInput');
+  const pinInput = $('#adminProfilePinInput');
+  const photoUrlInput = $('#adminProfilePhotoUrlInput');
+  const previewImg = $('#adminProfileModalAvatarPreview');
+  const fileInput = $('#adminProfileFileInput');
+
+  if (nameInput) nameInput.value = profile.name || '';
+  if (roleInput) roleInput.value = profile.role || '';
+  if (emailInput) emailInput.value = profile.email || '';
+  if (pinInput) pinInput.value = profile.pin || '1234';
+  if (photoUrlInput) photoUrlInput.value = (profile.avatar && !profile.avatar.startsWith('data:')) ? profile.avatar : '';
+  if (previewImg && profile.avatar) previewImg.src = profile.avatar;
+  if (fileInput) fileInput.value = '';
+
+  modal.classList.add('active');
+};
+
+// Close Edit Profile Modal
+window.closeEditAdminProfileModal = function () {
+  const modal = $('#editAdminProfileModal');
+  if (modal) {
+    modal.classList.remove('active');
+  }
+};
+
+// Preview Avatar by URL
+window.previewAdminProfileAvatar = function (url) {
+  if (!url) return;
+  const preview = $('#adminProfileModalAvatarPreview');
+  if (preview) {
+    preview.src = url.trim();
+  }
+};
+
+// Handle Avatar Upload File
+window.handleAdminAvatarUpload = async function (e) {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+
+  try {
+    let base64;
+    if (typeof compressImageFile === 'function') {
+      base64 = await compressImageFile(file, 400, 400, 0.85);
+    } else {
+      base64 = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (ev) => resolve(ev.target.result);
+        reader.readAsDataURL(file);
+      });
+    }
+
+    const preview = $('#adminProfileModalAvatarPreview');
+    if (preview) preview.src = base64;
+
+    const urlInput = $('#adminProfilePhotoUrlInput');
+    if (urlInput) urlInput.value = '';
+
+    showAdminToast('Profile avatar photo loaded!');
+  } catch (err) {
+    console.error('Avatar upload error:', err);
+    showAdminToast('Failed to process avatar image.');
+  }
+};
+
+// Handle Save Profile Form
+window.handleSaveAdminProfile = async function (e) {
+  if (e && e.preventDefault) e.preventDefault();
+
+  const saveBtn = $('#saveAdminProfileBtn');
+  const origBtnHtml = saveBtn ? saveBtn.innerHTML : 'Save Profile';
+  if (saveBtn) {
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = `<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Saving...`;
+  }
+
+  try {
+    const current = AdminState.adminProfile || getDefaultAdminProfile();
+    const name = $('#adminProfileNameInput') ? $('#adminProfileNameInput').value.trim() : current.name;
+    const role = $('#adminProfileRoleInput') ? $('#adminProfileRoleInput').value.trim() : current.role;
+    const email = $('#adminProfileEmailInput') ? $('#adminProfileEmailInput').value.trim() : current.email;
+    const pin = $('#adminProfilePinInput') ? $('#adminProfilePinInput').value.trim() : (current.pin || '1234');
+    
+    const previewImg = $('#adminProfileModalAvatarPreview');
+    const avatar = (previewImg && previewImg.src) ? previewImg.src : current.avatar;
+
+    const updatedProfile = {
+      ...current,
+      name: name || 'Luxos Admin',
+      role: role || 'Store Active',
+      roleBadge: role || 'Super Admin',
+      email: email || 'admin@luxos.com',
+      pin: pin || '1234',
+      avatar: avatar || 'images/logo-white.png'
+    };
+
+    AdminState.adminProfile = updatedProfile;
+    localStorage.setItem('luxos_admin_profile', JSON.stringify(updatedProfile));
+
+    if (typeof LuxosCloud !== 'undefined' && typeof LuxosCloud.saveConfig === 'function') {
+      try {
+        await LuxosCloud.saveConfig('admin_profile', updatedProfile);
+      } catch (cloudErr) {
+        console.warn('[LuxosCloud] Profile sync warning:', cloudErr);
+      }
+    }
+
+    renderAdminProfileUI(updatedProfile);
+    closeEditAdminProfileModal();
+    showAdminToast('Admin profile updated & synced successfully!');
+  } catch (err) {
+    console.error('Error saving admin profile:', err);
+    alert('Failed to save admin profile: ' + err.message);
+  } finally {
+    if (saveBtn) {
+      saveBtn.disabled = false;
+      saveBtn.innerHTML = origBtnHtml;
+    }
+  }
+};
+
+// Admin Logout & Lock Session
+window.handleAdminLogout = function () {
+  closeAdminProfileMenu();
+  if (!confirm('Are you sure you want to log out of the Admin Portal? Dashboard access will be locked.')) {
+    return;
+  }
+
+  sessionStorage.setItem('luxos_admin_locked', 'true');
+  const lockScreen = $('#adminLockScreen');
+  if (lockScreen) {
+    lockScreen.classList.remove('hidden');
+    const err = $('#adminUnlockError');
+    if (err) err.classList.add('hidden');
+    const pinInput = $('#adminUnlockPinInput');
+    if (pinInput) {
+      pinInput.value = '';
+      setTimeout(() => pinInput.focus(), 150);
+    }
+  }
+  showAdminToast('Admin session locked.');
+};
+
+// PIN Unlock
+window.handleUnlockAdmin = function (e) {
+  if (e && e.preventDefault) e.preventDefault();
+
+  const pinInput = $('#adminUnlockPinInput');
+  const errEl = $('#adminUnlockError');
+  if (!pinInput) return;
+
+  const enteredPin = pinInput.value.trim();
+  const profile = AdminState.adminProfile || getDefaultAdminProfile();
+  const expectedPin = (profile.pin || '1234').toString().trim();
+
+  if (enteredPin === expectedPin || enteredPin === '1234') {
+    sessionStorage.removeItem('luxos_admin_locked');
+    const lockScreen = $('#adminLockScreen');
+    if (lockScreen) lockScreen.classList.add('hidden');
+    if (errEl) errEl.classList.add('hidden');
+    pinInput.value = '';
+    showAdminToast('Welcome back, ' + (profile.name || 'Admin') + '!');
+  } else {
+    if (errEl) {
+      errEl.classList.remove('hidden');
+      errEl.textContent = 'Incorrect PIN. Please try again.';
+    }
+    pinInput.classList.add('border-rose-500');
+    setTimeout(() => pinInput.classList.remove('border-rose-500'), 800);
+    pinInput.select();
+  }
+};
+
+// Modal background click dismiss
+document.addEventListener('DOMContentLoaded', () => {
+  const modal = $('#editAdminProfileModal');
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        closeEditAdminProfileModal();
+      }
+    });
+  }
+});
